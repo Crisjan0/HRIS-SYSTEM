@@ -33,7 +33,7 @@ class EmployeeSeeder extends Seeder
                 'lastname' => 'Director',
                 'firstname' => 'User',
                 'middlename' => 'D',
-                'role' => 'director',
+                'role' => 'regionaldirector',
             ],
             [
                 'email' => 'employee@example.com',
@@ -41,6 +41,13 @@ class EmployeeSeeder extends Seeder
                 'firstname' => 'User',
                 'middlename' => 'E',
                 'role' => 'employee',
+            ],
+            [
+                'email' => 'chief@example.com',
+                'lastname' => 'Chief',
+                'firstname' => 'User',
+                'middlename' => 'C',
+                'role' => 'chief',
             ],
         ];
 
