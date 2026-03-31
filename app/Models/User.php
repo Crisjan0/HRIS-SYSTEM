@@ -22,7 +22,6 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role',
     ];
 
     /**
@@ -51,5 +50,26 @@ class User extends Authenticatable
     public function employee()
     {
         return $this->hasOne(Employee::class);
+    }
+
+    /**
+     * Get the user's role.
+     * Default to 'user' if no employee record exists.
+     */
+    public function getRoleAttribute(): string
+    {
+        return $this->employee?->role ?? 'user';
+    }
+
+    /**
+     * Check if the user has a specific role.
+     */
+    public function hasRole(string|array $roles): bool
+    {
+        if (is_array($roles)) {
+            return in_array($this->role, $roles);
+        }
+
+        return $this->role === $roles;
     }
 }

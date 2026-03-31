@@ -45,15 +45,9 @@ class EmployeeController extends Controller
             'user_id' => 'nullable|exists:users,id|unique:employees,user_id',
         ]);
 
-        DB::transaction(function () use ($validated) {
-            $employee = Employee::create($validated);
+        Employee::create($validated);
 
-            if ($employee->user_id) {
-                User::find($employee->user_id)->update(['role' => $employee->role]);
-            }
-        });
-
-        return redirect()->route('employees.index')->with('success', 'Employee created and user role synced successfully.');
+        return redirect()->route('employees.index')->with('success', 'Employee created successfully.');
     }
 
     /**
@@ -90,22 +84,9 @@ class EmployeeController extends Controller
             'user_id' => 'nullable|exists:users,id|unique:employees,user_id,' . $employee->id,
         ]);
 
-        DB::transaction(function () use ($validated, $employee) {
-            $oldUserId = $employee->user_id;
-            $employee->update($validated);
+        $employee->update($validated);
 
-            // If user was changed or unlinked, reset old user to basic 'user' role
-            if ($oldUserId && $oldUserId != $employee->user_id) {
-                User::find($oldUserId)->update(['role' => 'user']);
-            }
-
-            // Sync new linked user to employee role
-            if ($employee->user_id) {
-                User::find($employee->user_id)->update(['role' => $employee->role]);
-            }
-        });
-
-        return redirect()->route('employees.index')->with('success', 'Employee updated and user role synced successfully.');
+        return redirect()->route('employees.index')->with('success', 'Employee updated successfully.');
     }
 
     /**
