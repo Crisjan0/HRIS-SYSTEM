@@ -77,9 +77,13 @@ class PdsController extends Controller
         // Validation for simple 1:1 pieces
         $validated = $request->validate([
             // Personal Info
+            'personal.surname' => 'nullable|string',
+            'personal.firstname' => 'nullable|string',
+            'personal.middlename' => 'nullable|string',
+            'personal.name_extension' => 'nullable|string',
             'personal.date_of_birth' => 'nullable|date',
             'personal.place_of_birth' => 'nullable|string',
-            'personal.sex' => 'nullable|in:Male,Female',
+            'personal.sex' => 'nullable|string',
             'personal.civil_status' => 'nullable|string',
             'personal.height_m' => 'nullable|string',
             'personal.weight_kg' => 'nullable|string',
@@ -90,18 +94,29 @@ class PdsController extends Controller
             'personal.sss_no' => 'nullable|string',
             'personal.tin_no' => 'nullable|string',
             'personal.agency_employee_no' => 'nullable|string',
+            'personal.umid_no' => 'nullable|string',
+            'personal.philsys_no' => 'nullable|string',
             'personal.citizenship' => 'nullable|string',
             'personal.citizenship_type' => 'nullable|string',
-            'personal.country' => 'nullable|string',
-            // Addresses ... (omitted some for brevity, but I will put them all)
+            'personal.citizenship_country' => 'nullable|string',
+            // Addresses
             'personal.res_house_no' => 'nullable|string',
             'personal.res_street' => 'nullable|string',
+            'personal.res_subdivision' => 'nullable|string',
             'personal.res_barangay' => 'nullable|string',
             'personal.res_city' => 'nullable|string',
+            'personal.res_province' => 'nullable|string',
+            'personal.res_zip_code' => 'nullable|string',
+
             'personal.perm_house_no' => 'nullable|string',
             'personal.perm_street' => 'nullable|string',
+            'personal.perm_subdivision' => 'nullable|string',
             'personal.perm_barangay' => 'nullable|string',
             'personal.perm_city' => 'nullable|string',
+            'personal.perm_province' => 'nullable|string',
+            'personal.perm_zip_code' => 'nullable|string',
+
+            'personal.telephone_no' => 'nullable|string',
             'personal.mobile_no' => 'nullable|string',
             'personal.email_address' => 'nullable|email',
 
@@ -111,25 +126,25 @@ class PdsController extends Controller
             'family.father_surname' => 'nullable|string',
             'family.mother_maiden_surname' => 'nullable|string',
             
-            // Multi-row handling
-            'children.*.fullname' => 'required_with:children.*.date_of_birth|string',
-            'children.*.date_of_birth' => 'required_with:children.*.fullname|date',
+            // Multi-row handling (All made nullable to allow partial saves)
+            'children.*.fullname' => 'nullable|string',
+            'children.*.date_of_birth' => 'nullable|date',
 
-            'education.*.level' => 'required|string',
-            'education.*.school_name' => 'required|string',
+            'education.*.level' => 'nullable|string',
+            'education.*.school_name' => 'nullable|string',
 
-            'eligibility.*.title' => 'required|string',
+            'eligibility.*.title' => 'nullable|string',
 
-            'work_experience.*.position_title' => 'required|string',
-            'work_experience.*.company' => 'required|string',
+            'work_experience.*.position_title' => 'nullable|string',
+            'work_experience.*.company' => 'nullable|string',
             
-            'training.*.title' => 'required|string',
+            'training.*.title' => 'nullable|string',
 
-            'others.*.type' => 'required|in:Skill,Distinction,Membership',
-            'others.*.description' => 'required|string',
+            'others.*.type' => 'nullable|in:Skill,Distinction,Membership',
+            'others.*.description' => 'nullable|string',
 
-            'references.*.name' => 'required|string',
-            'references.*.telephone_no' => 'required|string',
+            'references.*.name' => 'nullable|string',
+            'references.*.telephone_no' => 'nullable|string',
 
             // Questionnaire...
             'questionnaire' => 'nullable|array',
@@ -139,16 +154,28 @@ class PdsController extends Controller
 
         DB::transaction(function () use ($employee, $request) {
             // Update Personal
-            $employee->pdsPersonal()->updateOrCreate([], $request->input('personal', []));
+            $employee->pdsPersonal()->updateOrCreate(
+                ['employee_id' => $employee->id], 
+                $request->input('personal', [])
+            );
 
             // Update Family
-            $employee->pdsFamily()->updateOrCreate([], $request->input('family', []));
+            $employee->pdsFamily()->updateOrCreate(
+                ['employee_id' => $employee->id],
+                $request->input('family', [])
+            );
 
             // Update Questionnaire
-            $employee->pdsQuestionnaire()->updateOrCreate([], $request->input('questionnaire', []));
+            $employee->pdsQuestionnaire()->updateOrCreate(
+                ['employee_id' => $employee->id],
+                $request->input('questionnaire', [])
+            );
 
             // Update Gov ID
-            $employee->pdsGovId()->updateOrCreate([], $request->input('gov_id', []));
+            $employee->pdsGovId()->updateOrCreate(
+                ['employee_id' => $employee->id],
+                $request->input('gov_id', [])
+            );
 
             // Handle Children (Sync)
             $employee->pdsChildren()->delete();

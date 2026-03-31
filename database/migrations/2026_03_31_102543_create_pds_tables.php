@@ -11,26 +11,39 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // 1. Personal Information (1:1 with Employee)
+        // 1. Personal Information (Detailed to match CS Form 212 Rev. 2017)
         Schema::create('pds_personal_information', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->constrained()->cascadeOnDelete();
+            
+            // Name (As it appears on PDS)
+            $table->string('surname')->nullable();
+            $table->string('firstname')->nullable();
+            $table->string('middlename')->nullable();
+            $table->string('name_extension')->nullable(); // JR., SR, etc.
+            
             $table->date('date_of_birth')->nullable();
             $table->string('place_of_birth')->nullable();
-            $table->enum('sex', ['Male', 'Female'])->nullable();
+            $table->string('sex')->nullable(); // Male, Female
             $table->string('civil_status')->nullable();
             $table->string('height_m')->nullable();
             $table->string('weight_kg')->nullable();
             $table->string('blood_type')->nullable();
+            
+            // ID Numbers
             $table->string('gsis_id_no')->nullable();
             $table->string('pagibig_id_no')->nullable();
             $table->string('philhealth_no')->nullable();
             $table->string('sss_no')->nullable();
             $table->string('tin_no')->nullable();
             $table->string('agency_employee_no')->nullable();
+            $table->string('umid_no')->nullable();
+            $table->string('philsys_no')->nullable(); // PSN
+            
+            // Citizenship
             $table->string('citizenship')->nullable(); // Filipino, Dual Citizenship
             $table->string('citizenship_type')->nullable(); // By Birth, By Naturalization
-            $table->string('country')->nullable();
+            $table->string('citizenship_country')->nullable();
             
             // Residential Address
             $table->string('res_house_no')->nullable();
@@ -50,6 +63,7 @@ return new class extends Migration
             $table->string('perm_province')->nullable();
             $table->string('perm_zip_code')->nullable();
 
+            // Contact Info
             $table->string('telephone_no')->nullable();
             $table->string('mobile_no')->nullable();
             $table->string('email_address')->nullable();
@@ -209,8 +223,8 @@ return new class extends Migration
         Schema::create('pds_government_ids', function (Blueprint $table) {
             $table->id();
             $table->foreignId('employee_id')->constrained()->cascadeOnDelete();
-            $table->string('id_type');
-            $table->string('id_no');
+            $table->string('id_type')->nullable();
+            $table->string('id_no')->nullable();
             $table->string('date_place_issuance')->nullable();
             $table->timestamps();
         });
