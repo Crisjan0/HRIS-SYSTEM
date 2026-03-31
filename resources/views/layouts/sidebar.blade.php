@@ -31,31 +31,31 @@
             </x-sidebar-link>
 
             @if(in_array(auth()->user()->role, ['employee', 'admin', 'hrstaff', 'director']))
-            <x-sidebar-dropdown label="{{ __('My Profile') }}" :active="request()->routeIs(['pds.*', 'saln.*', 'ildp.*', 'leave.*', 'dtr.*'])">
-                <x-slot name="icon">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                    </svg>
-                </x-slot>
+                <x-sidebar-dropdown label="{{ __('My Profile') }}" :active="request()->routeIs(['pds.*', 'saln.*', 'ildp.*', 'leave.*', 'dtr.*'])">
+                    <x-slot name="icon">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                    </x-slot>
 
-                <x-sidebar-link :href="route('pds.index')" :active="request()->routeIs('pds.*')" class="text-xs">
-                    {{ __('PDS') }}
-                </x-sidebar-link>
-                <x-sidebar-link href="#" :active="false" class="text-xs">
-                    {{ __('SALN') }}
-                </x-sidebar-link>
-                <x-sidebar-link href="#" :active="false" class="text-xs">
-                    {{ __('ILDP') }}
-                </x-sidebar-link>
-                <x-sidebar-link href="#" :active="false" class="text-xs">
-                    {{ __('Leave') }}
-                </x-sidebar-link>
-                <x-sidebar-link href="#" :active="false" class="text-xs">
-                    {{ __('DTR') }}
-                </x-sidebar-link>
-            </x-sidebar-dropdown>
+                    <x-sidebar-link :href="route('pds.index')" :active="request()->routeIs('pds.*')" class="text-xs">
+                        {{ __('PDS') }}
+                    </x-sidebar-link>
+                    <x-sidebar-link href="#" :active="false" class="text-xs">
+                        {{ __('SALN') }}
+                    </x-sidebar-link>
+                    <x-sidebar-link href="#" :active="false" class="text-xs">
+                        {{ __('ILDP') }}
+                    </x-sidebar-link>
+                    <x-sidebar-link href="#" :active="false" class="text-xs">
+                        {{ __('Leave') }}
+                    </x-sidebar-link>
+                    <x-sidebar-link href="#" :active="false" class="text-xs">
+                        {{ __('DTR') }}
+                    </x-sidebar-link>
+                </x-sidebar-dropdown>
             @endif
         </div>
 
@@ -75,8 +75,13 @@
                         </svg>
                     </x-slot>
 
-                    <x-sidebar-link :href="route('employees.index')" :active="request()->routeIs('employees.*')" class="text-xs">
+                    <x-sidebar-link :href="route('employees.index')" :active="request()->routeIs('employees.*')"
+                        class="text-xs">
                         {{ __('Manage Employee') }}
+                    </x-sidebar-link>
+                    <x-sidebar-link :href="route('leave-types.index')" :active="request()->routeIs('leave-types.*')"
+                        class="text-xs">
+                        {{ __('Manage Leave Types') }}
                     </x-sidebar-link>
                     <x-sidebar-link href="#" :active="false" class="text-xs">
                         {{ __('Pending Leave') }}
