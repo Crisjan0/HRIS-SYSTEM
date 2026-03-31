@@ -16,7 +16,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    Route::resource('employees', EmployeeController::class);
+    Route::resource('employees', EmployeeController::class)->middleware('role:ADMIN,HRSTAFF,DIRECTOR');
     Route::get('/pds', [App\Http\Controllers\PdsController::class, 'index'])->name('pds.index');
     Route::get('/pds/edit', [App\Http\Controllers\PdsController::class, 'edit'])->name('pds.edit');
     Route::put('/pds', [App\Http\Controllers\PdsController::class, 'update'])->name('pds.update');
