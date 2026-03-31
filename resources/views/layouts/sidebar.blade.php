@@ -73,7 +73,7 @@
                         </svg>
                     </x-slot>
 
-                    <x-sidebar-link href="#" :active="false" class="text-xs">
+                    <x-sidebar-link :href="route('employees.index')" :active="request()->routeIs('employees.*')" class="text-xs">
                         {{ __('Manage Employee') }}
                     </x-sidebar-link>
                     <x-sidebar-link href="#" :active="false" class="text-xs">
