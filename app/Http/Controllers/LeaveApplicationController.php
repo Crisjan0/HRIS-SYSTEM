@@ -45,21 +45,23 @@ class LeaveApplicationController extends Controller
             'remarks' => 'nullable|string',
         ]);
 
-        // If approved, deduct the credits
-        if ($validated['status'] === 'approved' && $leaveApplication->status === 'pending') {
-            $duration = \Carbon\Carbon::parse($leaveApplication->start_date)->diffInDays(\Carbon\Carbon::parse($leaveApplication->end_date)) + 1;
-            
-            $credit = $leaveApplication->employee->leaveCredits()
-                ->where('leave_type_id', $leaveApplication->leave_type_id)
-                ->where('year', \Carbon\Carbon::parse($leaveApplication->start_date)->year)
-                ->first();
+        \Illuminate\Support\Facades\DB::transaction(function() use ($validated, $leaveApplication) {
+            // Only deduct credits if changing from pending to approved
+            if ($validated['status'] === 'approved' && $leaveApplication->status === 'pending') {
+                $duration = \Carbon\Carbon::parse($leaveApplication->start_date)->diffInDays(\Carbon\Carbon::parse($leaveApplication->end_date)) + 1;
+                
+                $credit = $leaveApplication->employee->leaveCredits()
+                    ->where('leave_type_id', $leaveApplication->leave_type_id)
+                    ->where('year', \Carbon\Carbon::parse($leaveApplication->start_date)->year)
+                    ->first();
 
-            if ($credit) {
-                $credit->decrement('balance', $duration);
+                if ($credit) {
+                    $credit->decrement('balance', $duration);
+                }
             }
-        }
 
-        $leaveApplication->update($validated);
+            $leaveApplication->update($validated);
+        });
 
         $msg = $validated['status'] === 'approved' ? 'Leave request approved and credits deducted.' : 'Leave request rejected.';
         
