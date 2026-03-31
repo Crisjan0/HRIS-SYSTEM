@@ -10,15 +10,10 @@ class CheckRole
 {
     /**
      * Handle an incoming request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
-     * @param  string  ...$roles
-     * @return \Symfony\Component\HttpFoundation\Response
      */
     public function handle(Request $request, Closure $next, string ...$roles): Response
     {
-        if (!$request->user()) {
+        if (! $request->user()) {
             return redirect()->route('login');
         }
 
@@ -27,8 +22,14 @@ class CheckRole
         $userRole = strtoupper($request->user()->role);
         $allowedRoles = array_map('strtoupper', $roles);
 
-        if (!in_array($userRole, $allowedRoles)) {
-            abort(403, 'Unauthorized access. Your role is: ' . $userRole);
+        // If HRSTAFF is allowed, also allow CHIEF and REGIONALDIRECTOR
+        if (in_array('HRSTAFF', $allowedRoles)) {
+            $allowedRoles[] = 'CHIEF';
+            $allowedRoles[] = 'REGIONALDIRECTOR';
+        }
+
+        if (! in_array($userRole, $allowedRoles)) {
+            abort(403, 'Unauthorized access. Your role is: '.$userRole);
         }
 
         return $next($request);

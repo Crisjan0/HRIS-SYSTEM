@@ -2,23 +2,33 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-
 use App\Models\LeaveRequest;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class LeaveApplicationController extends Controller
 {
-    /**
-     * Display a listing of pending leave requests.
-     */
     public function index(): View
     {
-        $leaves = LeaveRequest::where('status', 'pending')
-            ->with(['employee', 'leaveType'])
-            ->latest('date_filed')
-            ->get();
+        $role = auth()->user()->role;
+        $query = LeaveRequest::where('status', 'pending')
+            ->with(['employee', 'leaveType']);
+
+        if ($role === 'chief') {
+            $query->where('chief_status', 'pending');
+        } elseif (in_array($role, ['hrstaff', 'admin'])) {
+            $query->where('chief_status', 'approved')->where('hrstaff_status', 'pending');
+        } elseif (in_array($role, ['regional director', 'regionaldirector', 'director'])) {
+            $query->where('hrstaff_status', 'approved')->where('rd_status', 'pending');
+        } else {
+            // Fail-safe for roles that shouldn't see pending leaves here
+            $query->where('id', '<', 0);
+        }
+
+        $leaves = $query->latest('date_filed')->get();
 
         return view('leave-applications.index', compact('leaves'));
     }
@@ -35,9 +45,6 @@ class LeaveApplicationController extends Controller
         return view('leave-applications.all', compact('leaves'));
     }
 
-    /**
-     * Update the status of a leave request (Approve/Reject).
-     */
     public function update(Request $request, LeaveRequest $leaveApplication): RedirectResponse
     {
         $validated = $request->validate([
@@ -45,26 +52,61 @@ class LeaveApplicationController extends Controller
             'remarks' => 'nullable|string',
         ]);
 
-        \Illuminate\Support\Facades\DB::transaction(function() use ($validated, $leaveApplication) {
-            // Only deduct credits if changing from pending to approved
-            if ($validated['status'] === 'approved' && $leaveApplication->status === 'pending') {
-                $duration = \Carbon\Carbon::parse($leaveApplication->start_date)->diffInDays(\Carbon\Carbon::parse($leaveApplication->end_date)) + 1;
-                
-                $credit = $leaveApplication->employee->leaveCredits()
-                    ->where('leave_type_id', $leaveApplication->leave_type_id)
-                    ->where('year', \Carbon\Carbon::parse($leaveApplication->start_date)->year)
-                    ->first();
+        $role = auth()->user()->role;
+        $employeeId = auth()->user()->employee?->id;
 
-                if ($credit) {
-                    $credit->decrement('balance', $duration);
+        DB::transaction(function () use ($validated, $leaveApplication, $role, $employeeId) {
+
+            if ($validated['status'] === 'rejected') {
+                $leaveApplication->status = 'rejected';
+
+                if ($role === 'chief') {
+                    $leaveApplication->chief_status = 'rejected';
+                    $leaveApplication->approved_by_chief = $employeeId;
+                    $leaveApplication->chief_remarks = $validated['remarks'];
+                } elseif (in_array($role, ['hrstaff', 'admin'])) {
+                    $leaveApplication->hrstaff_status = 'rejected';
+                    $leaveApplication->approved_by_hrstaff = $employeeId;
+                    $leaveApplication->hrstaff_remarks = $validated['remarks'];
+                } elseif (in_array($role, ['regional director', 'regionaldirector', 'director'])) {
+                    $leaveApplication->rd_status = 'rejected';
+                    $leaveApplication->approved_by_regionaldirector = $employeeId;
+                    $leaveApplication->rd_remarks = $validated['remarks'];
+                }
+            } else { // approved
+                if ($role === 'chief') {
+                    $leaveApplication->chief_status = 'approved';
+                    $leaveApplication->approved_by_chief = $employeeId;
+                    $leaveApplication->chief_remarks = $validated['remarks'];
+                } elseif (in_array($role, ['hrstaff', 'admin'])) {
+                    $leaveApplication->hrstaff_status = 'approved';
+                    $leaveApplication->approved_by_hrstaff = $employeeId;
+                    $leaveApplication->hrstaff_remarks = $validated['remarks'];
+                } elseif (in_array($role, ['regional director', 'regionaldirector', 'director'])) {
+                    $leaveApplication->rd_status = 'approved';
+                    $leaveApplication->approved_by_regionaldirector = $employeeId;
+                    $leaveApplication->rd_remarks = $validated['remarks'];
+
+                    // Final stage approval
+                    $leaveApplication->status = 'approved';
+
+                    $duration = Carbon::parse($leaveApplication->start_date)->diffInDays(Carbon::parse($leaveApplication->end_date)) + 1;
+                    $credit = $leaveApplication->employee->leaveCredits()
+                        ->where('leave_type_id', $leaveApplication->leave_type_id)
+                        ->where('year', Carbon::parse($leaveApplication->start_date)->year)
+                        ->first();
+
+                    if ($credit) {
+                        $credit->decrement('balance', $duration);
+                    }
                 }
             }
 
-            $leaveApplication->update($validated);
+            $leaveApplication->save();
         });
 
-        $msg = $validated['status'] === 'approved' ? 'Leave request approved and credits deducted.' : 'Leave request rejected.';
-        
+        $msg = $validated['status'] === 'approved' ? 'Leave request approved successfully.' : 'Leave request rejected.';
+
         return redirect()->route('leave-applications.index')->with('success', $msg);
     }
 }

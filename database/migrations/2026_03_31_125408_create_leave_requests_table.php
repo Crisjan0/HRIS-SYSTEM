@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -18,8 +19,23 @@ return new class extends Migration {
             $table->date('end_date');
             $table->timestamp('date_filed');
             $table->text('reason');
-            $table->string('status')->default('pending'); // pending, approved, rejected, cancelled
-            $table->text('remarks')->nullable(); // For HR/Admin response
+            $table->string('status')->default('pending'); // overall status: pending, approved, rejected, cancelled
+
+            // Sequential Approval Flow
+            $table->foreignId('approved_by_chief')->nullable()->constrained('employees')->onDelete('set null');
+            $table->string('chief_status')->default('pending'); // pending, approved, rejected
+            $table->text('chief_remarks')->nullable();
+
+            $table->foreignId('approved_by_hrstaff')->nullable()->constrained('employees')->onDelete('set null');
+            $table->string('hrstaff_status')->default('pending'); // pending, approved, rejected
+            $table->text('hrstaff_remarks')->nullable();
+
+            $table->foreignId('approved_by_regionaldirector')->nullable()->constrained('employees')->onDelete('set null');
+            $table->string('rd_status')->default('pending'); // pending, approved, rejected
+            $table->text('rd_remarks')->nullable();
+
+            $table->text('remarks')->nullable(); // general remarks
+
             $table->timestamps();
         });
     }

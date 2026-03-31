@@ -30,7 +30,7 @@
                 {{ __('Dashboard') }}
             </x-sidebar-link>
 
-            @if(in_array(auth()->user()->role, ['employee', 'admin', 'hrstaff', 'director']))
+            @if(in_array(auth()->user()->role, ['employee', 'admin', 'hrstaff', 'director', 'chief', 'regionaldirector', 'regional director']))
                 <x-sidebar-dropdown label="{{ __('My Profile') }}" :active="request()->routeIs(['pds.*', 'saln.*', 'ildp.*', 'leave.*', 'dtr.*'])">
                     <x-slot name="icon">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
@@ -59,7 +59,7 @@
             @endif
         </div>
 
-        @if(in_array(auth()->user()->role, ['admin', 'hrstaff', 'director']))
+        @if(in_array(auth()->user()->role, ['admin', 'hrstaff', 'director', 'chief', 'regionaldirector', 'regional director']))
             <div class="pb-4">
                 <h3 class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
                     {{ __('Administration') }}
