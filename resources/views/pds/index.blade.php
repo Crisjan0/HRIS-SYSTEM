@@ -1,105 +1,149 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight flex items-center gap-2">
-            <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        <h2 class="font-bold text-xl text-gray-900 leading-tight flex items-center gap-2">
+            <svg class="w-6 h-6 text-indigo-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             {{ __('Personal Data Sheet (CS Form No. 212)') }}
         </h2>
     </x-slot>
 
-    <div class="py-12">
+    <div class="py-8 bg-white min-h-screen">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+            <!-- Main Content Area -->
+            <div class="bg-white border-2 border-gray-100 rounded-2xl overflow-hidden shadow-lg shadow-gray-200/40">
                 <div class="p-8">
-                    <div class="flex justify-between items-center mb-8">
+                    <!-- Top Ribbon/Header -->
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 pb-6 border-b-2 border-gray-50 gap-4">
                         <div>
-                            <h3 class="text-2xl font-bold text-gray-900 dark:text-white">PDS Overview</h3>
-                            <p class="text-gray-600 dark:text-gray-400">Manage your official Civil Service Personal Data Sheet.</p>
+                            <h3 class="text-xl font-black text-gray-900 tracking-tight">Employee PDS Record</h3>
+                            <p class="text-sm text-gray-500 font-medium italic">Civil Service Records Management Dashboard.</p>
                         </div>
                         <div class="flex gap-4">
-                            <a href="{{ route('pds.edit') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            <a href="{{ route('pds.edit') }}"
+                                class="inline-flex items-center px-6 py-2.5 bg-indigo-700 border-2 border-indigo-800 rounded-xl font-bold text-sm text-white shadow-lg shadow-indigo-100 hover:bg-indigo-800 active:scale-95 transition-all duration-300">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                 </svg>
-                                Update PDS
+                                Update Information
                             </a>
                         </div>
                     </div>
 
                     @if(session('success'))
-                        <div class="mb-6 p-4 bg-green-100 border-l-4 border-green-500 text-green-700 dark:bg-green-900 dark:text-green-200">
-                            {{ session('success') }}
+                        <div class="mb-8 p-4 bg-emerald-50 border border-emerald-100 text-emerald-900 rounded-xl flex items-center shadow-sm">
+                            <svg class="w-6 h-6 mr-3 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                            <span class="text-sm font-bold">{{ session('success') }}</span>
                         </div>
                     @endif
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <!-- Profile Summary Card -->
-                        <div class="bg-gray-50 dark:bg-gray-700 p-6 rounded-xl border border-gray-100 dark:border-gray-600 shadow-sm">
-                            <div class="flex items-center gap-4 mb-4">
-                                <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
-                                    {{ substr($employee->firstname, 0, 1) }}{{ substr($employee->lastname, 0, 1) }}
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        <!-- Left Column: Profile Summary Card -->
+                        <div class="lg:col-span-4">
+                            <div class="bg-gray-50/50 border-2 border-gray-100 p-6 rounded-2xl shadow-sm">
+                                <div class="flex flex-col items-center text-center">
+                                    <div class="w-20 h-20 bg-indigo-700 rounded-2xl flex items-center justify-center text-white text-3xl font-black shadow-xl mb-4">
+                                        {{ substr($employee->firstname, 0, 1) }}{{ substr($employee->lastname, 0, 1) }}
+                                    </div>
+                                    <div class="space-y-1">
+                                        <h4 class="text-xl font-black text-gray-900">
+                                            {{ $employee->firstname }} {{ $employee->lastname }}
+                                        </h4>
+                                        <p class="inline-block px-3 py-1 bg-indigo-100 text-indigo-900 text-[10px] font-black uppercase tracking-widest rounded-full">
+                                            {{ ucfirst($employee->role) }}
+                                        </p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h4 class="text-xl font-bold text-gray-900 dark:text-white">{{ $employee->firstname }} {{ $employee->lastname }}</h4>
-                                    <p class="text-blue-600 dark:text-blue-400 font-medium">{{ ucfirst($employee->role) }}</p>
-                                </div>
-                            </div>
-                            <hr class="my-4 border-gray-200 dark:border-gray-600">
-                            <div class="space-y-3 mt-4">
-                                <div class="flex justify-between">
-                                    <span class="text-gray-500 dark:text-gray-400">Position:</span>
-                                    <span class="text-gray-900 dark:text-white font-medium">{{ $employee->pdsWorkExperiences->firstWhere('date_to', null)?->position_title ?? 'Not Set' }}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-500 dark:text-gray-400">Employee No:</span>
-                                    <span class="text-gray-900 dark:text-white font-medium">{{ $employee->pdsPersonal?->agency_employee_no ?? '---' }}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-500 dark:text-gray-400">Email:</span>
-                                    <span class="text-gray-900 dark:text-white font-medium">{{ $employee->pdsPersonal?->email_address ?? $employee->user->email }}</span>
+                                
+                                <div class="mt-8 pt-8 border-t border-gray-200/60 space-y-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-white border border-gray-200 rounded-lg flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 014 0"/></svg>
+                                        </div>
+                                        <div>
+                                            <p class="text-[9px] uppercase font-black text-gray-400 tracking-widest mb-0.5">Employee ID</p>
+                                            <p class="text-base font-black text-gray-800">{{ $employee->id ?? '---' }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-white border border-gray-200 rounded-lg flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                        </div>
+                                        <div class="overflow-hidden">
+                                            <p class="text-[9px] uppercase font-black text-gray-400 tracking-widest mb-0.5">Primary Email</p>
+                                            <p class="text-sm font-bold text-gray-800 truncate tracking-tight">{{ $employee->pdsPersonal?->email_address ?? $employee->user->email }}</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Completion Status -->
-                        <div class="space-y-4">
-                            <h4 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Form Completion</h4>
-                            
-                            @php
-                                $sections = [
-                                    ['label' => 'Personal Information', 'filled' => (bool)$employee->pdsPersonal],
-                                    ['label' => 'Family Background', 'filled' => (bool)$employee->pdsFamily],
-                                    ['label' => 'Educational Background', 'filled' => $employee->pdsEducation->count() > 0],
-                                    ['label' => 'Civil Service Eligibility', 'filled' => $employee->pdsEligibilities->count() > 0],
-                                    ['label' => 'Work Experience', 'filled' => $employee->pdsWorkExperiences->count() > 0],
-                                    ['label' => 'Questionnaire', 'filled' => (bool)$employee->pdsQuestionnaire],
-                                    ['label' => 'References', 'filled' => $employee->pdsReferences->count() >= 3],
-                                ];
-                                $completedCount = collect($sections)->where('filled', true)->count();
-                                $percentage = round(($completedCount / count($sections)) * 100);
-                            @endphp
+                        <!-- Right Column: Status & Progress -->
+                        <div class="lg:col-span-8 space-y-8">
+                            <div class="bg-gray-50/50 border-2 border-gray-100 p-6 rounded-2xl shadow-sm">
+                                @php
+                                    $sections = [
+                                        ['label' => 'Personal Information', 'filled' => (bool) $employee->pdsPersonal, 'icon' => 'user'],
+                                        ['label' => 'Family Background', 'filled' => (bool) $employee->pdsFamily, 'icon' => 'users'],
+                                        ['label' => 'Educational Background', 'filled' => $employee->pdsEducation->count() > 0, 'icon' => 'academic-cap'],
+                                        ['label' => 'Civil Service Eligibility', 'filled' => $employee->pdsEligibilities->count() > 0, 'icon' => 'badge-check'],
+                                        ['label' => 'Work Experience', 'filled' => $employee->pdsWorkExperiences->count() > 0, 'icon' => 'briefcase'],
+                                        ['label' => 'Questionnaire', 'filled' => (bool) $employee->pdsQuestionnaire, 'icon' => 'question-mark-circle'],
+                                        ['label' => 'References', 'filled' => $employee->pdsReferences->count() >= 3, 'icon' => 'identification'],
+                                    ];
+                                    $completedCount = collect($sections)->where('filled', true)->count();
+                                    $totalSections = count($sections);
+                                    $percentage = $totalSections > 0 ? round(($completedCount / $totalSections) * 100) : 0;
+                                @endphp
 
-                            <div class="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-4 mb-2">
-                                <div class="bg-blue-600 h-4 rounded-full transition-all duration-500" style="width: {{ $percentage }}%"></div>
-                            </div>
-                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">{{ $percentage }}% Complete ({{ $completedCount }} of {{ count($sections) }} core sections filled)</p>
-
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                @foreach($sections as $section)
-                                    <div class="flex items-center gap-2 p-3 rounded-lg {{ $section['filled'] ? 'bg-green-50 dark:bg-green-900/20 text-green-700' : 'bg-gray-50 dark:bg-gray-700/50 text-gray-500' }}">
-                                        @if($section['filled'])
-                                            <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                                            </svg>
-                                        @else
-                                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        @endif
-                                        <span class="text-sm font-medium">{{ $section['label'] }}</span>
+                                <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-2">
+                                    <div>
+                                        <h4 class="text-lg font-black text-gray-900">Completion Status</h4>
+                                        <p class="text-sm text-gray-500 font-medium italic">Civil Service record sections compliance.</p>
                                     </div>
-                                @endforeach
+                                    <div class="bg-indigo-700 text-white px-5 py-2 rounded-xl shadow-md border-b-2 border-indigo-900 leading-none">
+                                        <span class="text-2xl font-black">{{ $percentage }}%</span>
+                                    </div>
+                                </div>
+
+                                <!-- Progress Bar -->
+                                <div class="w-full bg-white border-2 border-gray-50 rounded-2xl h-4 mb-8 overflow-hidden shadow-inner flex items-center p-1">
+                                    <div class="bg-indigo-700 h-full rounded-xl transition-all duration-1000 ease-out shadow-sm"
+                                        style="width: {{ $percentage }}%">
+                                    </div>
+                                </div>
+
+                                <!-- Section Grid -->
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    @foreach($sections as $section)
+                                        <div class="flex items-center p-4 bg-white rounded-xl border border-gray-100 shadow-sm transition-all duration-200">
+                                            <div class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center mr-4 {{ $section['filled'] ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-400' }}">
+                                                @if($section['filled'])
+                                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                                    </svg>
+                                                @else
+                                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                    </svg>
+                                                @endif
+                                            </div>
+                                            <div class="overflow-hidden">
+                                                <span class="block text-sm font-black truncate tracking-tight {{ $section['filled'] ? 'text-gray-900' : 'text-gray-400' }}">{{ $section['label'] }}</span>
+                                                <div class="flex items-center gap-1.5 leading-none mt-0.5">
+                                                    <div class="w-1.5 h-1.5 rounded-full {{ $section['filled'] ? 'bg-emerald-500' : 'bg-gray-300' }}"></div>
+                                                    <span class="text-[9px] font-black uppercase tracking-widest {{ $section['filled'] ? 'text-emerald-600' : 'text-gray-400' }}">
+                                                        {{ $section['filled'] ? 'Saved' : 'Blank' }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
                             </div>
                         </div>
                     </div>
