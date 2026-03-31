@@ -49,7 +49,7 @@
                     <x-sidebar-link href="#" :active="false" class="text-xs">
                         {{ __('ILDP') }}
                     </x-sidebar-link>
-                    <x-sidebar-link href="#" :active="false" class="text-xs">
+                    <x-sidebar-link :href="route('leaves.index')" :active="request()->routeIs('leaves.*')" class="text-xs">
                         {{ __('Leave') }}
                     </x-sidebar-link>
                     <x-sidebar-link href="#" :active="false" class="text-xs">
@@ -83,10 +83,12 @@
                         class="text-xs">
                         {{ __('Manage Leave Types') }}
                     </x-sidebar-link>
-                    <x-sidebar-link href="#" :active="false" class="text-xs">
+                    <x-sidebar-link :href="route('leave-applications.index')" :active="request()->routeIs('leave-applications.index')"
+                        class="text-xs">
                         {{ __('Pending Leave') }}
                     </x-sidebar-link>
-                    <x-sidebar-link href="#" :active="false" class="text-xs">
+                    <x-sidebar-link :href="route('leave-applications.all')" :active="request()->routeIs('leave-applications.all')"
+                        class="text-xs">
                         {{ __('All Leave') }}
                     </x-sidebar-link>
                     <x-sidebar-link href="#" :active="false" class="text-xs">

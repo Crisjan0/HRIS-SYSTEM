@@ -35,4 +35,20 @@ class Employee extends Model
     public function pdsQuestionnaire() { return $this->hasOne(PdsQuestionnaire::class); }
     public function pdsReferences() { return $this->hasMany(PdsReference::class); }
     public function pdsGovId() { return $this->hasOne(PdsGovernmentId::class); }
+    public function leaveRequests() { return $this->hasMany(LeaveRequest::class); }
+    public function leaveCredits() { return $this->hasMany(LeaveCredit::class); }
+
+    /**
+     * Ensure the employee has leave credits for the given year.
+     */
+    public function ensureLeaveCredits(int $year): void
+    {
+        $types = LeaveType::where('is_active', true)->get();
+        foreach ($types as $type) {
+            $this->leaveCredits()->firstOrCreate(
+                ['leave_type_id' => $type->id, 'year' => $year],
+                ['balance' => $type->days_per_year ?? 0]
+            );
+        }
+    }
 }
