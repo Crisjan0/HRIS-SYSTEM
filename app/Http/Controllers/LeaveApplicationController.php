@@ -45,6 +45,15 @@ class LeaveApplicationController extends Controller
         return view('leave-applications.all', compact('leaves'));
     }
 
+    /**
+     * Display the specified resource for review.
+     */
+    public function show(LeaveRequest $leaveApplication): View
+    {
+        $leaveApplication->load(['employee', 'leaveType', 'chief', 'hrstaff', 'regionalDirector']);
+        return view('leave-applications.show', compact('leaveApplication'));
+    }
+
     public function update(Request $request, LeaveRequest $leaveApplication): RedirectResponse
     {
         $validated = $request->validate([

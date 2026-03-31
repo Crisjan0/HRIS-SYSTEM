@@ -47,15 +47,20 @@
                             </div>
                         </div>
 
-                        <div class="hidden md:block text-right">
-                            <div class="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Status</div>
-                            @if($leaf->status === 'approved')
-                                <span class="text-[10px] font-black uppercase tracking-widest text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-100">APPROVED</span>
-                            @elseif($leaf->status === 'rejected')
-                                <span class="text-[10px] font-black uppercase tracking-widest text-red-600 bg-red-50 px-3 py-1 rounded-full border border-red-100">REJECTED</span>
-                            @else
-                                <span class="text-[10px] font-black uppercase tracking-widest text-orange-500 bg-orange-50 px-3 py-1 rounded-full border border-orange-100">PENDING</span>
-                            @endif
+                        <div class="hidden md:flex flex-col items-end justify-center gap-3 border-l pl-8 border-gray-50">
+                            <div class="text-right">
+                                <div class="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Status</div>
+                                @if($leaf->status === 'approved')
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-100">APPROVED</span>
+                                @elseif($leaf->status === 'rejected')
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-red-600 bg-red-50 px-3 py-1 rounded-full border border-red-100">REJECTED</span>
+                                @else
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-orange-500 bg-orange-50 px-3 py-1 rounded-full border border-orange-100">PENDING</span>
+                                @endif
+                            </div>
+                            <a href="{{ route('leave-applications.show', $leaf->id) }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-md hover:-translate-y-0.5">
+                                VIEW
+                            </a>
                         </div>
                     </div>
                 @empty
