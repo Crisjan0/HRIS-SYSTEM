@@ -40,7 +40,7 @@
                     </svg>
                 </x-slot>
 
-                <x-sidebar-link href="#" :active="false" class="text-xs">
+                <x-sidebar-link :href="route('pds.index')" :active="request()->routeIs('pds.*')" class="text-xs">
                     {{ __('PDS') }}
                 </x-sidebar-link>
                 <x-sidebar-link href="#" :active="false" class="text-xs">
