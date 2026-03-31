@@ -96,9 +96,15 @@ class MyLeaveController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(LeaveRequest $leaf)
+    public function show(LeaveRequest $leaf): View
     {
-        return redirect()->route('leaves.index');
+        $employee = auth()->user()->employee;
+        if ($leaf->employee_id !== $employee?->id) {
+            abort(403);
+        }
+
+        $leaf->load(['leaveType', 'chief', 'hrstaff', 'regionalDirector']);
+        return view('leaves.show', compact('leaf'));
     }
 
     /**

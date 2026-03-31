@@ -7,78 +7,71 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-100">
-                <div class="p-6 text-gray-900">
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead>
-                                <tr class="bg-gray-50">
-                                    <th class="px-6 py-3 text-left text-xs font-black text-gray-500 uppercase tracking-widest">{{ __('Employee') }}</th>
-                                    <th class="px-6 py-3 text-left text-xs font-black text-gray-500 uppercase tracking-widest">{{ __('Leave Type') }}</th>
-                                    <th class="px-6 py-3 text-left text-xs font-black text-gray-500 uppercase tracking-widest">{{ __('Duration') }}</th>
-                                    <th class="px-6 py-3 text-left text-xs font-black text-gray-500 uppercase tracking-widest">{{ __('Status') }}</th>
-                                    <th class="px-6 py-3 text-left text-xs font-black text-gray-500 uppercase tracking-widest">{{ __('Date Filed') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                @forelse($leaves as $leaf)
-                                    <tr class="hover:bg-gray-50 transition-colors duration-200">
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm font-black text-gray-900">{{ $leaf->employee->firstname }} {{ $leaf->employee->lastname }}</div>
-                                            <div class="text-[10px] text-gray-400 uppercase tracking-tighter">{{ $leaf->employee->role }}</div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm font-bold text-indigo-600">{{ $leaf->leaveType->name }}</div>
-                                            <div class="text-xs text-gray-500 italic max-w-xs truncate" title="{{ $leaf->reason }}">{{ $leaf->reason }}</div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm font-black text-gray-900">
-                                                @php
-                                                    $duration = \Carbon\Carbon::parse($leaf->start_date)->diffInDays(\Carbon\Carbon::parse($leaf->end_date)) + 1;
-                                                @endphp
-                                                {{ $duration }} {{ Str::plural('Day', $duration) }}
-                                            </div>
-                                            <div class="text-[10px] text-gray-400 font-medium">
-                                                {{ \Carbon\Carbon::parse($leaf->start_date)->format('M d') }} - {{ \Carbon\Carbon::parse($leaf->end_date)->format('M d, Y') }}
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            @if($leaf->status === 'approved')
-                                                <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-black uppercase tracking-widest">
-                                                    {{ __('Approved') }}
-                                                </span>
-                                            @elseif($leaf->status === 'rejected')
-                                                <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-[10px] font-black uppercase tracking-widest">
-                                                    {{ __('Rejected') }}
-                                                </span>
-                                            @else
-                                                <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-[10px] font-black uppercase tracking-widest">
-                                                    {{ __('Pending') }}
-                                                </span>
-                                            @endif
-                                            
-                                            @if($leaf->remarks)
-                                                <div class="text-[10px] text-gray-400 mt-1 italic max-w-xs truncate" title="{{ $leaf->remarks }}">
-                                                    "{{ $leaf->remarks }}"
-                                                </div>
-                                            @endif
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-xs text-gray-400 italic">
-                                            {{ \Carbon\Carbon::parse($leaf->date_filed)->format('M d, Y h:i A') }}
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="5" class="px-6 py-10 text-center text-gray-500 italic font-medium">
-                                            {{ __('No leave records found.') }}
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
+            <div class="space-y-4">
+                @forelse($leaves as $leaf)
+                    <div class="bg-white overflow-hidden shadow-sm rounded-xl border border-gray-100 p-6 flex flex-col md:flex-row md:items-center justify-between hover:shadow-md transition-shadow duration-300 gap-4">
+                        <div class="flex-1">
+                            <div class="flex items-center justify-between md:justify-start md:gap-4 mb-2 md:mb-1">
+                                <h3 class="text-lg font-bold text-gray-900 leading-tight">
+                                    {{ $leaf->employee->firstname }} {{ $leaf->employee->lastname }}
+                                </h3>
+                                <div class="md:hidden">
+                                    @if($leaf->status === 'approved')
+                                        <span class="text-[10px] font-black uppercase tracking-widest text-green-600 bg-green-50 px-2 py-0.5 rounded">APPROVED</span>
+                                    @elseif($leaf->status === 'rejected')
+                                        <span class="text-[10px] font-black uppercase tracking-widest text-red-600 bg-red-50 px-2 py-0.5 rounded">REJECTED</span>
+                                    @else
+                                        <span class="text-[10px] font-black uppercase tracking-widest text-orange-500 bg-orange-50 px-2 py-0.5 rounded">PENDING</span>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="text-sm text-gray-600">
+                                <span class="font-medium text-indigo-600">{{ $leaf->leaveType->name }}</span>
+                                <span class="mx-1 text-gray-400">from</span>
+                                <span class="font-medium">{{ \Carbon\Carbon::parse($leaf->start_date)->format('M d, Y') }}</span>
+                                <span class="mx-1 text-gray-400">to</span>
+                                <span class="font-medium">{{ \Carbon\Carbon::parse($leaf->end_date)->format('M d, Y') }}</span>
+                            </div>
+                            
+                            @if($leaf->remarks)
+                                <div class="mt-2 p-3 bg-gray-50 rounded-lg text-xs text-gray-500 italic border-l-2 border-gray-200">
+                                    "{{ $leaf->remarks }}"
+                                </div>
+                            @endif
+
+                            <div class="mt-3 flex items-center gap-4 text-[10px] text-gray-400 font-medium">
+                                <div class="flex items-center gap-1">
+                                    <svg class="w-3 h-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    <span>Filed on {{ \Carbon\Carbon::parse($leaf->date_filed)->format('M d, Y h:i A') }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="hidden md:block text-right">
+                            <div class="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Status</div>
+                            @if($leaf->status === 'approved')
+                                <span class="text-[10px] font-black uppercase tracking-widest text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-100">APPROVED</span>
+                            @elseif($leaf->status === 'rejected')
+                                <span class="text-[10px] font-black uppercase tracking-widest text-red-600 bg-red-50 px-3 py-1 rounded-full border border-red-100">REJECTED</span>
+                            @else
+                                <span class="text-[10px] font-black uppercase tracking-widest text-orange-500 bg-orange-50 px-3 py-1 rounded-full border border-orange-100">PENDING</span>
+                            @endif
+                        </div>
                     </div>
-                </div>
+                @empty
+                    <div class="bg-white rounded-xl border border-dashed border-gray-200 p-12 text-center">
+                        <div class="text-gray-400 mb-2">
+                            <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                        </div>
+                        <p class="text-gray-500 italic font-medium">
+                            {{ __('No leave records found.') }}
+                        </p>
+                    </div>
+                @endforelse
             </div>
+
         </div>
     </div>
 </x-app-layout>
