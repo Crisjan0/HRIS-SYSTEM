@@ -50,4 +50,18 @@ class LeaveRequest extends Model
     {
         return $this->belongsTo(Employee::class, 'approved_by_regionaldirector');
     }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'start_date' => 'date',
+            'end_date' => 'date',
+            'date_filed' => 'datetime',
+        ];
+    }
 }

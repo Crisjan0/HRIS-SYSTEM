@@ -13,6 +13,7 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @livewireStyles
     </head>
     <body class="font-sans antialiased text-gray-900 bg-gray-50/50" x-data="{ sidebarOpen: false }">
         <div class="flex h-screen overflow-hidden">
@@ -86,7 +87,7 @@
                         <x-application-logo class="w-10 h-10 fill-current text-indigo-600" />
                     </div>
                     <div class="flex items-center gap-2">
-                        <x-notification-dropdown />
+                        <livewire:notifications-dropdown wire:key="mobile-notifications" />
                     </div>
                 </header>
 
@@ -97,7 +98,7 @@
                         </h2>
                     </div>
                     <div class="flex items-center gap-5">
-                        <x-notification-dropdown />
+                        <livewire:notifications-dropdown wire:key="desktop-notifications" />
                         
                         <div class="h-6 w-px bg-gray-100 mx-1"></div>
 
@@ -130,5 +131,6 @@
                 </main>
             </div>
         </div>
+        @livewireScripts
     </body>
 </html>

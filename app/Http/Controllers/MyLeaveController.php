@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-
 use App\Models\LeaveRequest;
 use App\Models\LeaveType;
+use App\Models\User;
+use App\Notifications\LeaveRequestNotification;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\View\View;
 
 class MyLeaveController extends Controller
@@ -17,7 +20,7 @@ class MyLeaveController extends Controller
     public function index(): View
     {
         $employee = auth()->user()->employee;
-        if (!$employee) {
+        if (! $employee) {
             abort(404, 'Employee record not found.');
         }
 
@@ -35,7 +38,7 @@ class MyLeaveController extends Controller
     {
         $employee = auth()->user()->employee;
         $employee?->ensureLeaveCredits(now()->year);
-        
+
         $leaveTypes = LeaveType::where('is_active', true)->get();
         $credits = $employee?->leaveCredits->keyBy('leave_type_id');
 
@@ -48,7 +51,7 @@ class MyLeaveController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $employee = auth()->user()->employee;
-        if (!$employee) {
+        if (! $employee) {
             return redirect()->route('dashboard')->with('error', 'Unauthorized.');
         }
 
@@ -60,8 +63,8 @@ class MyLeaveController extends Controller
         ]);
 
         // Calculate duration and reserved credits (pending)
-        $start = \Carbon\Carbon::parse($validated['start_date']);
-        $end = \Carbon\Carbon::parse($validated['end_date']);
+        $start = Carbon::parse($validated['start_date']);
+        $end = Carbon::parse($validated['end_date']);
         $duration = $start->diffInDays($end) + 1;
 
         // Sum of days in pending requests for this type/year
@@ -69,8 +72,8 @@ class MyLeaveController extends Controller
             ->where('leave_type_id', $validated['leave_type_id'])
             ->where('status', 'pending')
             ->get()
-            ->sum(function($req) {
-                return \Carbon\Carbon::parse($req->start_date)->diffInDays(\Carbon\Carbon::parse($req->end_date)) + 1;
+            ->sum(function ($req) {
+                return Carbon::parse($req->start_date)->diffInDays(Carbon::parse($req->end_date)) + 1;
             });
 
         // Check credits
@@ -80,15 +83,22 @@ class MyLeaveController extends Controller
 
         $availableBalance = ($credit?->balance ?? 0) - $pendingDays;
 
-        if (!$credit || $availableBalance < $duration) {
-            return back()->withInput()->with('error', 'Insufficient leave credits. (Requested: ' . $duration . ' days, Available: ' . $availableBalance . ' days. You have ' . $pendingDays . ' days pending approval).');
+        if (! $credit || $availableBalance < $duration) {
+            return back()->withInput()->with('error', 'Insufficient leave credits. (Requested: '.$duration.' days, Available: '.$availableBalance.' days. You have '.$pendingDays.' days pending approval).');
         }
 
         // Create request (Deduction only happens on Approval)
-        $employee->leaveRequests()->create([
+        $leaveRequest = $employee->leaveRequests()->create([
             ...$validated,
             'date_filed' => now(),
         ]);
+
+        // Notify Admins/HR
+        $admins = User::whereHas('employee', function ($query) {
+            $query->whereIn('role', ['chief', 'hrstaff', 'admin', 'director', 'regionaldirector', 'regional director']);
+        })->get();
+
+        Notification::send($admins, new LeaveRequestNotification($leaveRequest));
 
         return redirect()->route('leaves.index')->with('success', 'Leave request submitted successfully. Credits will be deducted once approved.');
     }
@@ -104,6 +114,7 @@ class MyLeaveController extends Controller
         }
 
         $leaf->load(['leaveType', 'chief', 'hrstaff', 'regionalDirector']);
+
         return view('leaves.show', compact('leaf'));
     }
 
@@ -123,6 +134,7 @@ class MyLeaveController extends Controller
 
         $leaveTypes = LeaveType::where('is_active', true)->get();
         $credits = $employee->leaveCredits->keyBy('leave_type_id');
+
         return view('leaves.edit', compact('leaf', 'leaveTypes', 'credits'));
     }
 

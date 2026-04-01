@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\LeaveRequest;
+use App\Notifications\LeaveStatusUpdatedNotification;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -51,6 +52,7 @@ class LeaveApplicationController extends Controller
     public function show(LeaveRequest $leaveApplication): View
     {
         $leaveApplication->load(['employee', 'leaveType', 'chief', 'hrstaff', 'regionalDirector']);
+
         return view('leave-applications.show', compact('leaveApplication'));
     }
 
@@ -112,6 +114,11 @@ class LeaveApplicationController extends Controller
             }
 
             $leaveApplication->save();
+
+            // Notify the employee of the status change if it's final (rejected or fully approved)
+            if ($leaveApplication->status !== 'pending') {
+                $leaveApplication->employee->user->notify(new LeaveStatusUpdatedNotification($leaveApplication));
+            }
         });
 
         $msg = $validated['status'] === 'approved' ? 'Leave request approved successfully.' : 'Leave request rejected.';
