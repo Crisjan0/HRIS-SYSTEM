@@ -85,7 +85,32 @@
                     <div class="flex-1 flex justify-center lg:hidden">
                         <x-application-logo class="w-10 h-10 fill-current text-indigo-600" />
                     </div>
-                    <div class="w-10"></div> <!-- Spacer for centering logo -->
+                    <div class="flex items-center gap-2">
+                        <x-notification-dropdown />
+                    </div>
+                </header>
+
+                <header class="hidden lg:flex items-center justify-between h-16 px-8 shrink-0 bg-white/80 backdrop-blur-md border-b border-gray-100/50 shadow-sm z-30 sticky top-0 transition-all duration-300">
+                    <div class="flex-1">
+                        <h2 class="text-lg font-bold text-gray-800 tracking-tight">
+                            {{ $title ?? 'Dashboard' }}
+                        </h2>
+                    </div>
+                    <div class="flex items-center gap-5">
+                        <x-notification-dropdown />
+                        
+                        <div class="h-6 w-px bg-gray-100 mx-1"></div>
+
+                        <div class="flex items-center gap-3 pl-2">
+                            <div class="text-right hidden xl:block">
+                                <p class="text-sm font-bold text-gray-900 leading-none mb-0.5">{{ Auth::user()->name }}</p>
+                                <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-tighter">{{ Auth::user()->role ?? 'Employee' }}</p>
+                            </div>
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-sm ring-2 ring-white hover:ring-indigo-100 transition-all duration-300 cursor-pointer">
+                                {{ substr(Auth::user()->name, 0, 1) }}
+                            </div>
+                        </div>
+                    </div>
                 </header>
 
                 <main class="flex-1 relative overflow-y-auto focus:outline-none py-6">
