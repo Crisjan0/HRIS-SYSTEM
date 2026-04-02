@@ -7,12 +7,12 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
         </svg>
         
-        @if($notifications->count() > 0)
+        @if($this->unreadCount > 0)
             <!-- Notification Badge -->
             <span class="absolute top-1.5 right-1.5 flex h-4 w-4">
                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                 <span class="relative inline-flex rounded-full h-4 w-4 bg-red-500 text-[10px] items-center justify-center text-white font-bold border-2 border-white">
-                    {{ $notifications->count() }}
+                    {{ $this->unreadCount }}
                 </span>
             </span>
         @endif
@@ -32,9 +32,9 @@
         <!-- Header -->
         <div class="px-4 py-3 bg-gray-50/50 border-b border-gray-100 flex items-center justify-between">
             <h3 class="text-xs font-bold text-gray-900 uppercase tracking-widest">{{ __('Notifications') }}</h3>
-            @if($notifications->count() > 0)
+            @if($this->unreadCount > 0)
                 <span class="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-[10px] font-bold rounded-full uppercase tracking-tighter">
-                    {{ $notifications->count() }} New
+                    {{ $this->unreadCount }} New
                 </span>
             @endif
         </div>
@@ -61,7 +61,10 @@
                         default => 'border-gray-200'
                     };
                 @endphp
-                <button wire:click="markAsRead('{{ $notification->id }}')" class="w-full text-left block px-4 py-4 hover:bg-indigo-50/50 transition-colors duration-200 group focus:outline-none">
+                <button wire:click="markAsRead('{{ $notification->id }}')" class="w-full text-left block px-4 py-4 {{ $notification->unread() ? 'bg-white' : 'bg-gray-50/30' }} hover:bg-indigo-50/50 transition-colors duration-200 group focus:outline-none relative">
+                    @if($notification->unread())
+                        <div class="absolute top-4 right-4 w-2 h-2 bg-indigo-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(79,70,229,0.5)]"></div>
+                    @endif
                     <div class="flex items-start gap-3">
                         <div class="shrink-0 w-10 h-10 rounded-full {{ $bgColor }} flex items-center justify-center {{ $textColor }} group-hover:scale-110 transition-transform duration-300 shadow-sm border {{ $borderColor }}">
                             @if($type === 'leave_request')
@@ -109,7 +112,7 @@
             @endforelse
         </div>
 
-        @if($notifications->count() > 0)
+        @if($this->unreadCount > 0)
             <!-- Footer -->
             <div class="px-4 py-3 bg-gray-50/80 border-t border-gray-100 text-center">
                 <button wire:click="markAllAsRead" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 uppercase tracking-widest transition-colors duration-200 focus:outline-none">

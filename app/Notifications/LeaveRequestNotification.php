@@ -37,6 +37,7 @@ class LeaveRequestNotification extends Notification
             'title' => 'New Leave Request',
             'message' => "{$this->leaveRequest->employee->user->name} submitted a {$this->leaveRequest->leaveType->name} for {$this->leaveRequest->start_date->format('M d')} to {$this->leaveRequest->end_date->format('M d, Y')}.",
             'leave_request_id' => $this->leaveRequest->id,
+            'action_url' => route('leave-applications.show', $this->leaveRequest->id),
             'icon' => 'leave',
         ];
     }

@@ -9,7 +9,12 @@ class NotificationsDropdown extends Component
 {
     public function getNotificationsProperty()
     {
-        return Auth::user()->unreadNotifications;
+        return Auth::user()->notifications()->latest()->limit(10)->get();
+    }
+
+    public function getUnreadCountProperty()
+    {
+        return Auth::user()->unreadNotifications()->count();
     }
 
     public function refresh(): void
@@ -19,9 +24,11 @@ class NotificationsDropdown extends Component
 
     public function markAsRead($id)
     {
-        $notification = Auth::user()->unreadNotifications()->where('id', $id)->first();
+        $notification = Auth::user()->notifications()->where('id', $id)->first();
         if ($notification) {
-            $notification->markAsRead();
+            if ($notification->unread()) {
+                $notification->markAsRead();
+            }
 
             $url = $notification->data['action_url'] ?? '#';
 

@@ -40,6 +40,7 @@ class LeaveStatusUpdatedNotification extends Notification
             'title' => "Leave Request {$status} {$emoji}",
             'message' => "Your request for {$this->leaveRequest->leaveType->name} ({$this->leaveRequest->start_date->format('M d')} - {$this->leaveRequest->end_date->format('M d, Y')}) has been {$this->leaveRequest->status}.",
             'leave_request_id' => $this->leaveRequest->id,
+            'action_url' => route('leaves.show', $this->leaveRequest->id),
             'status' => $this->leaveRequest->status,
             'icon' => $this->leaveRequest->status === 'approved' ? 'check' : 'x',
         ];
