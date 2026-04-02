@@ -93,12 +93,12 @@ class MyLeaveController extends Controller
             'date_filed' => now(),
         ]);
 
-        // Notify Admins/HR
-        $admins = User::whereHas('employee', function ($query) {
-            $query->whereIn('role', ['chief', 'hrstaff', 'admin', 'director', 'regionaldirector', 'regional director']);
+        // Notify only the Chief (Level 1 Approval)
+        $chiefs = User::whereHas('employee', function ($query) {
+            $query->where('role', 'chief');
         })->get();
 
-        Notification::send($admins, new LeaveRequestNotification($leaveRequest));
+        Notification::send($chiefs, new LeaveRequestNotification($leaveRequest));
 
         return redirect()->route('leaves.index')->with('success', 'Leave request submitted successfully. Credits will be deducted once approved.');
     }

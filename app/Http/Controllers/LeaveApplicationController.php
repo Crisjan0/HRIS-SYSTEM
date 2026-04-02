@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Notifications\LeaveRequestNotification;
 use App\Models\LeaveRequest;
+use App\Models\User;
 use App\Notifications\LeaveStatusUpdatedNotification;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -110,6 +113,21 @@ class LeaveApplicationController extends Controller
                     if ($credit) {
                         $credit->decrement('balance', $duration);
                     }
+                }
+
+                // Notify specific next level roles on approval
+                if ($role === 'chief') {
+                    // Chief approved -> Notify Level 2 (HR/Admin)
+                    $nextLevelUsers = User::whereHas('employee', function ($query) {
+                        $query->whereIn('role', ['hrstaff', 'admin']);
+                    })->get();
+                    Notification::send($nextLevelUsers, new LeaveRequestNotification($leaveApplication));
+                } elseif (in_array($role, ['hrstaff', 'admin'])) {
+                    // HR/Admin approved -> Notify Level 3 (Regional Director)
+                    $nextLevelUsers = User::whereHas('employee', function ($query) {
+                        $query->whereIn('role', ['regional director', 'regionaldirector', 'director']);
+                    })->get();
+                    Notification::send($nextLevelUsers, new LeaveRequestNotification($leaveApplication));
                 }
             }
 
