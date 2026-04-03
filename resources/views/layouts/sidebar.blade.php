@@ -64,8 +64,8 @@
                     <x-sidebar-link :href="route('leaves.index')" :active="request()->routeIs('leaves.*')" class="text-xs">
                         {{ __('Leave') }}
                     </x-sidebar-link>
-                    <x-sidebar-link href="#" :active="false" class="text-xs">
-                        {{ __('DTR') }}
+                    <x-sidebar-link :href="route('dtr.index')" :active="request()->routeIs('dtr.*')" class="text-xs">
+                        {{ __('Attendance / DTR') }}
                     </x-sidebar-link>
                 </x-sidebar-dropdown>
             @endif
@@ -120,6 +120,20 @@
 
                     <x-sidebar-link :href="route('announcements.index')" :active="request()->routeIs('announcements.index')" class="text-xs">
                         {{ __('Manage Announcement') }}
+                    </x-sidebar-link>
+                </x-sidebar-dropdown>
+
+                <x-sidebar-dropdown :label="__('Attendance')" :active="request()->routeIs('dtr.*')">
+                    <x-slot name="icon">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </x-slot>
+
+                    <x-sidebar-link :href="route('dtr.index')" :active="request()->routeIs('dtr.*')" class="text-xs">
+                        {{ __('Manage DTR') }}
                     </x-sidebar-link>
                 </x-sidebar-dropdown>
             </div>

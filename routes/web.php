@@ -6,6 +6,7 @@ use App\Http\Controllers\LeaveTypeController;
 use App\Http\Controllers\MyLeaveController;
 use App\Http\Controllers\LeaveApplicationController;
 use App\Http\Controllers\AnnouncementController;
+use App\Http\Controllers\DtrController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -32,6 +33,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/view-announcements', [AnnouncementController::class, 'userIndex'])->name('announcements.view');
     Route::resource('announcements', AnnouncementController::class)->except(['show'])->middleware('role:ADMIN,HRSTAFF');
     Route::resource('announcements', AnnouncementController::class)->only(['show']);
+    Route::resource('dtr', DtrController::class)->only(['index', 'show']);
+    Route::post('/dtr/import', [DtrController::class, 'syncFromFile'])->name('dtr.import');
 });
 
 require __DIR__.'/auth.php';
