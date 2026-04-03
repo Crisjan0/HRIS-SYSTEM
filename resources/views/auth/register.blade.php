@@ -47,6 +47,8 @@
             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
         </div>
 
+        <p id="password_match_message" class="text-sm mt-[-10px] mb-4 hidden"></p>
+
         <div class="flex flex-col items-center justify-center mt-2">
             <button type="submit" class="w-full inline-flex justify-center items-center px-4 py-2.5 bg-[#0038a8] border border-transparent rounded-lg font-bold text-base text-white hover:bg-[#002a7a] focus:outline-none focus:ring-2 focus:ring-[#0038a8] focus:ring-offset-2 transition ease-in-out duration-150 shadow-md mb-4">
                 {{ __('Register') }}
@@ -57,4 +59,29 @@
             </a>
         </div>
     </form>
+
+    <script>
+        function checkPasswordsMatch() {
+            const password = document.getElementById('password').value;
+            const confirm = document.getElementById('password_confirmation').value;
+            const message = document.getElementById('password_match_message');
+            
+            if (confirm === '') {
+                message.classList.add('hidden');
+                return;
+            }
+            
+            message.classList.remove('hidden');
+            if (password === confirm) {
+                message.innerHTML = 'Passwords match <span class=\"font-bold\">✓</span>';
+                message.className = 'text-sm mt-[-10px] mb-3 text-[#42b72a] dark:text-[#42b72a] font-medium';
+            } else {
+                message.textContent = 'Passwords do not match';
+                message.className = 'text-sm mt-[-10px] mb-3 text-[#ce1126] dark:text-[#ff4757] font-medium';
+            }
+        }
+        
+        document.getElementById('password').addEventListener('input', checkPasswordsMatch);
+        document.getElementById('password_confirmation').addEventListener('input', checkPasswordsMatch);
+    </script>
 </x-guest-layout>
