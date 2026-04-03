@@ -4,7 +4,7 @@
 
         <!-- Name -->
         <div class="relative mb-5">
-            <x-text-input id="name" class="block w-full px-4 pb-2.5 pt-6 text-[17px] !rounded-lg border-gray-300 dark:border-gray-600 focus:border-[#0038a8] focus:ring-[#0038a8] peer placeholder-transparent" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" placeholder="Full Name" />
+            <x-text-input id="name" class="capitalize block w-full px-4 pb-2.5 pt-6 text-[17px] !rounded-lg border-gray-300 dark:border-gray-600 focus:border-[#0038a8] focus:ring-[#0038a8] peer placeholder-transparent" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" placeholder="Full Name" />
             <label for="name" class="absolute text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-3.5 scale-75 top-4 z-10 origin-[0] left-4 peer-focus:text-[#0038a8] peer-focus:dark:text-[#5c8aff] peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3.5 pointer-events-none text-[17px]">
                 Full Name
             </label>
