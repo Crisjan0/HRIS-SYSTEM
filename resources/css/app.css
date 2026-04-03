@@ -22,3 +22,21 @@
 .glass {
     @apply bg-white/70 backdrop-blur-md border border-white/20;
 }
+
+/* Fix Chrome Autofill to retain transparency and correct text color */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+    transition: background-color 9999s ease-in-out 0s;
+    -webkit-text-fill-color: #111827 !important; /* Light mode text */
+}
+
+@media (prefers-color-scheme: dark) {
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover, 
+    input:-webkit-autofill:focus, 
+    input:-webkit-autofill:active {
+        -webkit-text-fill-color: #d1d5db !important; /* Dark mode text */
+    }
+}
