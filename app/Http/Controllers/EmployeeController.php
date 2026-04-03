@@ -27,7 +27,7 @@ class EmployeeController extends Controller
     public function create(): View
     {
         $users = User::whereDoesntHave('employee')->get();
-        $roles = ['employee', 'admin', 'hrstaff', 'user', 'director'];
+        $roles = ['user', 'employee', 'hrstaff', 'chief', 'regional director', 'admin'];
 
         return view('employees.create', compact('users', 'roles'));
     }
@@ -66,7 +66,7 @@ class EmployeeController extends Controller
         $users = User::whereDoesntHave('employee', function ($query) use ($employee) {
             $query->where('id', '!=', $employee->id);
         })->get();
-        $roles = ['employee', 'admin', 'hrstaff', 'user', 'director'];
+        $roles = ['user', 'employee', 'hrstaff', 'chief', 'regional director', 'admin'];
 
         return view('employees.edit', compact('employee', 'users', 'roles'));
     }

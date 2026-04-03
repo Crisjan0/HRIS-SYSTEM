@@ -47,6 +47,12 @@ class DatabaseSeeder extends Seeder
             'password' => 'password',
         ]);
 
+        User::factory()->create([
+            'name' => 'Chief User',
+            'email' => 'chief@example.com',
+            'password' => 'password',
+        ]);
+
         $this->call(EmployeeSeeder::class);
     }
 }

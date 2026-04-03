@@ -13,96 +13,46 @@
                 </div>
             @endif
 
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-100">
-                <div class="p-6 text-gray-900">
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead>
-                                <tr class="bg-gray-50">
-                                    <th class="px-6 py-3 text-left text-xs font-black text-gray-500 uppercase tracking-widest">{{ __('Employee') }}</th>
-                                    <th class="px-6 py-3 text-left text-xs font-black text-gray-500 uppercase tracking-widest">{{ __('Leave Type') }}</th>
-                                    <th class="px-6 py-3 text-left text-xs font-black text-gray-500 uppercase tracking-widest">{{ __('Duration') }}</th>
-                                    <th class="px-6 py-3 text-left text-xs font-black text-gray-500 uppercase tracking-widest">{{ __('Date Filed') }}</th>
-                                    <th class="px-6 py-3 text-right text-xs font-black text-gray-500 uppercase tracking-widest">{{ __('Actions') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                @forelse($leaves as $leaf)
-                                    <tr class="hover:bg-gray-50 transition-colors duration-200">
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm font-black text-gray-900">{{ $leaf->employee->firstname }} {{ $leaf->employee->lastname }}</div>
-                                            <div class="text-[10px] text-gray-400 uppercase tracking-tighter">{{ $leaf->employee->role }}</div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm font-bold text-indigo-600">{{ $leaf->leaveType->name }}</div>
-                                            <div class="text-xs text-gray-500 italic max-w-xs truncate" title="{{ $leaf->reason }}">{{ $leaf->reason }}</div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm font-black text-gray-900">
-                                                @php
-                                                    $duration = \Carbon\Carbon::parse($leaf->start_date)->diffInDays(\Carbon\Carbon::parse($leaf->end_date)) + 1;
-                                                @endphp
-                                                {{ $duration }} {{ Str::plural('Day', $duration) }}
-                                            </div>
-                                            <div class="text-[10px] text-gray-400 font-medium">
-                                                {{ \Carbon\Carbon::parse($leaf->start_date)->format('M d') }} - {{ \Carbon\Carbon::parse($leaf->end_date)->format('M d, Y') }}
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-xs text-gray-400 italic">
-                                            {{ \Carbon\Carbon::parse($leaf->date_filed)->format('M d, Y h:i A') }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <div class="flex items-center justify-end gap-3" x-data="{ open: false, action: '' }">
-                                                <button @click="open = true; action = 'approved'" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-md">
-                                                    APPROVE
-                                                </button>
-                                                <button @click="open = true; action = 'rejected'" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-md">
-                                                    REJECT
-                                                </button>
+            <div class="space-y-4">
+                @forelse($leaves as $leaf)
+                    <div class="bg-white overflow-hidden shadow-sm rounded-xl border border-gray-100 p-6 flex items-center justify-between hover:shadow-md transition-shadow duration-300">
+                        <div class="flex-1">
+                            <h3 class="text-lg font-bold text-gray-900 leading-tight">
+                                {{ $leaf->employee->firstname }} {{ $leaf->employee->lastname }}
+                            </h3>
+                            <div class="text-sm text-gray-600 mt-1">
+                                <span class="font-medium text-indigo-600">{{ $leaf->leaveType->name }}</span>
+                                <span class="mx-1 text-gray-400">from</span>
+                                <span class="font-medium">{{ \Carbon\Carbon::parse($leaf->start_date)->format('M d, Y') }}</span>
+                                <span class="mx-1 text-gray-400">to</span>
+                                <span class="font-medium">{{ \Carbon\Carbon::parse($leaf->end_date)->format('M d, Y') }}</span>
+                            </div>
+                            <div class="mt-2 flex items-center gap-2">
+                                <span class="text-[10px] font-black uppercase tracking-widest text-gray-400">Status:</span>
+                                <span class="text-[10px] font-black uppercase tracking-widest text-orange-500 bg-orange-50 px-2 py-0.5 rounded">PENDING</span>
+                            </div>
+                        </div>
 
-                                                <!-- Simple Action Modal (Alpine.js) -->
-                                                <template x-if="open">
-                                                    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                                                        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-left">
-                                                            <h3 class="text-lg font-black text-gray-900 border-b pb-4 mb-6 uppercase tracking-widest" x-text="action === 'approved' ? 'Approve Leave Request' : 'Reject Leave Request'"></h3>
-                                                            
-                                                            <form action="{{ route('leave-applications.update', $leaf->id) }}" method="POST">
-                                                                @csrf
-                                                                @method('PUT')
-                                                                <input type="hidden" name="status" :value="action">
-                                                                
-                                                                <div class="mb-6">
-                                                                    <label class="block text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-2">{{ __('Remarks / Reason') }}</label>
-                                                                    <textarea name="remarks" class="w-full border-gray-100 rounded-xl bg-gray-50/50 text-sm font-medium focus:ring-indigo-500 focus:border-indigo-500" rows="3" placeholder="Add some notes here..."></textarea>
-                                                                </div>
-
-                                                                <div class="flex justify-end gap-4 mt-8">
-                                                                    <button type="button" @click="open = false" class="text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-gray-600 px-4 py-2">{{ __('Cancel') }}</button>
-                                                                    <button type="submit" 
-                                                                        :class="action === 'approved' ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-red-600 hover:bg-red-700'" 
-                                                                        class="px-8 py-3 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all transform hover:-translate-y-1 shadow-lg">
-                                                                        CONFIRM ACTION
-                                                                    </button>
-                                                                </div>
-                                                            </form>
-                                                        </div>
-                                                    </div>
-                                                </template>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="5" class="px-6 py-10 text-center text-gray-500 italic font-medium">
-                                            {{ __('No pending leave applications found.') }}
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
+                        <div class="flex items-center gap-3">
+                            <a href="{{ route('leave-applications.show', $leaf->id) }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all shadow-lg hover:-translate-y-0.5">
+                                REVIEW
+                            </a>
+                        </div>
                     </div>
-                </div>
+                @empty
+                    <div class="bg-white rounded-xl border border-dashed border-gray-200 p-12 text-center">
+                        <div class="text-gray-400 mb-2">
+                            <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                        </div>
+                        <p class="text-gray-500 italic font-medium">
+                            {{ __('No pending leave applications found.') }}
+                        </p>
+                    </div>
+                @endforelse
             </div>
+
         </div>
     </div>
 </x-app-layout>
