@@ -1,16 +1,5 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center gap-4">
-            <a href="{{ route('announcements.index') }}" class="inline-flex items-center p-2 text-gray-500 hover:text-indigo-600 transition-colors bg-white rounded-full shadow-sm hover:shadow transition-all group">
-                <svg class="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                </svg>
-            </a>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('Announcement Details') }}
-            </h2>
-        </div>
-    </x-slot>
+    <x-slot name="title">{{ __('Announcement Details') }}</x-slot>
 
     <div class="py-12">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
@@ -49,10 +38,10 @@
 
                     <div class="flex items-center p-4 bg-gray-50 rounded-2xl mb-10">
                         <div class="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg shadow-md ring-4 ring-white">
-                            {{ substr($announcement->author->name, 0, 1) }}
+                            {{ substr($announcement->author->display_name, 0, 1) }}
                         </div>
                         <div class="ml-4">
-                            <p class="text-sm font-bold text-gray-900">{{ $announcement->author->name }}</p>
+                            <p class="text-sm font-bold text-gray-900">{{ $announcement->author->display_name }}</p>
                             <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">{{ $announcement->author->role ?? __('Staff') }}</p>
                         </div>
 
@@ -61,6 +50,13 @@
                                 <a href="{{ route('announcements.edit', $announcement) }}" class="inline-flex items-center px-4 py-2 bg-indigo-50 text-indigo-700 text-xs font-bold rounded-lg hover:bg-indigo-100 transition-colors uppercase tracking-widest">
                                     {{ __('Edit') }}
                                 </a>
+                                <form action="{{ route('announcements.destroy', $announcement) }}" method="POST" onsubmit="return confirm('{{ __('Are you sure you want to delete this announcement?') }}');" class="inline-block">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-50 text-red-700 text-xs font-bold rounded-lg hover:bg-red-100 transition-colors uppercase tracking-widest">
+                                        {{ __('Delete') }}
+                                    </button>
+                                </form>
                             </div>
                         @endif
                     </div>
@@ -82,7 +78,7 @@
             </article>
 
             <div class="mt-8 flex justify-center">
-                <a href="{{ route('announcements.index') }}" class="text-sm font-bold text-gray-500 hover:text-indigo-600 transition-colors flex items-center">
+                <a href="{{ (auth()->user()->role === 'admin' || auth()->user()->role === 'hrstaff') ? route('announcements.index') : route('announcements.view') }}" class="text-sm font-bold text-gray-500 hover:text-indigo-600 transition-colors flex items-center">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12"></path>
                     </svg>

@@ -1,30 +1,5 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                <a href="{{ route('leaves.index') }}" class="text-gray-400 hover:text-gray-600 transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                </a>
-                <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                    {{ __('Leave Request Details') }}
-                </h2>
-            </div>
-            @if($leaf->status === 'pending')
-                <div class="flex gap-2">
-                    <a href="{{ route('leaves.edit', $leaf) }}" class="inline-flex items-center px-4 py-2 bg-white border-2 border-indigo-100 rounded-xl font-black text-[10px] text-indigo-600 uppercase tracking-widest hover:bg-indigo-50 transition-all">
-                        {{ __('Edit') }}
-                    </a>
-                    <form action="{{ route('leaves.destroy', $leaf) }}" method="POST" onsubmit="return confirm('{{ __('Are you sure you want to cancel this leave request?') }}')">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-50 border border-transparent rounded-xl font-black text-[10px] text-red-600 uppercase tracking-widest hover:bg-red-100 transition-all">
-                            {{ __('Cancel') }}
-                        </button>
-                    </form>
-                </div>
-            @endif
-        </div>
-    </x-slot>
+    <x-slot name="title">{{ __('Leave Request Details') }}</x-slot>
 
     <div class="py-12">
         <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">

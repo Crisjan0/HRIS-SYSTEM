@@ -1,16 +1,5 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center gap-4">
-            <a href="{{ route('announcements.index') }}" class="inline-flex items-center p-2 text-gray-500 hover:text-indigo-600 transition-colors bg-white rounded-full shadow-sm hover:shadow transition-all group">
-                <svg class="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                </svg>
-            </a>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('New Announcement') }}
-            </h2>
-        </div>
-    </x-slot>
+    <x-slot name="title">{{ __('New Announcement') }}</x-slot>
 
     <div class="py-12">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">

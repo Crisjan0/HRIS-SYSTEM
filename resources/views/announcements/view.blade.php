@@ -1,15 +1,6 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('Official Announcements') }}
-            </h2>
-            <div class="flex items-center gap-2 text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                {{ __('Live Updates') }}
-            </div>
-        </div>
-    </x-slot>
+    <x-slot name="title">{{ __('Official Announcements') }}</x-slot>
+
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -66,12 +57,12 @@
                             <div class="flex items-center">
                                 <div class="relative">
                                     <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-[10px] text-white font-black shadow-md ring-2 ring-white">
-                                        {{ substr($announcement->author->name, 0, 1) }}
+                                        {{ substr($announcement->author->display_name, 0, 1) }}
                                     </div>
                                     <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white rounded-full shadow-sm"></div>
                                 </div>
                                 <div class="ml-3 font-bold">
-                                    <p class="text-xs text-gray-900 leading-none mb-0.5">{{ $announcement->author->name }}</p>
+                                    <p class="text-xs text-gray-900 leading-none mb-0.5">{{ $announcement->author->display_name }}</p>
                                     <p class="text-[9px] text-indigo-500 uppercase tracking-widest">{{ $announcement->author->role ?? __('Staff') }}</p>
                                 </div>
                             </div>
