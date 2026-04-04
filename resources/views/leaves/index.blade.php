@@ -14,6 +14,16 @@
                 </div>
             @endif
 
+            <!-- Header Actions -->
+            <div class="flex justify-end mb-6">
+                <a href="{{ route('leaves.create') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-200 hover:-translate-y-1 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    File New Leave
+                </a>
+            </div>
+
             <!-- Credits Summary -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                 @foreach($credits as $credit)

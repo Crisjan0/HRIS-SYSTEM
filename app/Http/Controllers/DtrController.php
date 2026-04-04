@@ -34,6 +34,23 @@ class DtrController extends Controller
         return view('dtr.index', compact('records'));
     }
 
+    public function myDtr(): View
+    {
+        $query = DtrRecord::with('employee')->latest();
+        
+        $employee = auth()->user()->employee;
+        if ($employee) {
+            $query->where('employee_id', $employee->id);
+        } else {
+            $query->where('employee_id', 0);
+        }
+
+        $records = $query->paginate(15);
+        $isPersonal = true;
+
+        return view('dtr.index', compact('records', 'isPersonal'));
+    }
+
     public function syncFromFile(): RedirectResponse
     {
         $absPath = storage_path('app/attendance/dtr.xlsx');
