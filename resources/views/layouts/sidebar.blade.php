@@ -121,7 +121,7 @@
                     </x-sidebar-link>
                 </x-sidebar-dropdown>
 
-                <x-sidebar-dropdown :label="__('Announcement')" :active="request()->routeIs('announcements.*')">
+                <x-sidebar-dropdown :label="__('Announcement')" :active="request()->routeIs(['announcements.index', 'announcements.create', 'announcements.edit', 'announcements.show'])">
                     <x-slot name="icon">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                             xmlns="http://www.w3.org/2000/svg">
