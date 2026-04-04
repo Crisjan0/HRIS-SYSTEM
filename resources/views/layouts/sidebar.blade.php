@@ -190,10 +190,10 @@
             <div class="flex items-center gap-3 px-3 group cursor-pointer">
                 <div
                     class="w-10 h-10 rounded-full bg-gradient-to-br from-[#0038a8] to-[#ce1126] flex items-center justify-center text-white font-bold shadow-md shadow-[#0038a8]/20 ring-2 ring-white transition-transform duration-300 group-hover:scale-110">
-                    {{ substr(Auth::user()->name, 0, 1) }}
+                    {{ substr(Auth::user()->display_name, 0, 1) }}
                 </div>
                 <div class="overflow-hidden">
-                    <p class="text-sm font-bold text-gray-900 truncate">{{ Auth::user()->name }}</p>
+                    <p class="text-sm font-bold text-gray-900 truncate">{{ Auth::user()->display_name }}</p>
                     <p class="text-xs text-gray-600 truncate">{{ Auth::user()->email }}</p>
                 </div>
             </div>

@@ -13,10 +13,10 @@
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-3xl border border-gray-100 p-8">
                         <div class="flex items-center gap-6">
                             <div class="w-20 h-20 rounded-2xl bg-indigo-600 flex items-center justify-center text-white text-3xl font-bold shadow-lg shadow-indigo-200">
-                                {{ substr(Auth::user()->name, 0, 1) }}
+                                {{ substr(Auth::user()->display_name, 0, 1) }}
                             </div>
                             <div>
-                                <h3 class="text-2xl font-black text-gray-900 tracking-tight uppercase">{{ __('Welcome back,') }} {{ Auth::user()->name }}!</h3>
+                                <h3 class="text-2xl font-black text-gray-900 tracking-tight uppercase">{{ __('Welcome back,') }} {{ Auth::user()->display_name }}!</h3>
                                 <p class="text-gray-500 font-medium whitespace-nowrap">{{ __("You are officially logged in to the HRIS ecosystem.") }}</p>
                             </div>
                         </div>

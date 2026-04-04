@@ -53,6 +53,19 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the user's display name. Prioritizes the bound Employee's name.
+     */
+    public function getDisplayNameAttribute(): string
+    {
+        if ($this->employee) {
+            $first = $this->employee->firstname;
+            $last = $this->employee->lastname;
+            return trim("$first $last") ?: $this->name;
+        }
+        return $this->name;
+    }
+
+    /**
      * Get the user's role.
      * Default to 'user' if no employee record exists.
      */
