@@ -23,13 +23,14 @@
     @apply bg-white/70 backdrop-blur-md border border-white/20;
 }
 
-/* Fix Chrome Autofill to retain transparency and correct text color */
+/* Fix Chrome Autofill to retain correct text and background color */
 input:-webkit-autofill,
 input:-webkit-autofill:hover, 
 input:-webkit-autofill:focus, 
 input:-webkit-autofill:active {
-    transition: background-color 9999s ease-in-out 0s;
+    -webkit-box-shadow: 0 0 0 30px white inset !important;
     -webkit-text-fill-color: #111827 !important; /* Light mode text */
+    transition: background-color 5000s ease-in-out 0s; /* fallback */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -37,6 +38,7 @@ input:-webkit-autofill:active {
     input:-webkit-autofill:hover, 
     input:-webkit-autofill:focus, 
     input:-webkit-autofill:active {
+        -webkit-box-shadow: 0 0 0 30px #111827 inset !important;
         -webkit-text-fill-color: #d1d5db !important; /* Dark mode text */
     }
 }
