@@ -33,6 +33,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/view-announcements', [AnnouncementController::class, 'userIndex'])->name('announcements.view');
     Route::resource('announcements', AnnouncementController::class)->except(['show'])->middleware('role:ADMIN,HRSTAFF');
     Route::resource('announcements', AnnouncementController::class)->only(['show']);
+    Route::get('my-dtr', [DtrController::class, 'myDtr'])->name('my-dtr.index');
     Route::resource('dtr', DtrController::class)->only(['index', 'show']);
     Route::post('/dtr/import', [DtrController::class, 'syncFromFile'])->name('dtr.import');
 });

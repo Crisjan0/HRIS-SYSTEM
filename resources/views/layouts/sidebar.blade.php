@@ -1,15 +1,28 @@
-<div class="flex flex-col h-full bg-white border-r border-gray-100">
-    <!-- Logo -->
-    <div class="px-6 py-8 flex items-center shrink-0">
-        <a href="{{ route('dashboard') }}"
-            class="flex items-center gap-2 group transition-all duration-300 transform hover:scale-105">
-            <x-application-logo class="w-10 h-10 fill-current text-indigo-600 drop-shadow-md" />
-            <span
-                class="text-xl font-bold tracking-tight bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-                {{ config('app.name', 'Laravel') }}
-            </span>
-        </a>
+<div class="flex flex-col h-full bg-white/80 backdrop-blur-xl relative overflow-hidden border-r border-gray-100">
+    <!-- Decorative Background Elements -->
+    <div class="absolute inset-0 z-0 pointer-events-none overflow-hidden opacity-80">
+        <!-- Blue Gradient Blob -->
+        <div class="absolute -top-10 -left-10 w-48 h-48 rounded-full bg-[#0038a8] opacity-[0.08] blur-2xl"></div>
+        <!-- Yellow Gradient Blob -->
+        <div class="absolute top-[35%] -right-10 w-32 h-32 rounded-full bg-[#fcd116] opacity-[0.12] blur-xl"></div>
+        <!-- Red Gradient Blob -->
+        <div class="absolute bottom-10 -left-10 w-40 h-40 rounded-full bg-[#ce1126] opacity-[0.08] blur-2xl"></div>
     </div>
+
+    <!-- Main Content Container -->
+    <div class="relative z-10 flex flex-col h-full">
+
+        <!-- Logo -->
+        <div class="px-6 py-8 flex items-center shrink-0">
+            <a href="{{ route('dashboard') }}"
+                class="flex items-center gap-3 group transition-all duration-300 transform hover:scale-105">
+                <x-application-logo class="w-10 h-10 fill-current text-[#0038a8] drop-shadow-md" />
+                <span
+                    class="text-xl font-black tracking-tight bg-gradient-to-r from-[#0038a8] to-[#ce1126] bg-clip-text text-transparent">
+                    DMW HRIS
+                </span>
+            </a>
+        </div>
 
     <!-- Navigation -->
     <nav class="flex-1 px-4 space-y-1.5 overflow-y-auto mt-2">
@@ -29,7 +42,7 @@
                 </x-slot>
                 {{ __('Dashboard') }}
             </x-sidebar-link>
-            
+
             <x-sidebar-link :href="route('announcements.view')" :active="request()->routeIs('announcements.view')">
                 <x-slot name="icon">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
@@ -43,7 +56,7 @@
             </x-sidebar-link>
 
             @if(in_array(auth()->user()->role, ['employee', 'admin', 'hrstaff', 'director', 'chief', 'regionaldirector', 'regional director']))
-                <x-sidebar-dropdown label="{{ __('My Profile') }}" :active="request()->routeIs(['pds.*', 'saln.*', 'ildp.*', 'leave.*', 'dtr.*'])">
+                <x-sidebar-dropdown label="{{ __('My Profile') }}" :active="request()->routeIs(['pds.*', 'saln.*', 'ildp.*', 'leaves.*', 'my-dtr.*'])">
                     <x-slot name="icon">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                             xmlns="http://www.w3.org/2000/svg">
@@ -64,7 +77,7 @@
                     <x-sidebar-link :href="route('leaves.index')" :active="request()->routeIs('leaves.*')" class="text-xs">
                         {{ __('Leave') }}
                     </x-sidebar-link>
-                    <x-sidebar-link :href="route('dtr.index')" :active="request()->routeIs('dtr.*')" class="text-xs">
+                    <x-sidebar-link :href="route('my-dtr.index')" :active="request()->routeIs('my-dtr.*')" class="text-xs">
                         {{ __('Attendance / DTR') }}
                     </x-sidebar-link>
                 </x-sidebar-dropdown>
@@ -77,7 +90,7 @@
                     {{ __('Administration') }}
                 </h3>
 
-                <x-sidebar-dropdown :label="__('Leave & Employee')" :active="request()->routeIs(['employees.*', 'leaves.*'])">
+                <x-sidebar-dropdown :label="__('Leave & Employee')" :active="request()->routeIs(['employees.*', 'leave-types.*', 'leave-applications.*'])">
                     <x-slot name="icon">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                             xmlns="http://www.w3.org/2000/svg">
@@ -95,12 +108,12 @@
                         class="text-xs">
                         {{ __('Manage Leave Types') }}
                     </x-sidebar-link>
-                    <x-sidebar-link :href="route('leave-applications.index')" :active="request()->routeIs('leave-applications.index')"
-                        class="text-xs">
+                    <x-sidebar-link :href="route('leave-applications.index')"
+                        :active="request()->routeIs('leave-applications.index')" class="text-xs">
                         {{ __('Pending Leave') }}
                     </x-sidebar-link>
-                    <x-sidebar-link :href="route('leave-applications.all')" :active="request()->routeIs('leave-applications.all')"
-                        class="text-xs">
+                    <x-sidebar-link :href="route('leave-applications.all')"
+                        :active="request()->routeIs('leave-applications.all')" class="text-xs">
                         {{ __('All Leave') }}
                     </x-sidebar-link>
                     <x-sidebar-link href="#" :active="false" class="text-xs">
@@ -108,7 +121,7 @@
                     </x-sidebar-link>
                 </x-sidebar-dropdown>
 
-                <x-sidebar-dropdown :label="__('Announcement')" :active="request()->routeIs('announcements.*')">
+                <x-sidebar-dropdown :label="__('Announcement')" :active="request()->routeIs(['announcements.index', 'announcements.create', 'announcements.edit', 'announcements.show'])">
                     <x-slot name="icon">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                             xmlns="http://www.w3.org/2000/svg">
@@ -118,7 +131,8 @@
                         </svg>
                     </x-slot>
 
-                    <x-sidebar-link :href="route('announcements.index')" :active="request()->routeIs('announcements.index')" class="text-xs">
+                    <x-sidebar-link :href="route('announcements.index')" :active="request()->routeIs('announcements.index')"
+                        class="text-xs">
                         {{ __('Manage Announcement') }}
                     </x-sidebar-link>
                 </x-sidebar-dropdown>
@@ -172,16 +186,17 @@
     </nav>
 
     <!-- User Section -->
-    <div class="px-4 py-6 border-t border-gray-100 bg-gray-50/50">
-        <div class="flex items-center gap-3 px-3">
-            <div
-                class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-sm ring-2 ring-white">
-                {{ substr(Auth::user()->name, 0, 1) }}
-            </div>
-            <div class="overflow-hidden">
-                <p class="text-sm font-semibold text-gray-900 truncate">{{ Auth::user()->name }}</p>
-                <p class="text-xs text-gray-500 truncate">{{ Auth::user()->email }}</p>
+        <div class="px-4 py-6 border-t border-white/40 bg-white/40 backdrop-blur-sm">
+            <div class="flex items-center gap-3 px-3 group cursor-pointer">
+                <div
+                    class="w-10 h-10 rounded-full bg-gradient-to-br from-[#0038a8] to-[#ce1126] flex items-center justify-center text-white font-bold shadow-md shadow-[#0038a8]/20 ring-2 ring-white transition-transform duration-300 group-hover:scale-110">
+                    {{ substr(Auth::user()->display_name, 0, 1) }}
+                </div>
+                <div class="overflow-hidden">
+                    <p class="text-sm font-bold text-gray-900 truncate">{{ Auth::user()->display_name }}</p>
+                    <p class="text-xs text-gray-600 truncate">{{ Auth::user()->email }}</p>
+                </div>
             </div>
         </div>
-    </div>
+    </div> <!-- /End relative z-10 container -->
 </div>
