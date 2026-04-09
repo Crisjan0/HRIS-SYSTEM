@@ -63,9 +63,7 @@ class MyLeaveController extends Controller
         ]);
 
         // Calculate duration and reserved credits (pending)
-        $start = Carbon::parse($validated['start_date']);
-        $end = Carbon::parse($validated['end_date']);
-        $duration = $start->diffInDays($end) + 1;
+        $duration = LeaveRequest::calculateBusinessDays($validated['start_date'], $validated['end_date']);
 
         // Sum of days in pending requests for this type/year
         $pendingDays = $employee->leaveRequests()
@@ -73,25 +71,26 @@ class MyLeaveController extends Controller
             ->where('status', 'pending')
             ->get()
             ->sum(function ($req) {
-                return Carbon::parse($req->start_date)->diffInDays(Carbon::parse($req->end_date)) + 1;
+                return $req->duration;
             });
 
-        // Check credits
+        // Check credits (Warning only, filing is still allowed as unpaid)
         $credit = $employee->leaveCredits()->where('leave_type_id', $validated['leave_type_id'])
-            ->where('year', $start->year)
+            ->where('year', Carbon::parse($validated['start_date'])->year)
             ->first();
 
         $availableBalance = ($credit?->balance ?? 0) - $pendingDays;
-
-        if (! $credit || $availableBalance < $duration) {
-            return back()->withInput()->with('error', 'Insufficient leave credits. (Requested: '.$duration.' days, Available: '.$availableBalance.' days. You have '.$pendingDays.' days pending approval).');
-        }
-
-        // Create request (Deduction only happens on Approval)
+        
+        // Deduction only happens on Approval. We allow filing even if credits are insufficient.
         $leaveRequest = $employee->leaveRequests()->create([
             ...$validated,
             'date_filed' => now(),
         ]);
+
+        $msg = 'Leave request submitted successfully.';
+        if (! $credit || $availableBalance < $duration) {
+            $msg .= ' Note: You have insufficient credits, this leave may be approved without pay.';
+        }
 
         // Notify only the Chief (Level 1 Approval)
         $chiefs = User::whereHas('employee', function ($query) {

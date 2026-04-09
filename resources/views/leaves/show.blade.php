@@ -9,14 +9,14 @@
                     @php
                         $statusColors = [
                             'pending' => 'text-orange-500 bg-orange-50 border-orange-100',
-                            'approved' => 'text-green-600 bg-green-50 border-green-100',
+                            'approved' => $leaf->is_paid ? 'text-green-600 bg-green-50 border-green-100' : 'text-indigo-600 bg-indigo-50 border-indigo-100',
                             'rejected' => 'text-red-600 bg-red-50 border-red-100',
                             'cancelled' => 'text-gray-500 bg-gray-50 border-gray-100',
                         ];
                         $colorClass = $statusColors[$leaf->status] ?? 'text-blue-500 bg-blue-50 border-blue-100';
                     @endphp
-                    <span class="text-[11px] font-black uppercase tracking-[0.2em] {{ $colorClass }} px-6 py-2 rounded-full border mb-4">
-                        {{ __($leaf->status) }}
+                    <span class="text-[11px] font-black uppercase tracking-[0.2em] {{ $colorClass }} px-6 py-2 rounded-full border mb-4 text-center">
+                        {{ $leaf->status_label }}
                     </span>
                     <h1 class="text-3xl font-black text-gray-900 text-center">{{ $leaf->leaveType->name }}</h1>
                     <p class="text-gray-400 mt-2 font-medium">Filed on {{ \Carbon\Carbon::parse($leaf->date_filed)->format('F d, Y \a\t h:i A') }}</p>
@@ -48,11 +48,10 @@
                         </div>
                     </div>
 
-                    <!-- Duration Card -->
                     <div class="bg-gray-50/50 rounded-2xl p-6 border border-gray-100 flex flex-col justify-center items-center">
                         <div class="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-4 inline-block border-b-2 border-indigo-100 pb-1">{{ __('Total Duration') }}</div>
                         <div class="flex items-baseline gap-1">
-                            @php $duration = \Carbon\Carbon::parse($leaf->start_date)->diffInDays(\Carbon\Carbon::parse($leaf->end_date)) + 1; @endphp
+                            @php $duration = $leaf->duration; @endphp
                             <span class="text-5xl font-black text-gray-900">{{ $duration }}</span>
                             <span class="text-sm font-bold text-gray-400">{{ Str::plural('Day', $duration) }}</span>
                         </div>

@@ -104,14 +104,17 @@ class LeaveApplicationController extends Controller
                     // Final stage approval
                     $leaveApplication->status = 'approved';
 
-                    $duration = Carbon::parse($leaveApplication->start_date)->diffInDays(Carbon::parse($leaveApplication->end_date)) + 1;
+                    $duration = $leaveApplication->duration;
                     $credit = $leaveApplication->employee->leaveCredits()
                         ->where('leave_type_id', $leaveApplication->leave_type_id)
                         ->where('year', Carbon::parse($leaveApplication->start_date)->year)
                         ->first();
 
-                    if ($credit) {
+                    if ($credit && $credit->balance >= $duration) {
                         $credit->decrement('balance', $duration);
+                        $leaveApplication->is_paid = true;
+                    } else {
+                        $leaveApplication->is_paid = false;
                     }
                 }
 
