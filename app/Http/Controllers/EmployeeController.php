@@ -43,6 +43,7 @@ class EmployeeController extends Controller
             'middlename' => 'nullable|string|max:255',
             'role' => 'required|string',
             'user_id' => 'nullable|exists:users,id|unique:employees,user_id',
+            'rfid_number' => 'nullable|string|max:255|unique:employees,rfid_number',
         ]);
 
         Employee::create($validated);
@@ -82,6 +83,7 @@ class EmployeeController extends Controller
             'middlename' => 'nullable|string|max:255',
             'role' => 'required|string',
             'user_id' => 'nullable|exists:users,id|unique:employees,user_id,' . $employee->id,
+            'rfid_number' => 'nullable|string|max:255|unique:employees,rfid_number,' . $employee->id,
         ]);
 
         $employee->update($validated);

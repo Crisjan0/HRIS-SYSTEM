@@ -15,6 +15,7 @@ class Employee extends Model
         'middlename',
         'role',
         'user_id',
+        'rfid_number',
     ];
 
     public function user()
