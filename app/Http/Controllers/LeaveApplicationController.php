@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Notifications\LeaveRequestNotification;
 use App\Models\LeaveRequest;
 use App\Models\User;
+use App\Notifications\LeaveRequestNotification;
 use App\Notifications\LeaveStatusUpdatedNotification;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Notification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\View\View;
 
 class LeaveApplicationController extends Controller
@@ -34,7 +34,7 @@ class LeaveApplicationController extends Controller
 
         $leaves = $query->latest('date_filed')->get();
 
-        return view('leave-applications.index', compact('leaves'));
+        return view('leaves.applications.index', compact('leaves'));
     }
 
     /**
@@ -46,7 +46,7 @@ class LeaveApplicationController extends Controller
             ->latest('date_filed')
             ->get();
 
-        return view('leave-applications.all', compact('leaves'));
+        return view('leaves.applications.all', compact('leaves'));
     }
 
     /**
@@ -56,7 +56,7 @@ class LeaveApplicationController extends Controller
     {
         $leaveApplication->load(['employee', 'leaveType', 'chief', 'hrstaff', 'regionalDirector']);
 
-        return view('leave-applications.show', compact('leaveApplication'));
+        return view('leaves.applications.show', compact('leaveApplication'));
     }
 
     public function update(Request $request, LeaveRequest $leaveApplication): RedirectResponse

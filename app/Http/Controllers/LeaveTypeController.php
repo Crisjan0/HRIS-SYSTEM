@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-
 use App\Models\LeaveType;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class LeaveTypeController extends Controller
@@ -16,7 +15,8 @@ class LeaveTypeController extends Controller
     public function index(): View
     {
         $leaveTypes = LeaveType::latest()->get();
-        return view('leave-types.index', compact('leaveTypes'));
+
+        return view('leaves.types.index', compact('leaveTypes'));
     }
 
     /**
@@ -24,7 +24,7 @@ class LeaveTypeController extends Controller
      */
     public function create(): View
     {
-        return view('leave-types.create');
+        return view('leaves.types.create');
     }
 
     /**
@@ -56,7 +56,7 @@ class LeaveTypeController extends Controller
      */
     public function edit(LeaveType $leaveType): View
     {
-        return view('leave-types.edit', compact('leaveType'));
+        return view('leaves.types.edit', compact('leaveType'));
     }
 
     /**
@@ -65,7 +65,7 @@ class LeaveTypeController extends Controller
     public function update(Request $request, LeaveType $leaveType): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:leave_types,name,' . $leaveType->id,
+            'name' => 'required|string|max:255|unique:leave_types,name,'.$leaveType->id,
             'description' => 'nullable|string',
             'days_per_year' => 'nullable|integer|min:0',
             'is_active' => 'boolean',

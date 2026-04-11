@@ -32,7 +32,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('leaves', MyLeaveController::class);
     Route::get('leave-applications/all', [LeaveApplicationController::class, 'all'])->name('leave-applications.all')->middleware('role:ADMIN,HRSTAFF,DIRECTOR');
     Route::get('/leave-calendar', function () {
-        return view('leave-calendar');
+        return view('leaves.calendar');
     })->name('leave-calendar')->middleware('role:ADMIN,HRSTAFF,DIRECTOR,CHIEF,REGIONALDIRECTOR,REGIONAL DIRECTOR');
     Route::resource('leave-applications', LeaveApplicationController::class)->only(['index', 'update', 'show'])->middleware('role:ADMIN,HRSTAFF,DIRECTOR');
     Route::get('/pds', [PdsController::class, 'index'])->name('pds.index');
