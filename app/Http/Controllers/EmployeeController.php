@@ -52,11 +52,17 @@ class EmployeeController extends Controller
     }
 
     /**
-     * Display the specified resource (not used).
+     * Display the specified resource.
      */
-    public function show(Employee $employee)
+    public function show(Employee $employee): View
     {
-        return redirect()->route('employees.index');
+        $employee->load([
+            'pdsPersonal', 'pdsFamily', 'pdsChildren', 'pdsEducation', 
+            'pdsEligibilities', 'pdsWorkExperiences', 'pdsVoluntaryWorks', 
+            'pdsTrainings', 'pdsOthers', 'pdsQuestionnaire', 'pdsReferences', 'pdsGovId'
+        ]);
+
+        return view('employees.show', compact('employee'));
     }
 
     /**

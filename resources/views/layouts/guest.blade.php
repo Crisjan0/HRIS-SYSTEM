@@ -33,9 +33,9 @@
             <div class="absolute top-[20%] right-[20%] w-[30%] h-[30%] rounded-full bg-[#fcd116] opacity-5 dark:opacity-10 blur-3xl mix-blend-multiply"></div>
         </div>
 
-        <div class="relative z-10 min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0">
+        <div class="relative z-10 min-h-screen flex flex-col sm:justify-center items-center pt-6 pb-8 sm:pt-0 px-4 sm:px-0">
             
-            <div class="mb-6 mt-12 sm:mt-0">
+            <div class="mb-6 mt-8 sm:mt-0">
                 <a href="/" class="block relative w-32 h-32 md:w-40 md:h-40 group">
                     <!-- Outer Rotating Dashed Ring -->
                     <div class="absolute inset-0 rounded-full border-2 border-dashed border-[#fcd116]/60 dark:border-[#fcd116]/30" style="animation: spin 20s linear infinite;"></div>
@@ -51,11 +51,11 @@
                 </a>
             </div>
 
-            <div class="w-full sm:max-w-md mt-2 px-8 py-10 bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden sm:rounded-2xl border border-white/50 dark:border-gray-700/50">
+            <div class="w-full sm:max-w-md mt-2 px-6 py-8 sm:px-8 sm:py-10 bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden rounded-2xl border border-white/50 dark:border-gray-700/50">
                 {{ $slot }}
             </div>
 
-            <div class="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
+            <div class="mt-8 mb-4 text-center text-sm text-gray-500 dark:text-gray-400">
                 &copy; {{ date('Y') }} Department of Migrant Workers Philippines.
             </div>
         </div>
