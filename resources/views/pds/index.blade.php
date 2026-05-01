@@ -13,6 +13,14 @@
                             <p class="text-sm text-gray-500 font-medium italic">Civil Service Records Management Dashboard.</p>
                         </div>
                         <div class="flex gap-4">
+                            <a href="{{ route('pds.download') }}"
+                                class="inline-flex items-center px-6 py-2.5 bg-emerald-600 border-2 border-emerald-700 rounded-xl font-bold text-sm text-white shadow-lg shadow-emerald-100 hover:bg-emerald-700 active:scale-95 transition-all duration-300">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                                Download PDS (.doc)
+                            </a>
                             <a href="{{ route('pds.edit') }}"
                                 class="inline-flex items-center px-6 py-2.5 bg-indigo-700 border-2 border-indigo-800 rounded-xl font-bold text-sm text-white shadow-lg shadow-indigo-100 hover:bg-indigo-800 active:scale-95 transition-all duration-300">
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

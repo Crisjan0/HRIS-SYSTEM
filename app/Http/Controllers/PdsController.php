@@ -2,21 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Employee;
-use App\Models\PdsPersonalInformation;
-use App\Models\PdsFamilyBackground;
-use App\Models\PdsChild;
-use App\Models\PdsEducation;
-use App\Models\PdsEligibility;
-use App\Models\PdsWorkExperience;
-use App\Models\PdsVoluntaryWork;
-use App\Models\PdsTraining;
-use App\Models\PdsOtherInfo;
-use App\Models\PdsQuestionnaire;
-use App\Models\PdsReference;
-use App\Models\PdsGovernmentId;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -30,17 +18,41 @@ class PdsController extends Controller
     {
         $employee = Auth::user()->employee;
 
-        if (!$employee) {
+        if (! $employee) {
             abort(403, 'User is not linked to an employee record.');
         }
 
         $employee->load([
-            'pdsPersonal', 'pdsFamily', 'pdsChildren', 'pdsEducation', 
-            'pdsEligibilities', 'pdsWorkExperiences', 'pdsVoluntaryWorks', 
-            'pdsTrainings', 'pdsOthers', 'pdsQuestionnaire', 'pdsReferences', 'pdsGovId'
+            'pdsPersonal', 'pdsFamily', 'pdsChildren', 'pdsEducation',
+            'pdsEligibilities', 'pdsWorkExperiences', 'pdsVoluntaryWorks',
+            'pdsTrainings', 'pdsOthers', 'pdsQuestionnaire', 'pdsReferences', 'pdsGovId',
         ]);
 
         return view('pds.index', compact('employee'));
+    }
+
+    /**
+     * Download PDS as a Word document.
+     */
+    public function download(): Response
+    {
+        $employee = Auth::user()->employee;
+
+        if (! $employee) {
+            abort(404);
+        }
+
+        $employee->load([
+            'pdsPersonal', 'pdsFamily', 'pdsChildren', 'pdsEducation',
+            'pdsEligibilities', 'pdsWorkExperiences', 'pdsVoluntaryWorks',
+            'pdsTrainings', 'pdsOthers', 'pdsQuestionnaire', 'pdsReferences', 'pdsGovId',
+        ]);
+
+        $filename = 'PDS_'.str_replace(' ', '_', $employee->lastname).'_'.date('Y-m-d').'.doc';
+
+        return response()->view('pds.export', compact('employee'))
+            ->header('Content-Type', 'application/msword')
+            ->header('Content-Disposition', 'attachment; filename="'.$filename.'"');
     }
 
     /**
@@ -50,14 +62,14 @@ class PdsController extends Controller
     {
         $employee = Auth::user()->employee;
 
-        if (!$employee) {
+        if (! $employee) {
             abort(404, 'Employee record not found for this user.');
         }
 
         $employee->load([
-            'pdsPersonal', 'pdsFamily', 'pdsChildren', 'pdsEducation', 
-            'pdsEligibilities', 'pdsWorkExperiences', 'pdsVoluntaryWorks', 
-            'pdsTrainings', 'pdsOthers', 'pdsQuestionnaire', 'pdsReferences', 'pdsGovId'
+            'pdsPersonal', 'pdsFamily', 'pdsChildren', 'pdsEducation',
+            'pdsEligibilities', 'pdsWorkExperiences', 'pdsVoluntaryWorks',
+            'pdsTrainings', 'pdsOthers', 'pdsQuestionnaire', 'pdsReferences', 'pdsGovId',
         ]);
 
         return view('pds.edit', compact('employee'));
@@ -70,7 +82,7 @@ class PdsController extends Controller
     {
         $employee = Auth::user()->employee;
 
-        if (!$employee) {
+        if (! $employee) {
             abort(404);
         }
 
@@ -125,7 +137,7 @@ class PdsController extends Controller
             'family.spouse_firstname' => 'nullable|string',
             'family.father_surname' => 'nullable|string',
             'family.mother_maiden_surname' => 'nullable|string',
-            
+
             // Multi-row handling (All made nullable to allow partial saves)
             'children.*.fullname' => 'nullable|string',
             'children.*.date_of_birth' => 'nullable|date',
@@ -137,7 +149,7 @@ class PdsController extends Controller
 
             'work_experience.*.position_title' => 'nullable|string',
             'work_experience.*.company' => 'nullable|string',
-            
+
             'training.*.title' => 'nullable|string',
 
             'others.*.type' => 'nullable|in:Skill,Distinction,Membership',
@@ -155,7 +167,7 @@ class PdsController extends Controller
         DB::transaction(function () use ($employee, $request) {
             // Update Personal
             $employee->pdsPersonal()->updateOrCreate(
-                ['employee_id' => $employee->id], 
+                ['employee_id' => $employee->id],
                 $request->input('personal', [])
             );
 
@@ -181,7 +193,7 @@ class PdsController extends Controller
             $employee->pdsChildren()->delete();
             if ($request->has('children')) {
                 foreach ($request->children as $child) {
-                    if (!empty($child['fullname'])) {
+                    if (! empty($child['fullname'])) {
                         $employee->pdsChildren()->create($child);
                     }
                 }
@@ -191,7 +203,7 @@ class PdsController extends Controller
             $employee->pdsEducation()->delete();
             if ($request->has('education')) {
                 foreach ($request->education as $edu) {
-                    if (!empty($edu['school_name'])) {
+                    if (! empty($edu['school_name'])) {
                         $employee->pdsEducation()->create($edu);
                     }
                 }
@@ -201,7 +213,7 @@ class PdsController extends Controller
             $employee->pdsEligibilities()->delete();
             if ($request->has('eligibility')) {
                 foreach ($request->eligibility as $eli) {
-                    if (!empty($eli['title'])) {
+                    if (! empty($eli['title'])) {
                         $employee->pdsEligibilities()->create($eli);
                     }
                 }
@@ -211,7 +223,7 @@ class PdsController extends Controller
             $employee->pdsWorkExperiences()->delete();
             if ($request->has('work_experience')) {
                 foreach ($request->work_experience as $work) {
-                    if (!empty($work['position_title'])) {
+                    if (! empty($work['position_title'])) {
                         $employee->pdsWorkExperiences()->create($work);
                     }
                 }
@@ -221,7 +233,7 @@ class PdsController extends Controller
             $employee->pdsTrainings()->delete();
             if ($request->has('training')) {
                 foreach ($request->training as $train) {
-                    if (!empty($train['title'])) {
+                    if (! empty($train['title'])) {
                         $employee->pdsTrainings()->create($train);
                     }
                 }
@@ -231,7 +243,7 @@ class PdsController extends Controller
             $employee->pdsVoluntaryWorks()->delete();
             if ($request->has('voluntary')) {
                 foreach ($request->voluntary as $vol) {
-                    if (!empty($vol['organization_name'])) {
+                    if (! empty($vol['organization_name'])) {
                         $employee->pdsVoluntaryWorks()->create($vol);
                     }
                 }
@@ -241,7 +253,7 @@ class PdsController extends Controller
             $employee->pdsOthers()->delete();
             if ($request->has('others')) {
                 foreach ($request->others as $other) {
-                    if (!empty($other['description'])) {
+                    if (! empty($other['description'])) {
                         $employee->pdsOthers()->create($other);
                     }
                 }
@@ -251,7 +263,7 @@ class PdsController extends Controller
             $employee->pdsReferences()->delete();
             if ($request->has('references')) {
                 foreach ($request->references as $ref) {
-                    if (!empty($ref['name'])) {
+                    if (! empty($ref['name'])) {
                         $employee->pdsReferences()->create($ref);
                     }
                 }

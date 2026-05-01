@@ -36,6 +36,7 @@ Route::middleware('auth')->group(function () {
     })->name('leave-calendar')->middleware('role:ADMIN,HRSTAFF,DIRECTOR,CHIEF,REGIONALDIRECTOR,REGIONAL DIRECTOR');
     Route::resource('leave-applications', LeaveApplicationController::class)->only(['index', 'update', 'show'])->middleware('role:ADMIN,HRSTAFF,DIRECTOR');
     Route::get('/pds', [PdsController::class, 'index'])->name('pds.index');
+    Route::get('/pds/download', [PdsController::class, 'download'])->name('pds.download');
     Route::get('/pds/edit', [PdsController::class, 'edit'])->name('pds.edit');
     Route::put('/pds', [PdsController::class, 'update'])->name('pds.update');
     Route::get('/view-announcements', [AnnouncementController::class, 'userIndex'])->name('announcements.view');
