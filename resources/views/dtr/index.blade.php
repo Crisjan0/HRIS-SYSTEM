@@ -23,6 +23,7 @@
 
             <div class="bg-white overflow-hidden shadow-2xl shadow-indigo-50 sm:rounded-[2.5rem] border border-gray-100">
                 <div class="p-10">
+                    @if(auth()->user()->hasRole('hrstaff') || auth()->user()->hasRole('admin'))
                     <!-- Stats Section -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
                         <div class="bg-gradient-to-br from-indigo-50 to-white p-8 rounded-3xl border border-indigo-100/50 group hover:shadow-lg transition-all duration-300">
@@ -38,7 +39,8 @@
                             <h4 class="text-xl font-black text-gray-900 italic underline decoration-amber-200 decoration-4 underline-offset-4 tracking-tighter">dtr.xlsx</h4>
                         </div>
                     </div>
-
+                    @endif
+                    
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-separate border-spacing-y-4">
                             <thead>
