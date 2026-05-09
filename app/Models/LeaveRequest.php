@@ -24,6 +24,7 @@ class LeaveRequest extends Model
         'rd_status',
         'rd_remarks',
         'remarks',
+        'is_paid',
     ];
 
     public function employee()
@@ -49,6 +50,45 @@ class LeaveRequest extends Model
     public function regionalDirector()
     {
         return $this->belongsTo(Employee::class, 'approved_by_regionaldirector');
+    }
+
+    public function getStatusLabelAttribute(): string
+    {
+        if ($this->status === 'approved') {
+            return $this->is_paid ? 'Approved with Pay' : 'Approved without Pay';
+        }
+
+        return ucfirst($this->status);
+    }
+
+    /**
+     * Get the duration of the leave request excluding weekends and holidays.
+     */
+    public function getDurationAttribute(): int
+    {
+        return static::calculateBusinessDays($this->start_date, $this->end_date);
+    }
+
+    /**
+     * Calculate business days (Mon-Fri) excluding holidays between two dates.
+     */
+    public static function calculateBusinessDays($startDate, $endDate): int
+    {
+        $start = \Carbon\Carbon::parse($startDate)->startOfDay();
+        $end = \Carbon\Carbon::parse($endDate)->startOfDay();
+        
+        if ($start->gt($end)) {
+            return 0;
+        }
+
+        $holidays = \App\Models\Holiday::whereBetween('date', [$start, $end])
+            ->pluck('date')
+            ->map(fn($date) => $date->format('Y-m-d'))
+            ->toArray();
+
+        return (int) $start->diffInDaysFiltered(function (\Carbon\Carbon $date) use ($holidays) {
+            return $date->isWeekday() && !in_array($date->format('Y-m-d'), $holidays);
+        }, $end->addDay()); // addDay because diffInDaysFiltered is exclusive of the end date
     }
 
     /**

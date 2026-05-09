@@ -20,6 +20,7 @@ return new class extends Migration
             $table->timestamp('date_filed');
             $table->text('reason');
             $table->string('status')->default('pending'); // overall status: pending, approved, rejected, cancelled
+            $table->boolean('is_paid')->nullable();
 
             // Sequential Approval Flow
             $table->foreignId('approved_by_chief')->nullable()->constrained('employees')->onDelete('set null');

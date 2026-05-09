@@ -101,9 +101,9 @@
                                                 @php
                                                     $in = \Carbon\Carbon::parse($record->time_in);
                                                     $out = \Carbon\Carbon::parse($record->time_out);
-                                                    $hours = $in->diffInHours($out);
+                                                    $hours = $in->diffInMinutes($out) / 60;
                                                 @endphp
-                                                <span class="text-sm font-black text-gray-900 italic tracking-tighter">{{ $hours }} {{ Str::plural('hr', $hours) }}</span>
+                                                <span class="text-sm font-black text-gray-900 italic tracking-tighter">{{ number_format($hours, 2) }} {{ Str::plural('hr', $hours) }}</span>
                                             @else
                                                 <span class="text-gray-300 font-medium italic">—</span>
                                             @endif

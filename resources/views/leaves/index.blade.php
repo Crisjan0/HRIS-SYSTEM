@@ -60,16 +60,16 @@
                                 <div class="md:hidden">
                                     @php
                                         $statusColors = [
-                                            'pending' => 'text-orange-500 bg-orange-50',
-                                            'approved' => 'text-green-600 bg-green-50',
-                                            'rejected' => 'text-red-600 bg-red-50',
-                                            'cancelled' => 'text-gray-500 bg-gray-50',
+                                            'pending' => 'text-orange-500 bg-orange-50 border-orange-100',
+                                            'approved' => $leaf->is_paid ? 'text-green-600 bg-green-50 border-green-100' : 'text-indigo-600 bg-indigo-50 border-indigo-100',
+                                            'rejected' => 'text-red-600 bg-red-50 border-red-100',
+                                            'cancelled' => 'text-gray-500 bg-gray-50 border-gray-100',
                                         ];
-                                        $colorClass = $statusColors[$leaf->status] ?? 'text-blue-500 bg-blue-50';
+                                        $colorClass = $statusColors[$leaf->status] ?? 'text-blue-500 bg-blue-50 border-blue-100';
                                     @endphp
                                     <span
-                                        class="text-[10px] font-black uppercase tracking-widest {{ $colorClass }} px-2 py-0.5 rounded">
-                                        {{ __($leaf->status) }}
+                                        class="text-[10px] font-black uppercase tracking-widest {{ $colorClass }} px-2 py-0.5 rounded border">
+                                        {{ $leaf->status_label }}
                                     </span>
                                 </div>
                             </div>
@@ -81,8 +81,8 @@
                                 <span
                                     class="font-medium">{{ \Carbon\Carbon::parse($leaf->end_date)->format('M d, Y') }}</span>
                                 <span class="ml-2 text-[10px] text-gray-400 uppercase tracking-widest">
-                                    ({{ \Carbon\Carbon::parse($leaf->start_date)->diffInDays(\Carbon\Carbon::parse($leaf->end_date)) + 1 }}
-                                    {{ Str::plural('Day', \Carbon\Carbon::parse($leaf->start_date)->diffInDays(\Carbon\Carbon::parse($leaf->end_date)) + 1) }})
+                                    ({{ $leaf->duration }}
+                                    {{ Str::plural('Day', $leaf->duration) }})
                                 </span>
                             </div>
 

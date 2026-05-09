@@ -14,7 +14,14 @@
                             </div>
                             <div>
                                 <h1 class="text-2xl font-black text-gray-900">{{ $leaveApplication->employee->firstname }} {{ $leaveApplication->employee->lastname }}</h1>
-                                <p class="text-gray-400 font-bold uppercase tracking-widest text-[10px]">{{ $leaveApplication->employee->role }}</p>
+                                <div class="flex items-center gap-2">
+                                    <p class="text-gray-400 font-bold uppercase tracking-widest text-[10px]">{{ $leaveApplication->employee->role }}</p>
+                                    @if($leaveApplication->status !== 'pending')
+                                        <span class="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded border {{ $leaveApplication->is_paid ? 'text-green-600 bg-green-50 border-green-100' : 'text-indigo-600 bg-indigo-50 border-indigo-100' }}">
+                                            {{ $leaveApplication->status_label }}
+                                        </span>
+                                    @endif
+                                </div>
                             </div>
                         </div>
 
@@ -31,8 +38,7 @@
                                     <div class="text-sm font-bold text-gray-700">
                                         {{ \Carbon\Carbon::parse($leaveApplication->start_date)->format('M d, Y') }} - {{ \Carbon\Carbon::parse($leaveApplication->end_date)->format('M d, Y') }}
                                     </div>
-                                    @php $duration = \Carbon\Carbon::parse($leaveApplication->start_date)->diffInDays(\Carbon\Carbon::parse($leaveApplication->end_date)) + 1; @endphp
-                                    <div class="text-[10px] font-black text-indigo-500 uppercase">Total of {{ $duration }} {{ Str::plural('Day', $duration) }}</div>
+                                    <div class="text-[10px] font-black text-indigo-500 uppercase">Total of {{ $leaveApplication->duration }} {{ Str::plural('Day', $leaveApplication->duration) }}</div>
                                 </div>
                                 <div class="space-y-1">
                                     <span class="text-[10px] font-black uppercase tracking-widest text-gray-400 italic">Date Filed</span>

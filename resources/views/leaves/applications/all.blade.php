@@ -13,11 +13,13 @@
                                 </h3>
                                 <div class="md:hidden">
                                     @if($leaf->status === 'approved')
-                                        <span class="text-[10px] font-black uppercase tracking-widest text-green-600 bg-green-50 px-2 py-0.5 rounded">APPROVED</span>
+                                        <span class="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border {{ $leaf->is_paid ? 'text-green-600 bg-green-50 border-green-100' : 'text-indigo-600 bg-indigo-50 border-indigo-100' }}">
+                                            {{ $leaf->status_label }}
+                                        </span>
                                     @elseif($leaf->status === 'rejected')
-                                        <span class="text-[10px] font-black uppercase tracking-widest text-red-600 bg-red-50 px-2 py-0.5 rounded">REJECTED</span>
+                                        <span class="text-[10px] font-black uppercase tracking-widest text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100">REJECTED</span>
                                     @else
-                                        <span class="text-[10px] font-black uppercase tracking-widest text-orange-500 bg-orange-50 px-2 py-0.5 rounded">PENDING</span>
+                                        <span class="text-[10px] font-black uppercase tracking-widest text-orange-500 bg-orange-50 px-2 py-0.5 rounded border border-orange-100">PENDING</span>
                                     @endif
                                 </div>
                             </div>
@@ -47,7 +49,9 @@
                             <div class="text-right">
                                 <div class="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Status</div>
                                 @if($leaf->status === 'approved')
-                                    <span class="text-[10px] font-black uppercase tracking-widest text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-100">APPROVED</span>
+                                    <span class="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border {{ $leaf->is_paid ? 'text-green-600 bg-green-50 border-green-100' : 'text-indigo-600 bg-indigo-50 border-indigo-100' }}">
+                                        {{ $leaf->status_label }}
+                                    </span>
                                 @elseif($leaf->status === 'rejected')
                                     <span class="text-[10px] font-black uppercase tracking-widest text-red-600 bg-red-50 px-3 py-1 rounded-full border border-red-100">REJECTED</span>
                                 @else
