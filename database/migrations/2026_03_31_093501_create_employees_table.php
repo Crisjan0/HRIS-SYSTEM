@@ -16,6 +16,7 @@ return new class extends Migration {
             $table->string('firstname');
             $table->string('middlename')->nullable();
             $table->string('role');
+            $table->string('rfid_number')->nullable()->unique();
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();
         });
