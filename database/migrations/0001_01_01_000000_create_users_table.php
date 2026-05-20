@@ -16,6 +16,9 @@ return new class extends Migration {
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->unsignedTinyInteger('failed_login_attempts')->default(0);
+            $table->unsignedSmallInteger('lockout_count')->default(0);
+            $table->timestamp('locked_at')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
