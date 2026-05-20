@@ -11,9 +11,18 @@ use App\Http\Controllers\PdsController;
 use App\Http\Controllers\ProfileController;
 use App\Models\Announcement;
 use Illuminate\Support\Facades\Route;
+use App\Livewire\EmployeeLocatorSlipForm;
+use App\Livewire\HrLocatorSlipView;
+use App\Livewire\MyLocatorSlips;
 
 Route::get('/', function () {
     return view('welcome');
+});
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/my-locator-slips', MyLocatorSlips::class)->name('my-locator-slips');
+    Route::get('/hr/locator-slips/{status?}', HrLocatorSlipView::class)->name('hr.locator-slips');
+    Route::get('/hr/locator-slips', HrLocatorSlipView::class)->name('hr.locator-slips');
 });
 
 Route::get('/dashboard', function () {
