@@ -56,7 +56,7 @@
             </x-sidebar-link>
 
             @if(in_array(auth()->user()->role, ['employee', 'admin', 'hrstaff', 'director', 'chief', 'regionaldirector', 'regional director']))
-                <x-sidebar-dropdown label="{{ __('My Profile') }}" :active="request()->routeIs(['pds.*', 'saln.*', 'ildp.*', 'leaves.*', 'my-dtr.*'])">
+                <x-sidebar-dropdown label="{{ __('My Profile') }}" :active="request()->routeIs(['pds.*', 'saln.*', 'ildp.*', 'leaves.*', 'my-dtr.*', 'locator-slips.*'])">
                     <x-slot name="icon">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                             xmlns="http://www.w3.org/2000/svg">
@@ -71,7 +71,7 @@
                     <x-sidebar-link href="#" :active="false" class="text-xs">
                         {{ __('SALN') }}
                     </x-sidebar-link>
-                    <x-sidebar-link :href="route('my-locator-slips')" :active="request()->routeIs('my-locator-slips')" class="text-xs">
+                    <x-sidebar-link :href="route('locator-slips.index')" :active="request()->routeIs('locator-slips.*')" class="text-xs">
                         {{ __('Locator Slip') }}
                     </x-sidebar-link>
                     <x-sidebar-link :href="route('leaves.index')" :active="request()->routeIs('leaves.*')" class="text-xs">
@@ -90,7 +90,7 @@
                     {{ __('Administration') }}
                 </h3>
 
-                <x-sidebar-dropdown :label="__('Manage Locator Slip')" :active="request()->routeIs(['hr.locator-slips', 'hr.locator-slips.pending'])">
+                <x-sidebar-dropdown :label="__('Manage Locator Slip')" :active="request()->routeIs(['hr.locator-slips.all', 'hr.locator-slips.pending'])">
                     <x-slot name="icon">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                             xmlns="http://www.w3.org/2000/svg">
@@ -99,10 +99,10 @@
                         </svg>
                     </x-slot>
 
-                    <x-sidebar-link :href="route('hr.locator-slips')" :active="request()->routeIs('hr.locator-slips') && !request()->routeIs('hr.locator-slips.pending')" class="text-xs">
+                    <x-sidebar-link :href="route('hr.locator-slips.all')" :active="request()->routeIs('hr.locator-slips.all')" class="text-xs">
                         {{ __('All Locator Slips') }}
                     </x-sidebar-link>
-                    <x-sidebar-link :href="route('hr.locator-slips', ['status' => 'pending'])" :active="request()->routeIs('hr.locator-slips') && request()->query('status') == 'pending'" class="text-xs">
+                    <x-sidebar-link :href="route('hr.locator-slips.pending')" :active="request()->routeIs('hr.locator-slips.pending')" class="text-xs">
                         {{ __('Pending Locator Slips') }}
                     </x-sidebar-link>
                 </x-sidebar-dropdown>
