@@ -12,7 +12,9 @@ class LocatorSlip extends Model
     protected $fillable = [
         'employee_id',
         'date_covered',
+        'destination',
         'purpose',
+        'type',
         'time_from',
         'time_to',
         'status',

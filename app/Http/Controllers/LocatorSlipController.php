@@ -27,7 +27,9 @@ class LocatorSlipController extends Controller
     {
         $request->validate([
             'date_covered' => 'required|date',
+            'destination' => 'required|string|max:255',
             'purpose' => 'required|string',
+            'type' => 'required|string|max:255',
             'time_from' => 'required',
             'time_to' => 'required',
         ]);
@@ -35,7 +37,9 @@ class LocatorSlipController extends Controller
         $locatorSlip = LocatorSlip::create([
             'employee_id' => Auth::user()->employee->id,
             'date_covered' => $request->date_covered,
+            'destination' => $request->destination,
             'purpose' => $request->purpose,
+            'type' => $request->type,
             'time_from' => $request->time_from,
             'time_to' => $request->time_to,
             'status' => 'pending',
