@@ -11,9 +11,17 @@ use App\Http\Controllers\PdsController;
 use App\Http\Controllers\ProfileController;
 use App\Models\Announcement;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\LocatorSlipController;
 
 Route::get('/', function () {
     return view('welcome');
+});
+
+Route::middleware(['auth'])->group(function () {
+    
+    Route::get('/locator-slips', [LocatorSlipController::class, 'index'])->name('locator-slips.index');
+    Route::get('/locator-slips/create', [LocatorSlipController::class, 'create'])->name('locator-slips.create');
+    Route::post('/locator-slips', [LocatorSlipController::class, 'store'])->name('locator-slips.store');
 });
 
 Route::get('/dashboard', function () {
@@ -45,6 +53,14 @@ Route::middleware('auth')->group(function () {
     Route::get('my-dtr', [DtrController::class, 'myDtr'])->name('my-dtr.index');
     Route::resource('dtr', DtrController::class)->only(['index', 'show']);
     Route::post('/dtr/import', [DtrController::class, 'syncFromFile'])->name('dtr.import');
+    Route::get('/hr/locator-slips/all', [LocatorSlipController::class, 'allIndex'])->name('hr.locator-slips.all');
+    Route::get('/hr/locator-slips/pending', [LocatorSlipController::class, 'pendingIndex'])->name('hr.locator-slips.pending');
+    Route::get('/hr/locator-slips/{locatorSlip}', [LocatorSlipController::class, 'hrShow'])->name('hr.locator-slips.show');
+    Route::get('/locator-slips/{locatorSlip}', [LocatorSlipController::class, 'show'])->name('locator-slips.show');
+    Route::patch('/locator-slips/{locatorSlip}/approve', [LocatorSlipController::class, 'approve'])->name('locator-slips.approve');
+    Route::patch('/locator-slips/{locatorSlip}/reject', [LocatorSlipController::class, 'reject'])->name('locator-slips.reject');
+    Route::get('/locator-slips/{locatorSlip}/edit', [LocatorSlipController::class, 'edit'])->name('locator-slips.edit');
+    Route::put('/locator-slips/{locatorSlip}', [LocatorSlipController::class, 'update'])->name('locator-slips.update');
 });
 
 require __DIR__.'/auth.php';
