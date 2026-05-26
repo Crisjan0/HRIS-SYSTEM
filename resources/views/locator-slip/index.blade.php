@@ -10,13 +10,13 @@
             
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-[#0b7a5a] text-white text-sm font-semibold">
-                            <th class="py-3 px-6 whitespace-nowrap">Inclusive Date</th>
-                            <th class="py-3 px-6 whitespace-nowrap">Destination</th>
-                            <th class="py-3 px-6 whitespace-nowrap">Purpose</th>
-                            <th class="py-3 px-6 whitespace-nowrap">Type</th>
-                            <th class="py-3 px-6 whitespace-nowrap">Status</th>
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Inclusive Date</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Destination</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Purpose</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Type</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Status</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 bg-white">
