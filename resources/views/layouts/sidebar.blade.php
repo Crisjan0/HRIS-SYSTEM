@@ -68,7 +68,7 @@
                     <x-sidebar-link :href="route('pds.index')" :active="request()->routeIs('pds.*')" class="text-xs">
                         {{ __('PDS') }}
                     </x-sidebar-link>
-                    <x-sidebar-link href="#" :active="false" class="text-xs">
+                    <x-sidebar-link :href="route('salns.index')" :active="request()->routeIs('salns.*')" class="text-xs">
                         {{ __('SALN') }}
                     </x-sidebar-link>
                     <x-sidebar-link :href="route('locator-slips.index')" :active="request()->routeIs('locator-slips.*')" class="text-xs">
