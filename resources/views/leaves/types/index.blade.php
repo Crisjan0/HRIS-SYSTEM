@@ -28,6 +28,7 @@
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('Name') }}</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('Days/Year') }}</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('Description') }}</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('Legal Basis') }}</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('Status') }}</th>
                                     <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('Actions') }}</th>
                                 </tr>
@@ -38,6 +39,7 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">{{ $type->name }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $type->days_per_year ?? __('Unlimited') }}</td>
                                         <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">{{ $type->description ?? '-' }}</td>
+                                        <td class="px-6 py-4 text-sm text-indigo-600 max-w-xs truncate italic">{{ $type->legal_basis ?? '-' }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             @if($type->is_active)
                                                 <span class="px-2 inline-flex text-[10px] leading-5 font-black rounded-full bg-green-100 text-green-800 uppercase tracking-widest">
@@ -60,7 +62,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5" class="px-6 py-10 text-center text-gray-500">
+                                        <td colspan="6" class="px-6 py-10 text-center text-gray-500">
                                             <div class="flex flex-col items-center">
                                                 <svg class="w-12 h-12 text-gray-200 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>

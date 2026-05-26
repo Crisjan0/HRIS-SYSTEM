@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRIS System — Entity Relationship Diagram</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-bottom: 1px solid #334155;
+            padding: 24px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header .badge {
+            background: #1e293b;
+            border: 1px solid #334155;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+        .controls {
+            padding: 16px 40px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .controls button {
+            padding: 8px 20px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            background: #1e293b;
+            color: #cbd5e1;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        .controls button:hover, .controls button.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+        .erd-container {
+            padding: 20px 40px 60px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+        .table-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .table-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        }
+        .table-card .card-header {
+            padding: 14px 18px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid #334155;
+        }
+        .table-card .card-header .icon { font-size: 1.1rem; }
+        .table-card .card-header .rel-badge {
+            margin-left: auto;
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 500;
+        }
+        .domain-auth .card-header { background: linear-gradient(135deg, #1e3a5f, #1e293b); color: #60a5fa; }
+        .domain-auth .rel-badge { background: #1e3a5f; color: #93c5fd; }
+        .domain-employee .card-header { background: linear-gradient(135deg, #1a3a2a, #1e293b); color: #4ade80; }
+        .domain-employee .rel-badge { background: #1a3a2a; color: #86efac; }
+        .domain-pds .card-header { background: linear-gradient(135deg, #3b1f4a, #1e293b); color: #c084fc; }
+        .domain-pds .rel-badge { background: #3b1f4a; color: #d8b4fe; }
+        .domain-leave .card-header { background: linear-gradient(135deg, #4a3b1f, #1e293b); color: #fbbf24; }
+        .domain-leave .rel-badge { background: #4a3b1f; color: #fde68a; }
+        .domain-attendance .card-header { background: linear-gradient(135deg, #1f3b4a, #1e293b); color: #22d3ee; }
+        .domain-attendance .rel-badge { background: #1f3b4a; color: #67e8f9; }
+        .domain-ops .card-header { background: linear-gradient(135deg, #4a1f2e, #1e293b); color: #fb7185; }
+        .domain-ops .rel-badge { background: #4a1f2e; color: #fda4af; }
+        .col-list { padding: 10px 0; max-height: 320px; overflow-y: auto; }
+        .col-list::-webkit-scrollbar { width: 4px; }
+        .col-list::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        .col-row {
+            display: flex;
+            align-items: center;
+            padding: 4px 18px;
+            font-size: 0.8rem;
+            gap: 8px;
+        }
+        .col-row:hover { background: #334155; }
+        .col-row .col-key {
+            font-size: 0.6rem;
+            font-weight: 700;
+            padding: 1px 5px;
+            border-radius: 3px;
+            min-width: 22px;
+            text-align: center;
+        }
+        .col-key.pk { background: #fbbf24; color: #1e293b; }
+        .col-key.fk { background: #60a5fa; color: #1e293b; }
+        .col-key.uk { background: #a78bfa; color: #1e293b; }
+        .col-row .col-name { color: #e2e8f0; flex: 1; }
+        .col-row .col-type { color: #64748b; font-size: 0.75rem; font-style: italic; }
+        .col-row .col-null { color: #475569; font-size: 0.65rem; }
+        .rel-section {
+            padding: 20px 40px 40px;
+        }
+        .rel-section h2 {
+            font-size: 1.2rem;
+            margin-bottom: 16px;
+            color: #94a3b8;
+        }
+        .rel-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+            gap: 12px;
+        }
+        .rel-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 0.82rem;
+        }
+        .rel-row .from, .rel-row .to { color: #e2e8f0; font-weight: 600; }
+        .rel-row .arrow { color: #60a5fa; font-weight: 700; font-size: 0.9rem; }
+        .rel-row .card-type { color: #94a3b8; font-size: 0.75rem; margin-left: auto; background: #0f172a; padding: 2px 10px; border-radius: 10px;}
+        .hidden { display: none !important; }
+        .legend {
+            display: flex; gap: 16px; flex-wrap: wrap; padding: 0 40px 10px; font-size: 0.78rem;
+        }
+        .legend span { display: flex; align-items: center; gap: 5px; color: #94a3b8; }
+        .legend .dot { width: 10px; height: 10px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 HRIS System — Entity Relationship Diagram</h1>
+        <span class="badge">21 Entities • 6 Domains</span>
+    </div>
+
+    <div class="controls">
+        <button class="active" onclick="filter('all')">All Tables</button>
+        <button onclick="filter('auth')">🔐 Auth</button>
+        <button onclick="filter('employee')">👤 Employee</button>
+        <button onclick="filter('pds')">📋 PDS</button>
+        <button onclick="filter('leave')">🏖️ Leave</button>
+        <button onclick="filter('attendance')">⏰ Attendance</button>
+        <button onclick="filter('ops')">📢 Operations</button>
+    </div>
+
+    <div class="legend">
+        <span><span class="dot" style="background:#fbbf24"></span> PK — Primary Key</span>
+        <span><span class="dot" style="background:#60a5fa"></span> FK — Foreign Key</span>
+        <span><span class="dot" style="background:#a78bfa"></span> UK — Unique</span>
+    </div>
+
+    <div class="erd-container" id="erd"></div>
+
+    <div class="rel-section">
+        <h2>🔗 Relationships</h2>
+        <div class="rel-grid" id="rels"></div>
+    </div>
+
+<script>
+const tables = [
+  { name:"users", domain:"auth", icon:"🔐", cols:[
+    {n:"id",t:"bigint",k:"pk"},{n:"name",t:"string"},{n:"email",t:"string",k:"uk"},
+    {n:"email_verified_at",t:"timestamp",nl:1},{n:"password",t:"string"},
+    {n:"failed_login_attempts",t:"tinyint"},{n:"lockout_count",t:"smallint"},
+    {n:"locked_at",t:"timestamp",nl:1},{n:"remember_token",t:"string",nl:1},{n:"timestamps",t:""}
+  ]},
+  { name:"sessions", domain:"auth", icon:"🔐", cols:[
+    {n:"id",t:"string",k:"pk"},{n:"user_id",t:"bigint",k:"fk",nl:1},
+    {n:"ip_address",t:"string",nl:1},{n:"user_agent",t:"text",nl:1},
+    {n:"payload",t:"longtext"},{n:"last_activity",t:"int"}
+  ]},
+  { name:"password_reset_tokens", domain:"auth", icon:"🔐", cols:[
+    {n:"email",t:"string",k:"pk"},{n:"token",t:"string"},{n:"created_at",t:"timestamp",nl:1}
+  ]},
+  { name:"personal_access_tokens", domain:"auth", icon:"🔐", cols:[
+    {n:"id",t:"bigint",k:"pk"},{n:"tokenable_type",t:"string"},{n:"tokenable_id",t:"bigint"},
+    {n:"name",t:"string"},{n:"token",t:"string",k:"uk"},{n:"abilities",t:"text",nl:1},
+    {n:"last_used_at",t:"timestamp",nl:1},{n:"expires_at",t:"timestamp",nl:1},{n:"timestamps",t:""}
+  ]},
+  { name:"employees", domain:"employee", icon:"👤", cols:[
+    {n:"id",t:"bigint",k:"pk"},{n:"lastname",t:"string"},{n:"firstname",t:"string"},
+    {n:"middlename",t:"string",nl:1},{n:"role",t:"string"},
+    {n:"rfid_number",t:"string",k:"uk",nl:1},{n:"user_id",t:"bigint",k:"fk",nl:1},{n:"timestamps",t:""}
+  ]},
+  { name:"pds_personal_information", domain:"pds", icon:"📋", cols:[
+    {n:"id",t:"bigint",k:"pk"},{n:"employee_id",t:"bigint",k:"fk"},
+    {n:"surname",t:"string",nl:1},{n:"firstname",t:"string",nl:1},{n:"middlename",t:"string",nl:1},
+    {n:"name_extension",t:"string",nl:1},{n:"date_of_birth",t:"date",nl:1},
+    {n:"place_of_birth",t:"string",nl:1},{n:"sex",t:"string",nl:1},{n:"civil_status",t:"string",nl:1},
+    {n:"gsis_id_no",t:"string",nl:1},{n:"pagibig_id_no",t:"string",nl:1},
+    {n:"philhealth_no",t:"string",nl:1},{n:"sss_no",t:"string",nl:1},{n:"tin_no",t:"string",nl:1},
+    {n:"citizenship",t:"string",nl:1},{n:"mobile_no",t:"string",nl:1},{n:"email_address",t:"string",nl:1},
+    {n:"... +18 address fields",t:"string",nl:1},{n:"timestamps",t:""}
+  ]},
+  { name:"pds_family_background", domain:"pds", icon:"📋", cols:[
+    {n:"id",t:"bigint",k:"pk"},{n:"employee_id",t:"bigint",k:"fk"},
+    {n:"spouse_surname",t:"string",nl:1},{n:"spouse_firstname",t:"string",nl:1},
+    {n:"father_surname",t:"string",nl:1},{n:"father_firstname",t:"string",nl:1},
+    {n:"mother_maiden_surname",t:"string",nl:1},{n:"... +10 more",t:"string",nl:1},{n:"timestamps",t:""}
+  ]},
+  { name:"pds_children", domain:"pds", icon:"📋", cols:[
+    {n:"id",t:"bigint",k:"pk"},{n:"employee_id",t:"bigint",k:"fk"},
+    {n:"fullname",t:"string"},{n:"date_of_birth",t:"date"},{n:"timestamps",t:""}
+  ]},
+  { name:"pds_educational_background", domain:"pds", icon:"📋", cols:[
+    {n:"id",t:"bigint",k:"pk"},{n:"employee_id",t:"bigint",k:"fk"},
+    {n:"level",t:"string"},{n:"school_name",t:"string"},{n:"course",t:"string",nl:1},
+    {n:"year_graduated",t:"string",nl:1},{n:"honors",t:"string",nl:1},{n:"timestamps",t:""}
+  ]},
+  { name:"pds_eligibilities", domain:"pds", icon:"📋", cols:[
+    {n:"id",t:"bigint",k:"pk"},{n:"employee_id",t:"bigint",k:"fk"},
+    {n:"title",t:"string"},{n:"rating",t:"string",nl:1},{n:"date_of_exam",t:"date",nl:1},
+    {n:"license_number",t:"string",nl:1},{n:"timestamps",t:""}
+  ]},
+  { name:"pds_work_experiences", domain:"pds", icon:"📋", cols:[
+    {n:"id",t:"bigint",k:"pk"},{n:"employee_id",t:"bigint",k:"fk"},
+    {n:"position_title",t:"string"},{n:"company",t:"string"},{n:"monthly_salary",t:"decimal",nl:1},
+    {n:"salary_grade",t:"string",nl:1},{n:"is_gov_service",t:"boolean"},{n:"timestamps",t:""}
+  ]},
+  { name:"pds_voluntary_works", domain:"pds", icon:"📋", cols:[
+    {n:"id",t:"bigint",k:"pk"},{n:"employee_id",t:"bigint",k:"fk"},
+    {n:"organization_name",t:"string"},{n:"number_of_hours",t:"int",nl:1},{n:"position",t:"string",nl:1},{n:"timestamps",t:""}
+  ]},
+  { name:"pds_trainings", domain:"pds", icon:"📋", cols:[
+    {n:"id",t:"bigint",k:"pk"},{n:"employee_id",t:"bigint",k:"fk"},
+    {n:"title",t:"string"},{n:"number_of_hours",t:"int",nl:1},{n:"type",t:"string",nl:1},
+    {n:"conducted_by",t:"string",nl:1},{n:"timestamps",t:""}
+  ]},
+  { name:"pds_others", domain:"pds", icon:"📋", cols:[
+    {n:"id",t:"bigint",k:"pk"},{n:"employee_id",t:"bigint",k:"fk"},
+    {n:"type",t:"enum(Skill,Distinction,Membership)"},{n:"description",t:"string"},{n:"timestamps",t:""}
+  ]},
+  { name:"pds_questionnaires", domain:"pds", icon:"📋", cols:[
+    {n:"id",t:"bigint",k:"pk"},{n:"employee_id",t:"bigint",k:"fk"},
+    {n:"q34_a – q40_c",t:"boolean"},{n:"q34_details – q40_c_details",t:"text",nl:1},{n:"timestamps",t:""}
+  ]},
+  { name:"pds_references", domain:"pds", icon:"📋", cols:[
+    {n:"id",t:"bigint",k:"pk"},{n:"employee_id",t:"bigint",k:"fk"},
+    {n:"name",t:"string"},{n:"address",t:"string"},{n:"telephone_no",t:"string"},{n:"timestamps",t:""}
+  ]},
+  { name:"pds_government_ids", domain:"pds", icon:"📋", cols:[
+    {n:"id",t:"bigint",k:"pk"},{n:"employee_id",t:"bigint",k:"fk"},
+    {n:"id_type",t:"string",nl:1},{n:"id_no",t:"string",nl:1},{n:"date_place_issuance",t:"string",nl:1},{n:"timestamps",t:""}
+  ]},
+  { name:"leave_types", domain:"leave", icon:"🏖️", cols:[
+    {n:"id",t:"bigint",k:"pk"},{n:"name",t:"string"},{n:"description",t:"string",nl:1},
+    {n:"days_per_year",t:"int"},{n:"is_active",t:"boolean"},{n:"timestamps",t:""}
+  ]},
+  { name:"leave_requests", domain:"leave", icon:"🏖️", cols:[
+    {n:"id",t:"bigint",k:"pk"},{n:"employee_id",t:"bigint",k:"fk"},{n:"leave_type_id",t:"bigint",k:"fk"},
+    {n:"start_date",t:"date"},{n:"end_date",t:"date"},{n:"date_filed",t:"timestamp"},
+    {n:"reason",t:"text"},{n:"status",t:"string"},{n:"is_paid",t:"boolean",nl:1},
+    {n:"approved_by_chief",t:"bigint",k:"fk",nl:1},{n:"chief_status",t:"string"},
+    {n:"approved_by_hrstaff",t:"bigint",k:"fk",nl:1},{n:"hrstaff_status",t:"string"},
+    {n:"approved_by_regionaldirector",t:"bigint",k:"fk",nl:1},{n:"rd_status",t:"string"},
+    {n:"timestamps",t:""}
+  ]},
+  { name:"leave_credits", domain:"leave", icon:"🏖️", cols:[
+    {n:"id",t:"bigint",k:"pk"},{n:"employee_id",t:"bigint",k:"fk"},{n:"leave_type_id",t:"bigint",k:"fk"},
+    {n:"balance",t:"decimal(8,2)"},{n:"year",t:"int"},{n:"timestamps",t:""}
+  ]},
+  { name:"dtr_records", domain:"attendance", icon:"⏰", cols:[
+    {n:"id",t:"bigint",k:"pk"},{n:"employee_id",t:"bigint",k:"fk"},
+    {n:"date",t:"date"},{n:"time_in",t:"time"},{n:"time_out",t:"time",nl:1},
+    {n:"status",t:"string"},{n:"timestamps",t:""}
+  ]},
+  { name:"announcements", domain:"ops", icon:"📢", cols:[
+    {n:"id",t:"bigint",k:"pk"},{n:"title",t:"string"},{n:"content",t:"text"},
+    {n:"is_published",t:"boolean"},{n:"author_id",t:"bigint",k:"fk"},
+    {n:"published_at",t:"timestamp",nl:1},{n:"tags",t:"string",nl:1},{n:"timestamps",t:""}
+  ]},
+  { name:"holidays", domain:"ops", icon:"📅", cols:[
+    {n:"id",t:"bigint",k:"pk"},{n:"name",t:"string"},{n:"date",t:"date",k:"uk"},{n:"timestamps",t:""}
+  ]},
+  { name:"locator_slips", domain:"ops", icon:"📍", cols:[
+    {n:"id",t:"bigint",k:"pk"},{n:"employee_id",t:"bigint",k:"fk"},
+    {n:"date_covered",t:"date"},{n:"destination",t:"string",nl:1},{n:"purpose",t:"text"},
+    {n:"type",t:"string",nl:1},{n:"time_from",t:"time"},{n:"time_to",t:"time"},
+    {n:"status",t:"string"},{n:"chief_id",t:"bigint",k:"fk",nl:1},
+    {n:"chief_approval_status",t:"string"},{n:"regional_director_id",t:"bigint",k:"fk",nl:1},
+    {n:"regional_director_approval_status",t:"string"},{n:"timestamps",t:""}
+  ]}
+];
+
+const relationships = [
+  {from:"users",to:"employees",type:"1 : 0..1",label:"has one"},
+  {from:"users",to:"sessions",type:"1 : N",label:"has many"},
+  {from:"users",to:"announcements",type:"1 : N",label:"authors"},
+  {from:"users",to:"locator_slips",type:"1 : N",label:"approves (chief/RD)"},
+  {from:"employees",to:"pds_personal_information",type:"1 : 0..1",label:"has one"},
+  {from:"employees",to:"pds_family_background",type:"1 : 0..1",label:"has one"},
+  {from:"employees",to:"pds_children",type:"1 : N",label:"has many"},
+  {from:"employees",to:"pds_educational_background",type:"1 : N",label:"has many"},
+  {from:"employees",to:"pds_eligibilities",type:"1 : N",label:"has many"},
+  {from:"employees",to:"pds_work_experiences",type:"1 : N",label:"has many"},
+  {from:"employees",to:"pds_voluntary_works",type:"1 : N",label:"has many"},
+  {from:"employees",to:"pds_trainings",type:"1 : N",label:"has many"},
+  {from:"employees",to:"pds_others",type:"1 : N",label:"has many"},
+  {from:"employees",to:"pds_questionnaires",type:"1 : 0..1",label:"has one"},
+  {from:"employees",to:"pds_references",type:"1 : N",label:"has many"},
+  {from:"employees",to:"pds_government_ids",type:"1 : 0..1",label:"has one"},
+  {from:"employees",to:"leave_requests",type:"1 : N",label:"files"},
+  {from:"employees",to:"leave_credits",type:"1 : N",label:"has"},
+  {from:"employees",to:"dtr_records",type:"1 : N",label:"records"},
+  {from:"employees",to:"locator_slips",type:"1 : N",label:"submits"},
+  {from:"leave_types",to:"leave_requests",type:"1 : N",label:"categorizes"},
+  {from:"leave_types",to:"leave_credits",type:"1 : N",label:"defines"},
+  {from:"employees",to:"leave_requests",type:"1 : N",label:"approves (chief/HR/RD)"},
+];
+
+function render(domain) {
+  const c = document.getElementById('erd');
+  c.innerHTML = '';
+  const filtered = domain === 'all' ? tables : tables.filter(t => t.domain === domain);
+  filtered.forEach(t => {
+    const card = document.createElement('div');
+    card.className = `table-card domain-${t.domain}`;
+    const relCount = relationships.filter(r => r.from === t.name || r.to === t.name).length;
+    card.innerHTML = `<div class="card-header"><span class="icon">${t.icon}</span>${t.name}<span class="rel-badge">${relCount} rels</span></div>
+      <div class="col-list">${t.cols.map(c => `<div class="col-row">
+        ${c.k ? `<span class="col-key ${c.k}">${c.k.toUpperCase()}</span>` : '<span style="min-width:22px"></span>'}
+        <span class="col-name">${c.n}</span>
+        <span class="col-type">${c.t}</span>
+        ${c.nl ? '<span class="col-null">nullable</span>' : ''}
+      </div>`).join('')}</div>`;
+    c.appendChild(card);
+  });
+
+  const r = document.getElementById('rels');
+  r.innerHTML = '';
+  const filteredRels = domain === 'all' ? relationships :
+    relationships.filter(rel => filtered.some(t => t.name === rel.from || t.name === rel.to));
+  filteredRels.forEach(rel => {
+    const row = document.createElement('div');
+    row.className = 'rel-row';
+    row.innerHTML = `<span class="from">${rel.from}</span><span class="arrow">→</span><span class="to">${rel.to}</span><span class="card-type">${rel.type}</span>`;
+    r.appendChild(row);
+  });
+}
+
+function filter(domain) {
+  document.querySelectorAll('.controls button').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  render(domain);
+}
+
+render('all');
+</script>
+</body>
+</html>

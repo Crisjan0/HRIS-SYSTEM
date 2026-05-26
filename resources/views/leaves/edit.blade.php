@@ -10,19 +10,41 @@
                         @method('PUT')
 
                         <!-- Leave Type -->
-                        <div>
+                        <div x-data="{
+                            selectedType: '{{ old('leave_type_id', $leaf->leave_type_id) }}',
+                            leaveTypes: {{ Js::from($leaveTypes->keyBy('id')->map(fn($t) => ['description' => $t->description, 'legal_basis' => $t->legal_basis])) }},
+                            get info() { return this.leaveTypes[this.selectedType] || null; }
+                        }">
                             <x-input-label for="leave_type_id" :value="__('Type of Leave')" class="text-[10px] font-black uppercase text-indigo-600 tracking-[0.2em] mb-2" />
-                            <select id="leave_type_id" name="leave_type_id" class="mt-1 block w-full text-sm font-bold border-gray-100 focus:border-indigo-500 focus:ring-indigo-500 rounded-xl shadow-sm py-3 px-4 bg-gray-50/50" required>
+                            <select id="leave_type_id" name="leave_type_id" x-model="selectedType" class="mt-1 block w-full text-sm font-bold border-gray-100 focus:border-indigo-500 focus:ring-indigo-500 rounded-xl shadow-sm py-3 px-4 bg-gray-50/50" required>
                                 @foreach($leaveTypes as $type)
                                     @php
                                         $balance = $credits[$type->id]->balance ?? 0;
                                     @endphp
                                     <option value="{{ $type->id }}" @selected(old('leave_type_id', $leaf->leave_type_id) == $type->id)>
-                                        {{ $type->name }} ({{ number_format($balance, 1) }} {{ __('days available') }})
+                                        {{ $type->name }} — {{ $type->legal_basis }} ({{ number_format($balance, 1) }} {{ __('days available') }})
                                     </option>
                                 @endforeach
                             </select>
                             <x-input-error class="mt-2" :messages="$errors->get('leave_type_id')" />
+
+                            <!-- Leave Type Info Panel -->
+                            <div x-show="info" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" x-cloak class="mt-3 p-4 bg-indigo-50/70 border border-indigo-100 rounded-xl">
+                                <div class="flex items-start gap-3">
+                                    <div class="flex-shrink-0 mt-0.5">
+                                        <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm text-gray-700 leading-relaxed" x-text="info?.description"></p>
+                                        <p class="mt-2 text-xs font-semibold text-indigo-600/80 italic" x-show="info?.legal_basis">
+                                            <span class="font-black uppercase tracking-wider text-[10px] text-indigo-500 not-italic">{{ __('Legal Basis') }}:</span>
+                                            <span x-text="info?.legal_basis"></span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Date Range -->

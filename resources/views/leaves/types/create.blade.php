@@ -30,6 +30,14 @@
                             <x-input-error class="mt-2" :messages="$errors->get('description')" />
                         </div>
 
+                        <!-- Legal Basis -->
+                        <div>
+                            <x-input-label for="legal_basis" :value="__('Legal Basis')" class="text-xs font-black uppercase text-gray-500 tracking-widest" />
+                            <x-text-input id="legal_basis" name="legal_basis" type="text" class="mt-1 block w-full text-sm font-medium border-gray-100" :value="old('legal_basis')" placeholder="e.g., Sec. 51, Rule XVI of the Omnibus Rules Implementing E.O. No. 292" />
+                            <x-input-error class="mt-2" :messages="$errors->get('legal_basis')" />
+                            <p class="mt-1 text-[10px] text-gray-400 font-medium italic">{{ __('Enter the applicable law, rule, or CSC resolution.') }}</p>
+                        </div>
+
                         <div class="flex items-center justify-end gap-4 pt-6">
                             <a href="{{ route('leave-types.index') }}" class="text-sm font-bold text-gray-400 hover:text-gray-600 transition-colors duration-200">
                                 {{ __('Cancel') }}

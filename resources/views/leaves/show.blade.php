@@ -22,6 +22,20 @@
                     <p class="text-gray-400 mt-2 font-medium">Filed on {{ \Carbon\Carbon::parse($leaf->date_filed)->format('F d, Y \a\t h:i A') }}</p>
                 </div>
 
+                @if($leaf->leaveType->description || $leaf->leaveType->legal_basis)
+                    <div class="mb-10 p-5 bg-indigo-50/50 border border-indigo-100 rounded-2xl">
+                        @if($leaf->leaveType->description)
+                            <p class="text-sm text-gray-700 leading-relaxed">{{ $leaf->leaveType->description }}</p>
+                        @endif
+                        @if($leaf->leaveType->legal_basis)
+                            <p class="mt-2 text-xs font-semibold text-indigo-600/80 italic">
+                                <span class="font-black uppercase tracking-wider text-[10px] text-indigo-500 not-italic">{{ __('Legal Basis') }}:</span>
+                                {{ $leaf->leaveType->legal_basis }}
+                            </p>
+                        @endif
+                    </div>
+                @endif
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
                     <!-- Dates Card -->
                     <div class="bg-gray-50/50 rounded-2xl p-6 border border-gray-100">
