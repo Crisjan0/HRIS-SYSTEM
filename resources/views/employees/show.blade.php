@@ -6,8 +6,23 @@
             <!-- Header Card -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
                 <div class="p-6 sm:p-8 flex flex-col md:flex-row items-center gap-6">
-                    <div class="w-24 h-24 bg-indigo-600 rounded-2xl flex items-center justify-center text-white text-3xl font-black shadow-xl uppercase">
-                        {{ substr($employee->firstname, 0, 1) }}{{ substr($employee->lastname, 0, 1) }}
+                    <div class="relative group">
+                        <div class="w-24 h-24 bg-indigo-600 rounded-2xl flex items-center justify-center text-white text-3xl font-black shadow-xl uppercase overflow-hidden">
+                            @if($employee->profile_picture)
+                                <img src="{{ asset('storage/' . $employee->profile_picture) }}" alt="Profile Picture" class="w-full h-full object-cover">
+                            @else
+                                {{ substr($employee->firstname, 0, 1) }}{{ substr($employee->lastname, 0, 1) }}
+                            @endif
+                        </div>
+                        @if(in_array(auth()->user()->role, ['admin', 'hrstaff', 'director', 'chief', 'regionaldirector', 'regional director']) || auth()->user()->employee?->id === $employee->id)
+                            <label for="profile_picture_upload" class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-2xl opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity" title="{{ __('Upload Profile Picture') }}">
+                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            </label>
+                            <form id="profile_picture_form" action="{{ route('employees.profile-picture', $employee) }}" method="POST" enctype="multipart/form-data" class="hidden">
+                                @csrf
+                                <input type="file" id="profile_picture_upload" name="profile_picture" accept="image/*" onchange="document.getElementById('profile_picture_form').submit()">
+                            </form>
+                        @endif
                     </div>
                     <div class="flex-1 text-center md:text-left">
                         <h1 class="text-3xl font-black text-gray-900 tracking-tight">
@@ -17,14 +32,14 @@
                             <span class="px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-black uppercase tracking-widest rounded-full">
                                 {{ $employee->role }}
                             </span>
-                            <span class="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-black uppercase tracking-widest rounded-full">
-                                ID: {{ $employee->id }}
+                            <span class="px-3 py-1 bg-gray-100 text-gray-700 text-xs font-black tracking-widest rounded-full flex items-center gap-1">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                {{ $employee->pdsPersonal?->email_address ?? ($employee->user?->email ?? 'N/A') }}
                             </span>
-                            @if($employee->rfid_number)
-                                <span class="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-black uppercase tracking-widest rounded-full">
-                                    RFID: {{ $employee->rfid_number }}
-                                </span>
-                            @endif
+                            <span class="px-3 py-1 bg-gray-100 text-gray-700 text-xs font-black tracking-widest rounded-full flex items-center gap-1">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                                {{ $employee->contact_number ?? ($employee->pdsPersonal?->mobile_no ?? 'N/A') }}
+                            </span>
                         </div>
                     </div>
                     <div class="flex gap-3">

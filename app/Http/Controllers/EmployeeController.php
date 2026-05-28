@@ -67,6 +67,80 @@ class EmployeeController extends Controller
     }
 
     /**
+     * Display the current logged in user's employee record.
+     */
+    public function myRecord(): View|\Illuminate\Http\RedirectResponse
+    {
+        $employee = auth()->user()->employee;
+        if (!$employee) {
+            return redirect()->route('dashboard')->with('error', 'You do not have an associated employee record.');
+        }
+
+        $employee->load([
+            'pdsPersonal'
+        ]);
+
+        return view('employees.personal-information', compact('employee'));
+    }
+
+    /**
+     * Show the form for editing the current logged in user's personal information.
+     */
+    public function editMyRecord(): View|\Illuminate\Http\RedirectResponse
+    {
+        $employee = auth()->user()->employee;
+        if (!$employee) {
+            return redirect()->route('dashboard')->with('error', 'You do not have an associated employee record.');
+        }
+
+        return view('employees.personal-information-edit', compact('employee'));
+    }
+
+    /**
+     * Update the current logged in user's personal information.
+     */
+    public function updateMyRecord(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $employee = auth()->user()->employee;
+        if (!$employee) {
+            return redirect()->route('dashboard')->with('error', 'You do not have an associated employee record.');
+        }
+
+        $validated = $request->validate([
+            'firstname' => 'required|string|max:255',
+            'lastname' => 'required|string|max:255',
+            'middlename' => 'nullable|string|max:255',
+            'contact_number' => 'nullable|string|max:20',
+        ]);
+
+        // Update employee name and contact number
+        $employee->update([
+            'firstname' => $validated['firstname'],
+            'lastname' => $validated['lastname'],
+            'middlename' => $validated['middlename'],
+            'contact_number' => $validated['contact_number']
+        ]);
+
+        // Update user name (combining first and last)
+        $user = auth()->user();
+        $user->update([
+            'name' => trim($validated['firstname'] . ' ' . $validated['lastname']),
+        ]);
+
+        // If they have a PDS personal info record, sync the contact there too
+        if ($employee->pdsPersonal) {
+            $employee->pdsPersonal->update([
+                'firstname' => $validated['firstname'],
+                'surname' => $validated['lastname'],
+                'middlename' => $validated['middlename'],
+                'mobile_no' => $validated['contact_number'],
+            ]);
+        }
+
+        return redirect()->route('personal-information.show')->with('success', 'Personal information updated successfully.');
+    }
+
+    /**
      * Show the form for editing the specified resource.
      */
     public function edit(Employee $employee): View
@@ -107,5 +181,30 @@ class EmployeeController extends Controller
         $employee->delete();
 
         return redirect()->route('employees.index')->with('success', 'Employee deleted successfully.');
+    }
+
+    /**
+     * Upload profile picture.
+     */
+    public function uploadProfilePicture(Request $request, Employee $employee): RedirectResponse
+    {
+        // Only allow admins, hrstaff, director, or the employee themselves to update it
+        if (!in_array(auth()->user()->role, ['admin', 'hrstaff', 'director', 'chief', 'regionaldirector', 'regional director']) && auth()->user()->employee?->id !== $employee->id) {
+            abort(403);
+        }
+
+        $request->validate([
+            'profile_picture' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        if ($request->hasFile('profile_picture')) {
+            if ($employee->profile_picture && \Illuminate\Support\Facades\Storage::disk('public')->exists($employee->profile_picture)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($employee->profile_picture);
+            }
+            $path = $request->file('profile_picture')->store('profile_pictures', 'public');
+            $employee->update(['profile_picture' => $path]);
+        }
+
+        return back()->with('success', 'Profile picture updated successfully.');
     }
 }

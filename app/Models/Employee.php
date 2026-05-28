@@ -17,6 +17,7 @@ class Employee extends Model
         'role',
         'user_id',
         'rfid_number',
+        'profile_picture',
     ];
 
     public function user()
