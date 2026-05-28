@@ -30,6 +30,11 @@
                                     <x-input-error class="mt-2" :messages="$errors->get('middlename')" />
                                 </div>
                                 <div>
+                                    <x-input-label for="contact_number" :value="__('Contact Number')" />
+                                    <x-text-input id="contact_number" name="contact_number" type="text" class="mt-1 block w-full" :value="old('contact_number')" placeholder="e.g., 09123456789" />
+                                    <x-input-error class="mt-2" :messages="$errors->get('contact_number')" />
+                                </div>
+                                <div>
                                     <x-input-label for="rfid_number" :value="__('RFID Number')" />
                                     <x-text-input id="rfid_number" name="rfid_number" type="text" class="mt-1 block w-full" :value="old('rfid_number')" placeholder="e.g., RFID-12345" />
                                     <x-input-error class="mt-2" :messages="$errors->get('rfid_number')" />
