@@ -38,7 +38,7 @@ class Employee extends Model
     public function pdsGovId() { return $this->hasOne(PdsGovernmentId::class); }
     public function leaveRequests() { return $this->hasMany(LeaveRequest::class); }
     public function leaveCredits() { return $this->hasMany(LeaveCredit::class); }
-    public function salns() { return $this->hasMany(Saln::class); }
+    public function salns(): \Illuminate\Database\Eloquent\Relations\HasMany { return $this->hasMany(Saln::class); }
 
     /**
      * Ensure the employee has leave credits for the given year.
