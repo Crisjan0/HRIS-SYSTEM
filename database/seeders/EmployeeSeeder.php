@@ -20,6 +20,7 @@ class EmployeeSeeder extends Seeder
                 'firstname' => 'Juan',
                 'middlename' => 'S',
                 'role' => 'admin',
+                'user_id' => 1,
             ],
             [
                 'email' => 'hrstaff@example.com',
@@ -27,6 +28,7 @@ class EmployeeSeeder extends Seeder
                 'firstname' => 'Maria',
                 'middlename' => 'B',
                 'role' => 'hrstaff',
+                'user_id' => 2,
             ],
             [
                 'email' => 'director@example.com',
@@ -34,6 +36,7 @@ class EmployeeSeeder extends Seeder
                 'firstname' => 'Pedro',
                 'middlename' => 'G',
                 'role' => 'regionaldirector',
+                'user_id' => 4,
             ],
             [
                 'email' => 'employee@example.com',
@@ -41,6 +44,7 @@ class EmployeeSeeder extends Seeder
                 'firstname' => 'Anna',
                 'middlename' => 'V',
                 'role' => 'employee',
+                'user_id' => 5,
             ],
             [
                 'email' => 'chief@example.com',
@@ -48,6 +52,7 @@ class EmployeeSeeder extends Seeder
                 'firstname' => 'Miguel',
                 'middlename' => 'T',
                 'role' => 'chief',
+                'user_id' => 6,
             ],
         ];
 
@@ -61,7 +66,7 @@ class EmployeeSeeder extends Seeder
                     'firstname' => $data['firstname'],
                     'middlename' => $data['middlename'],
                     'role' => $data['role'],
-                    #'user_id' => $user->id,
+                    'user_id' => $data['user_id'],
                 ]);
             }
         }

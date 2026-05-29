@@ -56,5 +56,6 @@ class DatabaseSeeder extends Seeder
         $this->call(EmployeeSeeder::class);
         $this->call(HolidaySeeder::class);
         $this->call(LeaveTypeSeeder::class);
+        $this->call(SalnPdsSeeder::class);
     }
 }
