@@ -61,7 +61,7 @@ class EmployeeController extends Controller
             'pdsPersonal', 'pdsFamily', 'pdsChildren', 'pdsEducation', 
             'pdsEligibilities', 'pdsWorkExperiences', 'pdsVoluntaryWorks', 
             'pdsTrainings', 'pdsOthers', 'pdsQuestionnaire', 'pdsReferences', 'pdsGovId',
-            'pdsSectionReviews'
+            'pdsSectionReviews', 'salns'
         ]);
 
         return view('employees.show', compact('employee'));

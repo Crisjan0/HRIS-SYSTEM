@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="title">{{ __('Employee Details') }} - {{ $employee->firstname }} {{ $employee->lastname }}</x-slot>
 
-    <div class="py-8 bg-gray-50 min-h-screen" x-data="{ tab: 'pds', reviewModalOpen: false, currentSection: '', sectionData: null, reviewStatus: 'pending', reviewRemarks: '' }">
+    <div class="py-8 bg-gray-50 min-h-screen" x-data="{ tab: 'pds', reviewModalOpen: false, currentSection: '', sectionData: null, reviewStatus: 'pending', reviewRemarks: '', salnModalOpen: false, selectedSaln: null }">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- Header Card -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
@@ -59,9 +59,6 @@
                     </button>
                     <button @click="tab = 'saln'" :class="tab === 'saln' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'" class="px-6 py-4 border-b-2 font-bold text-sm transition-all focus:outline-none">
                         {{ __('SALN') }}
-                    </button>
-                    <button @click="tab = 'ilpd'" :class="tab === 'ilpd' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'" class="px-6 py-4 border-b-2 font-bold text-sm transition-all focus:outline-none">
-                        {{ __('ILPD') }}
                     </button>
                 </div>
             </div>
@@ -210,33 +207,49 @@
 
                 <!-- SALN Tab -->
                 <div x-show="tab === 'saln'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" style="display: none;">
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
-                        <div class="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6 text-indigo-400">
-                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-xl font-black text-gray-900 tracking-tight">{{ __('SALN Records') }}</h3>
                         </div>
-                        <h3 class="text-2xl font-black text-gray-900 tracking-tight">{{ __('SALN Records') }}</h3>
-                        <p class="text-gray-500 mt-2 max-w-md mx-auto">{{ __('Statement of Assets, Liabilities, and Net Worth records will be available here once the module is fully integrated.') }}</p>
-                        <div class="mt-8">
-                            <span class="px-4 py-2 bg-yellow-100 text-yellow-800 text-xs font-black uppercase tracking-widest rounded-full border border-yellow-200">
-                                {{ __('Feature Coming Soon') }}
-                            </span>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- ILPD Tab -->
-                <div x-show="tab === 'ilpd'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" style="display: none;">
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
-                        <div class="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6 text-indigo-400">
-                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-                        </div>
-                        <h3 class="text-2xl font-black text-gray-900 tracking-tight">{{ __('ILPD Records') }}</h3>
-                        <p class="text-gray-500 mt-2 max-w-md mx-auto">{{ __('Individual Learning and Development Plan records will be available here once the module is fully integrated.') }}</p>
-                        <div class="mt-8">
-                            <span class="px-4 py-2 bg-yellow-100 text-yellow-800 text-xs font-black uppercase tracking-widest rounded-full border border-yellow-200">
-                                {{ __('Feature Coming Soon') }}
-                            </span>
-                        </div>
+                        @if($employee->salns && $employee->salns->count() > 0)
+                            <div class="overflow-x-auto rounded-xl border border-gray-100">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th scope="col" class="px-6 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">As of Date</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Filing Type</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Total Assets</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Total Liabilities</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Net Worth</th>
+                                            <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-100 text-sm">
+                                        @foreach($employee->salns->sortByDesc('as_of_date') as $saln)
+                                            <tr class="hover:bg-gray-50 transition-colors">
+                                                <td class="px-6 py-4 whitespace-nowrap font-bold text-gray-900">{{ $saln->as_of_date->format('M d, Y') }}</td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-gray-600">{{ $saln->type_of_filing }}</td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-gray-600">₱ {{ number_format($saln->total_assets, 2) }}</td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-gray-600">₱ {{ number_format($saln->total_liabilities, 2) }}</td>
+                                                <td class="px-6 py-4 whitespace-nowrap font-bold text-emerald-600">₱ {{ number_format($saln->net_worth, 2) }}</td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                    <button @click="selectedSaln = {{ json_encode($saln) }}; salnModalOpen = true" class="text-indigo-600 hover:text-indigo-900 font-bold bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors">View Details</button>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @else
+                            <div class="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+                                <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400 shadow-sm">
+                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                </div>
+                                <h3 class="text-lg font-black text-gray-900 mb-1">No SALN Records</h3>
+                                <p class="text-gray-500 text-sm">This employee has not submitted any Statement of Assets, Liabilities, and Net Worth.</p>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -325,6 +338,170 @@
                         </button>
                         <button type="button" class="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-bold text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm" @click="reviewModalOpen = false">
                             Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SALN Details Modal -->
+        <div x-show="salnModalOpen" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div x-show="salnModalOpen" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" @click="salnModalOpen = false"></div>
+
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+                <div x-show="salnModalOpen" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full border border-gray-100">
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 max-h-[80vh] overflow-y-auto">
+                        <div class="flex items-center justify-between mb-6 border-b border-gray-100 pb-4">
+                            <h3 class="text-2xl font-black text-gray-900 flex items-center gap-3" id="modal-title">
+                                <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                </div>
+                                SALN Details
+                            </h3>
+                            <button @click="salnModalOpen = false" class="text-gray-400 hover:text-gray-500 focus:outline-none">
+                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                        </div>
+                        
+                        <template x-if="selectedSaln">
+                            <div class="space-y-8 text-sm">
+                                <!-- Filing Info -->
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-6 rounded-xl border border-gray-200">
+                                    <div>
+                                        <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">As of Date</p>
+                                        <p class="text-lg font-black text-gray-900" x-text="new Date(selectedSaln.as_of_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })"></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Filing Type & Status</p>
+                                        <p class="text-lg font-black text-gray-900">
+                                            <span x-text="selectedSaln.type_of_filing"></span>
+                                            <span class="text-gray-400 text-sm font-medium ml-2" x-text="'(' + selectedSaln.filing_status + ')'"></span>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Summary -->
+                                <div>
+                                    <h4 class="font-black text-gray-900 text-base uppercase tracking-widest border-b-2 border-gray-100 pb-2 mb-4">Financial Summary</h4>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div class="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+                                            <p class="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-1">Total Assets</p>
+                                            <p class="text-xl font-black text-indigo-900" x-text="'₱ ' + Number(selectedSaln.total_assets).toLocaleString('en-US', {minimumFractionDigits: 2})"></p>
+                                        </div>
+                                        <div class="bg-red-50 p-4 rounded-xl border border-red-100">
+                                            <p class="text-xs font-bold text-red-600 uppercase tracking-widest mb-1">Total Liabilities</p>
+                                            <p class="text-xl font-black text-red-900" x-text="'₱ ' + Number(selectedSaln.total_liabilities).toLocaleString('en-US', {minimumFractionDigits: 2})"></p>
+                                        </div>
+                                        <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-100">
+                                            <p class="text-xs font-bold text-emerald-600 uppercase tracking-widest mb-1">Net Worth</p>
+                                            <p class="text-xl font-black text-emerald-900" x-text="'₱ ' + Number(selectedSaln.net_worth).toLocaleString('en-US', {minimumFractionDigits: 2})"></p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Real Properties -->
+                                <div>
+                                    <h4 class="font-black text-gray-900 text-base uppercase tracking-widest border-b-2 border-gray-100 pb-2 mb-4">Real Properties</h4>
+                                    <template x-if="selectedSaln.real_properties && selectedSaln.real_properties.length > 0">
+                                        <div class="overflow-x-auto rounded-xl border border-gray-200">
+                                            <table class="min-w-full divide-y divide-gray-200">
+                                                <thead class="bg-gray-50">
+                                                    <tr>
+                                                        <th scope="col" class="px-4 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Description</th>
+                                                        <th scope="col" class="px-4 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Kind</th>
+                                                        <th scope="col" class="px-4 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Location</th>
+                                                        <th scope="col" class="px-4 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Year</th>
+                                                        <th scope="col" class="px-4 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Mode</th>
+                                                        <th scope="col" class="px-4 py-3 text-right text-[10px] font-black text-gray-500 uppercase tracking-widest">Acquisition Cost</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="bg-white divide-y divide-gray-100">
+                                                    <template x-for="(prop, index) in selectedSaln.real_properties" :key="index">
+                                                        <tr>
+                                                            <td class="px-4 py-3 whitespace-nowrap text-gray-900 font-bold" x-text="prop.description"></td>
+                                                            <td class="px-4 py-3 whitespace-nowrap text-gray-600" x-text="prop.kind"></td>
+                                                            <td class="px-4 py-3 whitespace-nowrap text-gray-600" x-text="prop.exact_location"></td>
+                                                            <td class="px-4 py-3 whitespace-nowrap text-gray-600" x-text="prop.acquisition_year"></td>
+                                                            <td class="px-4 py-3 whitespace-nowrap text-gray-600" x-text="prop.acquisition_mode"></td>
+                                                            <td class="px-4 py-3 whitespace-nowrap text-right text-gray-900 font-bold" x-text="'₱ ' + Number(prop.acquisition_cost).toLocaleString('en-US', {minimumFractionDigits: 2})"></td>
+                                                        </tr>
+                                                    </template>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </template>
+                                    <template x-if="!selectedSaln.real_properties || selectedSaln.real_properties.length === 0">
+                                        <p class="text-gray-500 italic p-4 bg-gray-50 rounded-xl border border-dashed border-gray-200">No real properties declared.</p>
+                                    </template>
+                                </div>
+
+                                <!-- Personal Properties -->
+                                <div>
+                                    <h4 class="font-black text-gray-900 text-base uppercase tracking-widest border-b-2 border-gray-100 pb-2 mb-4">Personal Properties</h4>
+                                    <template x-if="selectedSaln.personal_properties && selectedSaln.personal_properties.length > 0">
+                                        <div class="overflow-x-auto rounded-xl border border-gray-200">
+                                            <table class="min-w-full divide-y divide-gray-200">
+                                                <thead class="bg-gray-50">
+                                                    <tr>
+                                                        <th scope="col" class="px-4 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Description</th>
+                                                        <th scope="col" class="px-4 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Year Acquired</th>
+                                                        <th scope="col" class="px-4 py-3 text-right text-[10px] font-black text-gray-500 uppercase tracking-widest">Acquisition Cost</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="bg-white divide-y divide-gray-100">
+                                                    <template x-for="(prop, index) in selectedSaln.personal_properties" :key="index">
+                                                        <tr>
+                                                            <td class="px-4 py-3 whitespace-nowrap text-gray-900 font-bold" x-text="prop.description"></td>
+                                                            <td class="px-4 py-3 whitespace-nowrap text-gray-600" x-text="prop.year_acquired"></td>
+                                                            <td class="px-4 py-3 whitespace-nowrap text-right text-gray-900 font-bold" x-text="'₱ ' + Number(prop.acquisition_cost).toLocaleString('en-US', {minimumFractionDigits: 2})"></td>
+                                                        </tr>
+                                                    </template>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </template>
+                                    <template x-if="!selectedSaln.personal_properties || selectedSaln.personal_properties.length === 0">
+                                        <p class="text-gray-500 italic p-4 bg-gray-50 rounded-xl border border-dashed border-gray-200">No personal properties declared.</p>
+                                    </template>
+                                </div>
+
+                                <!-- Liabilities -->
+                                <div>
+                                    <h4 class="font-black text-gray-900 text-base uppercase tracking-widest border-b-2 border-gray-100 pb-2 mb-4">Liabilities</h4>
+                                    <template x-if="selectedSaln.liabilities && selectedSaln.liabilities.length > 0">
+                                        <div class="overflow-x-auto rounded-xl border border-gray-200">
+                                            <table class="min-w-full divide-y divide-gray-200">
+                                                <thead class="bg-gray-50">
+                                                    <tr>
+                                                        <th scope="col" class="px-4 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Nature</th>
+                                                        <th scope="col" class="px-4 py-3 text-left text-[10px] font-black text-gray-500 uppercase tracking-widest">Name of Creditor</th>
+                                                        <th scope="col" class="px-4 py-3 text-right text-[10px] font-black text-gray-500 uppercase tracking-widest">Outstanding Balance</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="bg-white divide-y divide-gray-100">
+                                                    <template x-for="(liability, index) in selectedSaln.liabilities" :key="index">
+                                                        <tr>
+                                                            <td class="px-4 py-3 whitespace-nowrap text-gray-900 font-bold" x-text="liability.nature"></td>
+                                                            <td class="px-4 py-3 whitespace-nowrap text-gray-600" x-text="liability.name_of_creditors"></td>
+                                                            <td class="px-4 py-3 whitespace-nowrap text-right text-red-600 font-bold" x-text="'₱ ' + Number(liability.outstanding_balance).toLocaleString('en-US', {minimumFractionDigits: 2})"></td>
+                                                        </tr>
+                                                    </template>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </template>
+                                    <template x-if="!selectedSaln.liabilities || selectedSaln.liabilities.length === 0">
+                                        <p class="text-gray-500 italic p-4 bg-gray-50 rounded-xl border border-dashed border-gray-200">No liabilities declared.</p>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-4 sm:px-6 sm:flex sm:flex-row-reverse border-t border-gray-100">
+                        <button type="button" class="w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-6 py-2.5 bg-white text-base font-bold text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition-colors" @click="salnModalOpen = false">
+                            Close
                         </button>
                     </div>
                 </div>
