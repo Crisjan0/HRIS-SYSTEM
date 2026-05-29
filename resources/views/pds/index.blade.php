@@ -87,12 +87,12 @@
                             <div class="bg-gray-50/50 border-2 border-gray-100 p-6 rounded-2xl shadow-sm">
                                 @php
                                     $sections = [
-                                        ['label' => 'Personal Information', 'filled' => (bool) $employee->pdsPersonal, 'icon' => 'user'],
-                                        ['label' => 'Family Background', 'filled' => (bool) $employee->pdsFamily, 'icon' => 'users'],
+                                        ['label' => 'Personal Information', 'filled' => $employee->pdsPersonal && !empty($employee->pdsPersonal->surname), 'icon' => 'user'],
+                                        ['label' => 'Family Background', 'filled' => $employee->pdsFamily && (!empty($employee->pdsFamily->father_surname) || !empty($employee->pdsFamily->mother_maiden_surname) || !empty($employee->pdsFamily->spouse_surname)), 'icon' => 'users'],
                                         ['label' => 'Educational Background', 'filled' => $employee->pdsEducation->count() > 0, 'icon' => 'academic-cap'],
                                         ['label' => 'Civil Service Eligibility', 'filled' => $employee->pdsEligibilities->count() > 0, 'icon' => 'badge-check'],
                                         ['label' => 'Work Experience', 'filled' => $employee->pdsWorkExperiences->count() > 0, 'icon' => 'briefcase'],
-                                        ['label' => 'Questionnaire', 'filled' => (bool) $employee->pdsQuestionnaire, 'icon' => 'question-mark-circle'],
+                                        ['label' => 'Questionnaire', 'filled' => $employee->pdsQuestionnaire && $employee->pdsQuestionnaire->updated_at > $employee->pdsQuestionnaire->created_at, 'icon' => 'question-mark-circle'],
                                         ['label' => 'References', 'filled' => $employee->pdsReferences->count() >= 3, 'icon' => 'identification'],
                                     ];
                                     $completedCount = collect($sections)->where('filled', true)->count();
@@ -120,8 +120,11 @@
                                 <!-- Section Grid -->
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     @foreach($sections as $section)
-                                        <div class="flex items-center p-4 bg-white rounded-xl border border-gray-100 shadow-sm transition-all duration-200">
-                                            <div class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center mr-4 {{ $section['filled'] ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-400' }}">
+                                        <a href="{{ route('pds.edit') }}" class="group flex items-center p-4 bg-white rounded-xl border border-gray-100 shadow-sm transition-all duration-200 hover:border-indigo-300 hover:shadow-md cursor-pointer relative overflow-hidden">
+                                            <!-- Hover indicator bar -->
+                                            <div class="absolute left-0 top-0 bottom-0 w-1 bg-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                            
+                                            <div class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center mr-4 transition-transform group-hover:scale-110 {{ $section['filled'] ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-400 group-hover:bg-indigo-50 group-hover:text-indigo-500' }}">
                                                 @if($section['filled'])
                                                     <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                                                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
@@ -132,16 +135,21 @@
                                                     </svg>
                                                 @endif
                                             </div>
-                                            <div class="overflow-hidden">
-                                                <span class="block text-sm font-black truncate tracking-tight {{ $section['filled'] ? 'text-gray-900' : 'text-gray-400' }}">{{ $section['label'] }}</span>
-                                                <div class="flex items-center gap-1.5 leading-none mt-0.5">
-                                                    <div class="w-1.5 h-1.5 rounded-full {{ $section['filled'] ? 'bg-emerald-500' : 'bg-gray-300' }}"></div>
-                                                    <span class="text-[9px] font-black uppercase tracking-widest {{ $section['filled'] ? 'text-emerald-600' : 'text-gray-400' }}">
-                                                        {{ $section['filled'] ? 'Saved' : 'Blank' }}
-                                                    </span>
+                                            <div class="overflow-hidden flex-1">
+                                                <span class="block text-sm font-black truncate tracking-tight transition-colors {{ $section['filled'] ? 'text-gray-900 group-hover:text-emerald-700' : 'text-gray-400 group-hover:text-indigo-600' }}">{{ $section['label'] }}</span>
+                                                <div class="flex items-center justify-between mt-0.5">
+                                                    <div class="flex items-center gap-1.5 leading-none">
+                                                        <div class="w-1.5 h-1.5 rounded-full {{ $section['filled'] ? 'bg-emerald-500' : 'bg-gray-300 group-hover:bg-indigo-400' }}"></div>
+                                                        <span class="text-[9px] font-black uppercase tracking-widest transition-colors {{ $section['filled'] ? 'text-emerald-600' : 'text-gray-400 group-hover:text-indigo-500' }}">
+                                                            {{ $section['filled'] ? 'Saved' : 'Blank' }}
+                                                        </span>
+                                                    </div>
+                                                    <svg class="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+                                                    </svg>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </a>
                                     @endforeach
                                 </div>
                             </div>
