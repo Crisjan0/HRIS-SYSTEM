@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="title">{{ __('Employee Details') }} - {{ $employee->firstname }} {{ $employee->lastname }}</x-slot>
 
-    <div class="py-8 bg-gray-50 min-h-screen" x-data="{ tab: 'pds' }">
+    <div class="py-8 bg-gray-50 min-h-screen" x-data="{ tab: 'pds', reviewModalOpen: false, currentSection: '', sectionData: null, reviewStatus: 'pending', reviewRemarks: '' }">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- Header Card -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
@@ -121,13 +121,13 @@
                             <div class="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm">
                                 @php
                                     $sections = [
-                                        ['label' => 'Personal Information', 'filled' => (bool) $employee->pdsPersonal, 'icon' => 'user'],
-                                        ['label' => 'Family Background', 'filled' => (bool) $employee->pdsFamily, 'icon' => 'users'],
-                                        ['label' => 'Educational Background', 'filled' => $employee->pdsEducation->count() > 0, 'icon' => 'academic-cap'],
-                                        ['label' => 'Civil Service Eligibility', 'filled' => $employee->pdsEligibilities->count() > 0, 'icon' => 'badge-check'],
-                                        ['label' => 'Work Experience', 'filled' => $employee->pdsWorkExperiences->count() > 0, 'icon' => 'briefcase'],
-                                        ['label' => 'Questionnaire', 'filled' => (bool) $employee->pdsQuestionnaire, 'icon' => 'question-mark-circle'],
-                                        ['label' => 'References', 'filled' => $employee->pdsReferences->count() >= 3, 'icon' => 'identification'],
+                                        ['label' => 'Personal Information', 'filled' => (bool) $employee->pdsPersonal, 'icon' => 'user', 'data' => $employee->pdsPersonal],
+                                        ['label' => 'Family Background', 'filled' => (bool) $employee->pdsFamily, 'icon' => 'users', 'data' => $employee->pdsFamily],
+                                        ['label' => 'Educational Background', 'filled' => $employee->pdsEducation->count() > 0, 'icon' => 'academic-cap', 'data' => $employee->pdsEducation],
+                                        ['label' => 'Civil Service Eligibility', 'filled' => $employee->pdsEligibilities->count() > 0, 'icon' => 'badge-check', 'data' => $employee->pdsEligibilities],
+                                        ['label' => 'Work Experience', 'filled' => $employee->pdsWorkExperiences->count() > 0, 'icon' => 'briefcase', 'data' => $employee->pdsWorkExperiences],
+                                        ['label' => 'Questionnaire', 'filled' => (bool) $employee->pdsQuestionnaire, 'icon' => 'question-mark-circle', 'data' => $employee->pdsQuestionnaire],
+                                        ['label' => 'References', 'filled' => $employee->pdsReferences->count() >= 3, 'icon' => 'identification', 'data' => $employee->pdsReferences],
                                     ];
                                     $completedCount = collect($sections)->where('filled', true)->count();
                                     $totalSections = count($sections);
@@ -154,8 +154,16 @@
                                 <!-- Section Grid -->
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     @foreach($sections as $section)
-                                        <div class="flex items-center p-4 bg-gray-50 rounded-xl border border-gray-100 shadow-sm transition-all duration-200">
-                                            <div class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center mr-4 {{ $section['filled'] ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-200 text-gray-400' }}">
+                                        @php
+                                            $review = $employee->pdsSectionReviews->where('section_name', $section['label'])->first();
+                                            $reviewStatus = $review ? $review->status : 'pending';
+                                            $reviewRemarks = $review ? $review->remarks : '';
+                                        @endphp
+                                        <button @click="reviewModalOpen = true; currentSection = '{{ $section['label'] }}'; sectionData = {{ json_encode($section['data']) }}; reviewStatus = '{{ $reviewStatus }}'; reviewRemarks = '{{ addslashes($reviewRemarks) }}'" class="group flex items-center p-4 bg-gray-50 rounded-xl border border-gray-100 shadow-sm transition-all duration-200 hover:border-indigo-300 hover:shadow-md cursor-pointer relative overflow-hidden text-left focus:outline-none">
+                                            <!-- Hover indicator bar -->
+                                            <div class="absolute left-0 top-0 bottom-0 w-1 bg-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                            
+                                            <div class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center mr-4 transition-transform group-hover:scale-110 {{ $section['filled'] ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-200 text-gray-400 group-hover:bg-indigo-50 group-hover:text-indigo-500' }}">
                                                 @if($section['filled'])
                                                     <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                                                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
@@ -166,16 +174,26 @@
                                                     </svg>
                                                 @endif
                                             </div>
-                                            <div class="overflow-hidden">
-                                                <span class="block text-sm font-black truncate tracking-tight {{ $section['filled'] ? 'text-gray-900' : 'text-gray-400' }}">{{ $section['label'] }}</span>
-                                                <div class="flex items-center gap-1.5 leading-none mt-0.5">
-                                                    <div class="w-1.5 h-1.5 rounded-full {{ $section['filled'] ? 'bg-emerald-500' : 'bg-gray-300' }}"></div>
-                                                    <span class="text-[9px] font-black uppercase tracking-widest {{ $section['filled'] ? 'text-emerald-600' : 'text-gray-400' }}">
-                                                        {{ $section['filled'] ? 'Saved' : 'Blank' }}
-                                                    </span>
+                                            <div class="overflow-hidden flex-1">
+                                                <span class="block text-sm font-black truncate tracking-tight transition-colors {{ $section['filled'] ? 'text-gray-900 group-hover:text-emerald-700' : 'text-gray-400 group-hover:text-indigo-600' }}">{{ $section['label'] }}</span>
+                                                <div class="flex items-center justify-between mt-0.5">
+                                                    <div class="flex items-center gap-1.5 leading-none">
+                                                        <div class="w-1.5 h-1.5 rounded-full {{ $section['filled'] ? 'bg-emerald-500' : 'bg-gray-300 group-hover:bg-indigo-400' }}"></div>
+                                                        <span class="text-[9px] font-black uppercase tracking-widest transition-colors {{ $section['filled'] ? 'text-emerald-600' : 'text-gray-400 group-hover:text-indigo-500' }}">
+                                                            {{ $section['filled'] ? 'Saved' : 'Blank' }}
+                                                        </span>
+                                                        @if($reviewStatus === 'approved')
+                                                            <span class="ml-2 text-[9px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-100 px-1 rounded">Approved</span>
+                                                        @elseif($reviewStatus === 'rejected')
+                                                            <span class="ml-2 text-[9px] font-black uppercase tracking-widest text-red-600 bg-red-100 px-1 rounded">Rejected</span>
+                                                        @endif
+                                                    </div>
+                                                    <svg class="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+                                                    </svg>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </button>
                                     @endforeach
                                 </div>
 
@@ -219,6 +237,95 @@
                                 {{ __('Feature Coming Soon') }}
                             </span>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- PDS Review Modal -->
+        <div x-show="reviewModalOpen" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div x-show="reviewModalOpen" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" @click="reviewModalOpen = false"></div>
+
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+                <div x-show="reviewModalOpen" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full border border-gray-100">
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 max-h-[80vh] overflow-y-auto">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 sm:mx-0 sm:h-10 sm:w-10">
+                                <svg class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                            </div>
+                            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                                <h3 class="text-lg leading-6 font-black text-gray-900" id="modal-title" x-text="'Review ' + currentSection"></h3>
+                                
+                                <!-- Data Viewer -->
+                                <div class="mt-4 bg-gray-50 p-4 rounded-lg border border-gray-200 text-sm">
+                                    <h4 class="font-bold text-gray-700 mb-2">Section Data:</h4>
+                                    <template x-if="sectionData">
+                                        <div class="space-y-1">
+                                            <template x-if="Array.isArray(sectionData) && sectionData.length > 0">
+                                                <div>
+                                                    <template x-for="(item, index) in sectionData" :key="index">
+                                                        <div class="mb-4 pb-2 border-b border-gray-200 last:border-0 last:mb-0 last:pb-0">
+                                                            <div class="font-bold text-gray-500 text-xs mb-1 uppercase tracking-wider" x-text="'Entry ' + (index + 1)"></div>
+                                                            <template x-for="(value, key) in item" :key="key">
+                                                                <div class="grid grid-cols-3 gap-2 py-1" x-show="key !== 'id' && key !== 'employee_id' && key !== 'created_at' && key !== 'updated_at'">
+                                                                    <div class="col-span-1 font-bold text-gray-600 capitalize truncate" x-text="key.replace(/_/g, ' ')"></div>
+                                                                    <div class="col-span-2 text-gray-900" x-text="value === null ? '---' : value"></div>
+                                                                </div>
+                                                            </template>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                            </template>
+                                            <template x-if="!Array.isArray(sectionData)">
+                                                <div>
+                                                    <template x-for="(value, key) in sectionData" :key="key">
+                                                        <div class="grid grid-cols-3 gap-2 py-1 border-b border-gray-100 last:border-0" x-show="key !== 'id' && key !== 'employee_id' && key !== 'created_at' && key !== 'updated_at'">
+                                                            <div class="col-span-1 font-bold text-gray-600 capitalize truncate" x-text="key.replace(/_/g, ' ')"></div>
+                                                            <div class="col-span-2 text-gray-900" x-text="value === null || value === '' ? '---' : value"></div>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </template>
+                                    <template x-if="!sectionData || (Array.isArray(sectionData) && sectionData.length === 0)">
+                                        <div class="text-gray-500 italic">No data inputted for this section yet.</div>
+                                    </template>
+                                </div>
+
+                                <!-- Review Form -->
+                                <form id="review-form" action="{{ route('pds-reviews.store', $employee) }}" method="POST" class="mt-6 space-y-4">
+                                    @csrf
+                                    <input type="hidden" name="section_name" x-model="currentSection">
+                                    
+                                    <div>
+                                        <label class="block text-sm font-bold text-gray-700 mb-1">Status</label>
+                                        <select name="status" x-model="reviewStatus" class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md shadow-sm">
+                                            <option value="pending">Pending</option>
+                                            <option value="approved">Approve</option>
+                                            <option value="rejected">Reject</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-sm font-bold text-gray-700 mb-1">Remarks</label>
+                                        <textarea name="remarks" x-model="reviewRemarks" rows="3" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Enter remarks (optional)..."></textarea>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-gray-100">
+                        <button type="submit" form="review-form" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-bold text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm">
+                            Save Review
+                        </button>
+                        <button type="button" class="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-bold text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm" @click="reviewModalOpen = false">
+                            Cancel
+                        </button>
                     </div>
                 </div>
             </div>

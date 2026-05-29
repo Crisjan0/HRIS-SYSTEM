@@ -58,10 +58,25 @@
                     <div x-show="tab === 'personal'" class="space-y-10 animate-fade-in">
                         <!-- SECTION I: PERSONAL INFORMATION -->
                         <div>
-                            <div class="flex items-center gap-3 mb-6 border-b-2 border-indigo-700 pb-2">
-                                <span class="bg-indigo-700 text-white px-2 py-0.5 rounded text-[10px] font-black tracking-widest">I</span>
-                                <h3 class="text-base font-black text-gray-900 uppercase tracking-tight">Personal Information</h3>
+                            <div class="flex justify-between items-center border-b-2 border-indigo-700 pb-2 mb-4">
+                                <div class="flex items-center gap-3">
+                                    <span class="bg-indigo-700 text-white px-2 py-0.5 rounded text-[10px] font-black tracking-widest">I</span>
+                                    <h3 class="text-base font-black text-gray-900 uppercase tracking-tight">Personal Information</h3>
+                                </div>
+                                @php $personalReview = $employee->pdsSectionReviews->where('section_name', 'Personal Information')->first(); @endphp
+                                @if($personalReview && $personalReview->remarks)
+                                    <span class="bg-yellow-100 text-yellow-800 text-[10px] px-2 py-1 rounded font-bold border border-yellow-200">Has HR Remarks</span>
+                                @endif
                             </div>
+                            @if($personalReview && $personalReview->remarks)
+                                <div class="mb-6 bg-yellow-50/50 border border-yellow-200 p-4 rounded-xl flex gap-3 items-start shadow-sm">
+                                    <svg class="w-5 h-5 text-yellow-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    <div>
+                                        <span class="block text-[10px] font-black text-yellow-800 uppercase tracking-widest mb-1">HR Remarks ({{ ucfirst($personalReview->status) }})</span>
+                                        <p class="text-sm font-medium text-yellow-900 leading-relaxed">{{ $personalReview->remarks }}</p>
+                                    </div>
+                                </div>
+                            @endif
                             
                             <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
                                 <!-- COLUMN 1: Items 1-15 -->
@@ -208,10 +223,25 @@
                         </div>
 
                         <div>
-                            <div class="flex items-center gap-3 mb-6 border-b-2 border-indigo-700 pb-2">
-                                <span class="bg-indigo-700 text-white px-2 py-0.5 rounded text-[10px] font-black tracking-widest">II</span>
-                                <h3 class="text-base font-black text-gray-900 uppercase tracking-tight">Family Background</h3>
+                            <div class="flex justify-between items-center border-b-2 border-indigo-700 pb-2 mb-4">
+                                <div class="flex items-center gap-3">
+                                    <span class="bg-indigo-700 text-white px-2 py-0.5 rounded text-[10px] font-black tracking-widest">II</span>
+                                    <h3 class="text-base font-black text-gray-900 uppercase tracking-tight">Family Background</h3>
+                                </div>
+                                @php $familyReview = $employee->pdsSectionReviews->where('section_name', 'Family Background')->first(); @endphp
+                                @if($familyReview && $familyReview->remarks)
+                                    <span class="bg-yellow-100 text-yellow-800 text-[10px] px-2 py-1 rounded font-bold border border-yellow-200">Has HR Remarks</span>
+                                @endif
                             </div>
+                            @if($familyReview && $familyReview->remarks)
+                                <div class="mb-6 bg-yellow-50/50 border border-yellow-200 p-4 rounded-xl flex gap-3 items-start shadow-sm">
+                                    <svg class="w-5 h-5 text-yellow-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    <div>
+                                        <span class="block text-[10px] font-black text-yellow-800 uppercase tracking-widest mb-1">HR Remarks ({{ ucfirst($familyReview->status) }})</span>
+                                        <p class="text-sm font-medium text-yellow-900 leading-relaxed">{{ $familyReview->remarks }}</p>
+                                    </div>
+                                </div>
+                            @endif
                             
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div class="space-y-1"><x-input-label value="Spouse Surname" class="text-[9px] font-black uppercase text-gray-400 tracking-[0.2em]" /><x-text-input class="block w-full text-sm font-bold border-gray-100" name="family[spouse_surname]" :value="$employee->pdsFamily?->spouse_surname" /></div>
@@ -252,13 +282,28 @@
                     <!-- Section III & IV: Education & Eligibility -->
                     <div x-show="tab === 'education'" class="space-y-12 animate-fade-in">
                          <div>
-                            <div class="flex justify-between items-center border-b-2 border-indigo-700 pb-2 mb-6">
+                            <div class="flex justify-between items-center border-b-2 border-indigo-700 pb-2 mb-4">
                                 <div class="flex items-center gap-3">
                                     <span class="bg-indigo-700 text-white px-2 py-0.5 rounded text-[10px] font-black tracking-widest">III</span>
                                     <h3 class="text-base font-black text-gray-900 uppercase tracking-tight">Educational Background</h3>
                                 </div>
-                                <button type="button" @click="education.push({level: '', school_name: '', course: '', period_from: '', period_to: '', highest_level: '', year_graduated: '', honors: ''})" class="text-[9px] font-black uppercase tracking-[0.1em] bg-indigo-700 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-800 transition">+ Add Row</button>
+                                <div class="flex items-center gap-2">
+                                    @php $educationReview = $employee->pdsSectionReviews->where('section_name', 'Educational Background')->first(); @endphp
+                                    @if($educationReview && $educationReview->remarks)
+                                        <span class="bg-yellow-100 text-yellow-800 text-[10px] px-2 py-1 rounded font-bold border border-yellow-200">Has HR Remarks</span>
+                                    @endif
+                                    <button type="button" @click="education.push({level: '', school_name: '', course: '', period_from: '', period_to: '', highest_level: '', year_graduated: '', honors: ''})" class="text-[9px] font-black uppercase tracking-[0.1em] bg-indigo-700 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-800 transition">+ Add Row</button>
+                                </div>
                             </div>
+                            @if($educationReview && $educationReview->remarks)
+                                <div class="mb-6 bg-yellow-50/50 border border-yellow-200 p-4 rounded-xl flex gap-3 items-start shadow-sm">
+                                    <svg class="w-5 h-5 text-yellow-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    <div>
+                                        <span class="block text-[10px] font-black text-yellow-800 uppercase tracking-widest mb-1">HR Remarks ({{ ucfirst($educationReview->status) }})</span>
+                                        <p class="text-sm font-medium text-yellow-900 leading-relaxed">{{ $educationReview->remarks }}</p>
+                                    </div>
+                                </div>
+                            @endif
                             <div class="bg-white border-2 border-gray-50 rounded-2xl overflow-x-auto shadow-sm">
                                 <table class="w-full text-xs">
                                     <thead>
@@ -292,13 +337,28 @@
                         </div>
 
                         <div>
-                            <div class="flex justify-between items-center border-b-2 border-indigo-700 pb-2 mb-6 mt-12">
+                            <div class="flex justify-between items-center border-b-2 border-indigo-700 pb-2 mb-4 mt-12">
                                 <div class="flex items-center gap-3">
                                     <span class="bg-indigo-700 text-white px-2 py-0.5 rounded text-[10px] font-black tracking-widest">IV</span>
                                     <h3 class="text-base font-black text-gray-900 uppercase tracking-tight">Civil Service Eligibility</h3>
                                 </div>
-                                <button type="button" @click="eligibility.push({title: '', rating: '', date_of_exam: '', place_of_exam: '', license_number: '', license_validity: ''})" class="text-[9px] font-black uppercase tracking-[0.1em] bg-indigo-700 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-800 transition">+ Add Eligibility</button>
+                                <div class="flex items-center gap-2">
+                                    @php $eligibilityReview = $employee->pdsSectionReviews->where('section_name', 'Civil Service Eligibility')->first(); @endphp
+                                    @if($eligibilityReview && $eligibilityReview->remarks)
+                                        <span class="bg-yellow-100 text-yellow-800 text-[10px] px-2 py-1 rounded font-bold border border-yellow-200">Has HR Remarks</span>
+                                    @endif
+                                    <button type="button" @click="eligibility.push({title: '', rating: '', date_of_exam: '', place_of_exam: '', license_number: '', license_validity: ''})" class="text-[9px] font-black uppercase tracking-[0.1em] bg-indigo-700 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-800 transition">+ Add Eligibility</button>
+                                </div>
                             </div>
+                            @if($eligibilityReview && $eligibilityReview->remarks)
+                                <div class="mb-6 bg-yellow-50/50 border border-yellow-200 p-4 rounded-xl flex gap-3 items-start shadow-sm">
+                                    <svg class="w-5 h-5 text-yellow-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    <div>
+                                        <span class="block text-[10px] font-black text-yellow-800 uppercase tracking-widest mb-1">HR Remarks ({{ ucfirst($eligibilityReview->status) }})</span>
+                                        <p class="text-sm font-medium text-yellow-900 leading-relaxed">{{ $eligibilityReview->remarks }}</p>
+                                    </div>
+                                </div>
+                            @endif
                             <div class="bg-white border-2 border-gray-50 rounded-2xl overflow-hidden shadow-sm">
                                 <table class="w-full text-xs">
                                     <thead>
@@ -327,13 +387,28 @@
                     <!-- Section V & VI: Work & Voluntary -->
                     <div x-show="tab === 'work'" class="space-y-12 animate-fade-in">
                          <div>
-                            <div class="flex justify-between items-center border-b-2 border-indigo-700 pb-2 mb-6">
+                            <div class="flex justify-between items-center border-b-2 border-indigo-700 pb-2 mb-4">
                                 <div class="flex items-center gap-3">
                                     <span class="bg-indigo-700 text-white px-2 py-0.5 rounded text-[10px] font-black tracking-widest">V</span>
                                     <h3 class="text-base font-black text-gray-900 uppercase tracking-tight">Work Experience</h3>
                                 </div>
-                                <button type="button" @click="work.push({date_from: '', date_to: '', position_title: '', company: '', monthly_salary: '', salary_grade: '', appointment_status: '', is_gov_service: 0})" class="text-[9px] font-black uppercase tracking-[0.1em] bg-indigo-700 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-800 transition">+ Add Work</button>
+                                <div class="flex items-center gap-2">
+                                    @php $workReview = $employee->pdsSectionReviews->where('section_name', 'Work Experience')->first(); @endphp
+                                    @if($workReview && $workReview->remarks)
+                                        <span class="bg-yellow-100 text-yellow-800 text-[10px] px-2 py-1 rounded font-bold border border-yellow-200">Has HR Remarks</span>
+                                    @endif
+                                    <button type="button" @click="work.push({date_from: '', date_to: '', position_title: '', company: '', monthly_salary: '', salary_grade: '', appointment_status: '', is_gov_service: 0})" class="text-[9px] font-black uppercase tracking-[0.1em] bg-indigo-700 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-800 transition">+ Add Work</button>
+                                </div>
                             </div>
+                            @if($workReview && $workReview->remarks)
+                                <div class="mb-6 bg-yellow-50/50 border border-yellow-200 p-4 rounded-xl flex gap-3 items-start shadow-sm">
+                                    <svg class="w-5 h-5 text-yellow-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    <div>
+                                        <span class="block text-[10px] font-black text-yellow-800 uppercase tracking-widest mb-1">HR Remarks ({{ ucfirst($workReview->status) }})</span>
+                                        <p class="text-sm font-medium text-yellow-900 leading-relaxed">{{ $workReview->remarks }}</p>
+                                    </div>
+                                </div>
+                            @endif
                             <div class="bg-white border-2 border-gray-50 rounded-2xl overflow-hidden shadow-sm">
                                 <table class="w-full text-xs">
                                     <thead>
@@ -366,13 +441,28 @@
                     <!-- Section VII, VIII, IX: Training, Others, References -->
                     <div x-show="tab === 'others'" class="space-y-12 animate-fade-in">
                          <div>
-                            <div class="flex justify-between items-center border-b-2 border-indigo-700 pb-2 mb-6">
+                            <div class="flex justify-between items-center border-b-2 border-indigo-700 pb-2 mb-4">
                                 <div class="flex items-center gap-3">
                                     <span class="bg-indigo-700 text-white px-2 py-0.5 rounded text-[10px] font-black tracking-widest">VII</span>
                                     <h3 class="text-base font-black text-gray-900 uppercase tracking-tight">L&D / Training Interventions</h3>
                                 </div>
-                                <button type="button" @click="training.push({title: '', date_from: '', date_to: '', number_of_hours: '', type: '', conducted_by: ''})" class="text-[9px] font-black uppercase tracking-[0.1em] bg-indigo-700 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-800 transition">+ Add Training</button>
+                                <div class="flex items-center gap-2">
+                                    @php $trainingReview = $employee->pdsSectionReviews->where('section_name', 'Training')->first(); @endphp
+                                    @if($trainingReview && $trainingReview->remarks)
+                                        <span class="bg-yellow-100 text-yellow-800 text-[10px] px-2 py-1 rounded font-bold border border-yellow-200">Has HR Remarks</span>
+                                    @endif
+                                    <button type="button" @click="training.push({title: '', date_from: '', date_to: '', number_of_hours: '', type: '', conducted_by: ''})" class="text-[9px] font-black uppercase tracking-[0.1em] bg-indigo-700 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-800 transition">+ Add Training</button>
+                                </div>
                             </div>
+                            @if($trainingReview && $trainingReview->remarks)
+                                <div class="mb-6 bg-yellow-50/50 border border-yellow-200 p-4 rounded-xl flex gap-3 items-start shadow-sm">
+                                    <svg class="w-5 h-5 text-yellow-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    <div>
+                                        <span class="block text-[10px] font-black text-yellow-800 uppercase tracking-widest mb-1">HR Remarks ({{ ucfirst($trainingReview->status) }})</span>
+                                        <p class="text-sm font-medium text-yellow-900 leading-relaxed">{{ $trainingReview->remarks }}</p>
+                                    </div>
+                                </div>
+                            @endif
                             <div class="bg-white border-2 border-gray-50 rounded-2xl overflow-hidden shadow-sm">
                                 <table class="w-full text-xs">
                                     <thead>
@@ -400,10 +490,25 @@
                         </div>
 
                         <div>
-                            <div class="flex items-center gap-3 mb-6 border-b-2 border-indigo-700 pb-2">
-                                <span class="bg-indigo-700 text-white px-2 py-0.5 rounded text-[10px] font-black tracking-widest">IX</span>
-                                <h3 class="text-base font-black text-gray-900 uppercase tracking-tight">References</h3>
+                            <div class="flex justify-between items-center border-b-2 border-indigo-700 pb-2 mb-4">
+                                <div class="flex items-center gap-3">
+                                    <span class="bg-indigo-700 text-white px-2 py-0.5 rounded text-[10px] font-black tracking-widest">IX</span>
+                                    <h3 class="text-base font-black text-gray-900 uppercase tracking-tight">References</h3>
+                                </div>
+                                @php $referenceReview = $employee->pdsSectionReviews->where('section_name', 'References')->first(); @endphp
+                                @if($referenceReview && $referenceReview->remarks)
+                                    <span class="bg-yellow-100 text-yellow-800 text-[10px] px-2 py-1 rounded font-bold border border-yellow-200">Has HR Remarks</span>
+                                @endif
                             </div>
+                            @if($referenceReview && $referenceReview->remarks)
+                                <div class="mb-6 bg-yellow-50/50 border border-yellow-200 p-4 rounded-xl flex gap-3 items-start shadow-sm">
+                                    <svg class="w-5 h-5 text-yellow-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    <div>
+                                        <span class="block text-[10px] font-black text-yellow-800 uppercase tracking-widest mb-1">HR Remarks ({{ ucfirst($referenceReview->status) }})</span>
+                                        <p class="text-sm font-medium text-yellow-900 leading-relaxed">{{ $referenceReview->remarks }}</p>
+                                    </div>
+                                </div>
+                            @endif
                             <div class="bg-gray-50/50 p-6 rounded-2xl border-2 border-gray-100/50 grid grid-cols-1 md:grid-cols-3 gap-6 shadow-inner">
                                 <template x-for="(ref, index) in references" :key="index">
                                     <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm space-y-3">

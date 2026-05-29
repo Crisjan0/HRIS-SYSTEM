@@ -26,6 +26,7 @@ class PdsController extends Controller
             'pdsPersonal', 'pdsFamily', 'pdsChildren', 'pdsEducation',
             'pdsEligibilities', 'pdsWorkExperiences', 'pdsVoluntaryWorks',
             'pdsTrainings', 'pdsOthers', 'pdsQuestionnaire', 'pdsReferences', 'pdsGovId',
+            'pdsSectionReviews',
         ]);
 
         return view('pds.index', compact('employee'));
@@ -70,6 +71,7 @@ class PdsController extends Controller
             'pdsPersonal', 'pdsFamily', 'pdsChildren', 'pdsEducation',
             'pdsEligibilities', 'pdsWorkExperiences', 'pdsVoluntaryWorks',
             'pdsTrainings', 'pdsOthers', 'pdsQuestionnaire', 'pdsReferences', 'pdsGovId',
+            'pdsSectionReviews',
         ]);
 
         return view('pds.edit', compact('employee'));

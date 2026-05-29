@@ -65,6 +65,8 @@ Route::middleware('auth')->group(function () {
     Route::patch('/locator-slips/{locatorSlip}/reject', [LocatorSlipController::class, 'reject'])->name('locator-slips.reject');
     Route::get('/locator-slips/{locatorSlip}/edit', [LocatorSlipController::class, 'edit'])->name('locator-slips.edit');
     Route::put('/locator-slips/{locatorSlip}', [LocatorSlipController::class, 'update'])->name('locator-slips.update');
+    
+    Route::post('/employees/{employee}/pds-reviews', [\App\Http\Controllers\PdsSectionReviewController::class, 'store'])->name('pds-reviews.store');
 
     // SALN Routes
     Route::resource('salns', \App\Http\Controllers\SalnController::class);

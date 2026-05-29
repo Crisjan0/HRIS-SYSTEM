@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('pds_section_reviews', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('employee_id')->constrained()->cascadeOnDelete();
+            $table->string('section_name');
+            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->text('remarks')->nullable();
+            $table->foreignId('reviewed_by_id')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });
     }

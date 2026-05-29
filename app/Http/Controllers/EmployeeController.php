@@ -60,7 +60,8 @@ class EmployeeController extends Controller
         $employee->load([
             'pdsPersonal', 'pdsFamily', 'pdsChildren', 'pdsEducation', 
             'pdsEligibilities', 'pdsWorkExperiences', 'pdsVoluntaryWorks', 
-            'pdsTrainings', 'pdsOthers', 'pdsQuestionnaire', 'pdsReferences', 'pdsGovId'
+            'pdsTrainings', 'pdsOthers', 'pdsQuestionnaire', 'pdsReferences', 'pdsGovId',
+            'pdsSectionReviews'
         ]);
 
         return view('employees.show', compact('employee'));

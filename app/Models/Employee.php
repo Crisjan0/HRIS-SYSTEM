@@ -37,6 +37,7 @@ class Employee extends Model
     public function pdsOthers() { return $this->hasMany(PdsOtherInfo::class); }
     public function pdsQuestionnaire() { return $this->hasOne(PdsQuestionnaire::class); }
     public function pdsReferences() { return $this->hasMany(PdsReference::class); }
+    public function pdsSectionReviews() { return $this->hasMany(PdsSectionReview::class); }
     public function pdsGovId() { return $this->hasOne(PdsGovernmentId::class); }
     public function leaveRequests() { return $this->hasMany(LeaveRequest::class); }
     public function leaveCredits() { return $this->hasMany(LeaveCredit::class); }

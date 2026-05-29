@@ -53,9 +53,37 @@
                                         <h4 class="text-xl font-black text-gray-900">
                                             {{ $employee->firstname }} {{ $employee->lastname }}
                                         </h4>
-                                        <p class="inline-block px-3 py-1 bg-indigo-100 text-indigo-900 text-[10px] font-black uppercase tracking-widest rounded-full">
-                                            {{ ucfirst($employee->role) }}
-                                        </p>
+                                        <div class="flex items-center justify-center gap-2 mt-1">
+                                            <p class="inline-block px-3 py-1 bg-indigo-100 text-indigo-900 text-[10px] font-black uppercase tracking-widest rounded-full">
+                                                {{ ucfirst($employee->role) }}
+                                            </p>
+                                        </div>
+                                        
+                                        @php
+                                            $requiredSections = ['Personal Information', 'Family Background', 'Educational Background', 'Civil Service Eligibility', 'Work Experience', 'References'];
+                                            $approvedCount = 0;
+                                            foreach($requiredSections as $reqSec) {
+                                                $review = $employee->pdsSectionReviews->where('section_name', $reqSec)->first();
+                                                if($review && $review->status === 'approved') {
+                                                    $approvedCount++;
+                                                }
+                                            }
+                                            $isAllApproved = $approvedCount === count($requiredSections);
+                                        @endphp
+
+                                        <div class="mt-3">
+                                            @if($isAllApproved)
+                                                <span class="inline-flex items-center px-3 py-1 bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase tracking-widest rounded-full border border-emerald-200">
+                                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
+                                                    HR Approved
+                                                </span>
+                                            @else
+                                                <span class="inline-flex items-center px-3 py-1 bg-amber-100 text-amber-800 text-[10px] font-black uppercase tracking-widest rounded-full border border-amber-200">
+                                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                    Pending HR Approval
+                                                </span>
+                                            @endif
+                                        </div>
                                     </div>
                                 </div>
                                 
@@ -120,6 +148,10 @@
                                 <!-- Section Grid -->
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     @foreach($sections as $section)
+                                        @php
+                                            $review = $employee->pdsSectionReviews->where('section_name', $section['label'])->first();
+                                            $reviewStatus = $review ? $review->status : 'pending';
+                                        @endphp
                                         <a href="{{ route('pds.edit') }}" class="group flex items-center p-4 bg-white rounded-xl border border-gray-100 shadow-sm transition-all duration-200 hover:border-indigo-300 hover:shadow-md cursor-pointer relative overflow-hidden">
                                             <!-- Hover indicator bar -->
                                             <div class="absolute left-0 top-0 bottom-0 w-1 bg-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -138,13 +170,22 @@
                                             <div class="overflow-hidden flex-1">
                                                 <span class="block text-sm font-black truncate tracking-tight transition-colors {{ $section['filled'] ? 'text-gray-900 group-hover:text-emerald-700' : 'text-gray-400 group-hover:text-indigo-600' }}">{{ $section['label'] }}</span>
                                                 <div class="flex items-center justify-between mt-0.5">
-                                                    <div class="flex items-center gap-1.5 leading-none">
+                                                    <div class="flex items-center gap-1.5 leading-none flex-wrap">
                                                         <div class="w-1.5 h-1.5 rounded-full {{ $section['filled'] ? 'bg-emerald-500' : 'bg-gray-300 group-hover:bg-indigo-400' }}"></div>
                                                         <span class="text-[9px] font-black uppercase tracking-widest transition-colors {{ $section['filled'] ? 'text-emerald-600' : 'text-gray-400 group-hover:text-indigo-500' }}">
                                                             {{ $section['filled'] ? 'Saved' : 'Blank' }}
                                                         </span>
+                                                        @if($section['filled'])
+                                                            @if($reviewStatus === 'approved')
+                                                                <span class="ml-1 text-[9px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-100 px-1.5 py-0.5 rounded">Approved</span>
+                                                            @elseif($reviewStatus === 'rejected')
+                                                                <span class="ml-1 text-[9px] font-black uppercase tracking-widest text-red-600 bg-red-100 px-1.5 py-0.5 rounded">Rejected</span>
+                                                            @else
+                                                                <span class="ml-1 text-[9px] font-black uppercase tracking-widest text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded">Pending Review</span>
+                                                            @endif
+                                                        @endif
                                                     </div>
-                                                    <svg class="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <svg class="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
                                                     </svg>
                                                 </div>
