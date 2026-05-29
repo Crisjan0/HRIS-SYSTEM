@@ -86,7 +86,7 @@
                         {{ __('Locator Slip') }}
                     </x-sidebar-link>
                     <x-sidebar-link :href="route('leaves.index')" :active="request()->routeIs('leaves.*')" class="text-xs">
-                        {{ __('Leave') }}
+                        {{ __('My Leave Application') }}
                     </x-sidebar-link>
                     <x-sidebar-link :href="route('my-dtr.index')" :active="request()->routeIs('my-dtr.*')" class="text-xs">
                         {{ __('Attendance / DTR') }}
@@ -118,7 +118,7 @@
                     </x-sidebar-link>
                 </x-sidebar-dropdown>
 
-                <x-sidebar-dropdown :label="__('Leave & Employee')" :active="request()->routeIs(['employees.*', 'leave-types.*', 'leave-applications.*', 'leave-calendar', 'holidays.*'])">
+                <x-sidebar-dropdown :label="__('Manage Leave & Employee')" :active="request()->routeIs(['employees.*', 'leave-types.*', 'leave-applications.*', 'leave-calendar', 'holidays.*'])">
                     <x-slot name="icon">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                             xmlns="http://www.w3.org/2000/svg">
@@ -141,15 +141,8 @@
                         {{ __('Manage Holiday') }}
                     </x-sidebar-link>
                     <x-sidebar-link :href="route('leave-applications.index')"
-                        :active="request()->routeIs('leave-applications.index')" class="text-xs">
-                        {{ __('Pending Leave') }}
-                    </x-sidebar-link>
-                    <x-sidebar-link :href="route('leave-applications.all')"
-                        :active="request()->routeIs('leave-applications.all')" class="text-xs">
-                        {{ __('All Leave') }}
-                    </x-sidebar-link>
-                    <x-sidebar-link :href="route('leave-calendar')" :active="request()->routeIs('leave-calendar')" class="text-xs">
-                        {{ __('Leave Calendar') }}
+                        :active="request()->routeIs(['leave-applications.index', 'leave-applications.all', 'leave-applications.show', 'leave-calendar'])" class="text-xs">
+                        {{ __('Manage Leave') }}
                     </x-sidebar-link>
                 </x-sidebar-dropdown>
 
