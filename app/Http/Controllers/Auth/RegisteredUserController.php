@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\RegisterRequest;
 use App\Mail\OtpVerificationMail;
+use App\Models\Employee;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -11,7 +13,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -27,33 +28,43 @@ class RegisteredUserController extends Controller
 
     /**
      * Handle the initial registration form submission.
-     * Creates the user (unverified), generates OTP, sends it via email,
-     * and redirects to OTP verification.
+     * Creates the user (unverified) and employee record, generates OTP,
+     * sends it via email, and redirects to OTP verification.
      *
      * @throws ValidationException
      */
-    public function store(Request $request): RedirectResponse
+    public function store(RegisterRequest $request): RedirectResponse
     {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        ]);
+        $validated = $request->validated();
 
         // Generate a 6-digit OTP
         $otp = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
+        // Build the user display name
+        $displayName = trim($validated['firstname'].' '.$validated['lastname']);
+
         // Create the user with OTP (unverified — email_verified_at is null)
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => $request->password,
+            'name' => $displayName,
+            'email' => $validated['email'],
+            'password' => $validated['password'],
             'otp' => Hash::make($otp),
             'otp_expires_at' => now()->addMinutes(10),
         ]);
 
+        // Create the employee record linked to the user
+        Employee::create([
+            'lastname' => $validated['lastname'],
+            'firstname' => $validated['firstname'],
+            'middlename' => $validated['middlename'] ?? null,
+            'suffix' => $validated['suffix'] ?? null,
+            'division' => $validated['division'],
+            'role' => $validated['position'],
+            'user_id' => $user->id,
+        ]);
+
         // Send OTP to the user's email
-        Mail::to($request->email)->send(new OtpVerificationMail($otp));
+        Mail::to($validated['email'])->send(new OtpVerificationMail($otp));
 
         // Store user ID in session for the OTP verification page
         session(['otp_user_id' => $user->id]);

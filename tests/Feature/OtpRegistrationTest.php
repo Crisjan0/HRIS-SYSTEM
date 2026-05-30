@@ -11,7 +11,11 @@ beforeEach(function () {
 
 test('registration creates unverified user with OTP and sends email', function () {
     $this->post('/register', [
-        'name' => 'Test User',
+        'lastname' => 'Dela Cruz',
+        'firstname' => 'Juan',
+        'middlename' => 'Santos',
+        'division' => 'Finance and Administrative Division',
+        'position' => 'EMPLOYEE',
         'email' => 'test@example.com',
         'password' => 'password',
         'password_confirmation' => 'password',
