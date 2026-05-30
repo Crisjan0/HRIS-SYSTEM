@@ -1,12 +1,17 @@
 <?php
 
+use App\Mail\OtpVerificationMail;
+use Illuminate\Support\Facades\Mail;
+
 test('registration screen can be rendered', function () {
     $response = $this->get('/register');
 
     $response->assertStatus(200);
 });
 
-test('new users can register', function () {
+test('new users are redirected to OTP verification after registration', function () {
+    Mail::fake();
+
     $response = $this->post('/register', [
         'name' => 'Test User',
         'email' => 'test@example.com',
@@ -14,6 +19,12 @@ test('new users can register', function () {
         'password_confirmation' => 'password',
     ]);
 
-    $this->assertAuthenticated();
-    $response->assertRedirect(route('dashboard', absolute: false));
+    $response->assertRedirect(route('register.verify-otp'));
+    $this->assertGuest();
+
+    $this->assertDatabaseHas('otp_verifications', [
+        'email' => 'test@example.com',
+    ]);
+
+    Mail::assertSent(OtpVerificationMail::class);
 });
