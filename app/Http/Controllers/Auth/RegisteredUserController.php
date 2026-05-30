@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Mail\OtpVerificationMail;
-use App\Models\OtpVerification;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -28,7 +27,8 @@ class RegisteredUserController extends Controller
 
     /**
      * Handle the initial registration form submission.
-     * Validates input, generates OTP, sends it via email, and redirects to OTP verification.
+     * Creates the user (unverified), generates OTP, sends it via email,
+     * and redirects to OTP verification.
      *
      * @throws ValidationException
      */
@@ -43,26 +43,20 @@ class RegisteredUserController extends Controller
         // Generate a 6-digit OTP
         $otp = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
-        // Remove any previous OTPs for this email
-        OtpVerification::query()->where('email', $request->email)->delete();
-
-        // Store the OTP and registration data
-        OtpVerification::create([
+        // Create the user with OTP (unverified — email_verified_at is null)
+        $user = User::create([
+            'name' => $request->name,
             'email' => $request->email,
+            'password' => $request->password,
             'otp' => Hash::make($otp),
-            'registration_data' => [
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => $request->password,
-            ],
-            'expires_at' => now()->addMinutes(10),
+            'otp_expires_at' => now()->addMinutes(10),
         ]);
 
         // Send OTP to the user's email
         Mail::to($request->email)->send(new OtpVerificationMail($otp));
 
-        // Store email in session for the OTP verification page
-        session(['otp_email' => $request->email]);
+        // Store user ID in session for the OTP verification page
+        session(['otp_user_id' => $user->id]);
 
         return redirect()->route('register.verify-otp');
     }
@@ -72,17 +66,19 @@ class RegisteredUserController extends Controller
      */
     public function showOtpForm(): View|RedirectResponse
     {
-        if (! session('otp_email')) {
+        $user = $this->getOtpUser();
+
+        if (! $user) {
             return redirect()->route('register');
         }
 
         return view('auth.verify-otp', [
-            'email' => session('otp_email'),
+            'email' => $user->email,
         ]);
     }
 
     /**
-     * Verify the OTP and create the user account.
+     * Verify the OTP and activate the user account.
      *
      * @throws ValidationException
      */
@@ -92,45 +88,29 @@ class RegisteredUserController extends Controller
             'otp' => ['required', 'string', 'size:6'],
         ]);
 
-        $email = session('otp_email');
+        $user = $this->getOtpUser();
 
-        if (! $email) {
+        if (! $user) {
             return redirect()->route('register')
                 ->withErrors(['otp' => 'Session expired. Please register again.']);
         }
 
-        $otpRecord = OtpVerification::query()
-            ->where('email', $email)
-            ->latest()
-            ->first();
-
-        if (! $otpRecord) {
-            return redirect()->route('register')
-                ->withErrors(['otp' => 'No verification code found. Please register again.']);
-        }
-
-        if ($otpRecord->isExpired()) {
-            $otpRecord->delete();
-
+        if ($user->isOtpExpired()) {
             return back()->withErrors(['otp' => 'Verification code has expired. Please resend.']);
         }
 
-        if (! Hash::check($request->otp, $otpRecord->otp)) {
+        if (! Hash::check($request->otp, $user->otp)) {
             return back()->withErrors(['otp' => 'Invalid verification code. Please try again.']);
         }
 
-        // OTP is valid — create the user
-        $data = $otpRecord->registration_data;
+        // OTP is valid — verify the user
+        $user->forceFill([
+            'email_verified_at' => now(),
+            'otp' => null,
+            'otp_expires_at' => null,
+        ])->save();
 
-        $user = User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => Hash::make($data['password']),
-        ]);
-
-        // Clean up
-        $otpRecord->delete();
-        session()->forget('otp_email');
+        session()->forget('otp_user_id');
 
         event(new Registered($user));
 
@@ -144,32 +124,38 @@ class RegisteredUserController extends Controller
      */
     public function resendOtp(): RedirectResponse
     {
-        $email = session('otp_email');
+        $user = $this->getOtpUser();
 
-        if (! $email) {
+        if (! $user) {
             return redirect()->route('register');
-        }
-
-        $otpRecord = OtpVerification::query()
-            ->where('email', $email)
-            ->latest()
-            ->first();
-
-        if (! $otpRecord) {
-            return redirect()->route('register')
-                ->withErrors(['otp' => 'Session expired. Please register again.']);
         }
 
         // Generate a new OTP
         $otp = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
-        $otpRecord->update([
+        $user->update([
             'otp' => Hash::make($otp),
-            'expires_at' => now()->addMinutes(10),
+            'otp_expires_at' => now()->addMinutes(10),
         ]);
 
-        Mail::to($email)->send(new OtpVerificationMail($otp));
+        Mail::to($user->email)->send(new OtpVerificationMail($otp));
 
         return back()->with('status', 'A new verification code has been sent to your email.');
+    }
+
+    /**
+     * Get the user who is currently verifying their OTP.
+     */
+    private function getOtpUser(): ?User
+    {
+        $userId = session('otp_user_id');
+
+        if (! $userId) {
+            return null;
+        }
+
+        return User::query()
+            ->whereNull('email_verified_at')
+            ->find($userId);
     }
 }

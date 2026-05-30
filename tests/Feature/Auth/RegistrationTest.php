@@ -22,8 +22,14 @@ test('new users are redirected to OTP verification after registration', function
     $response->assertRedirect(route('register.verify-otp'));
     $this->assertGuest();
 
-    $this->assertDatabaseHas('otp_verifications', [
+    $this->assertDatabaseHas('users', [
         'email' => 'test@example.com',
+    ]);
+
+    // User should be unverified
+    $this->assertDatabaseMissing('users', [
+        'email' => 'test@example.com',
+        'email_verified_at' => now(),
     ]);
 
     Mail::assertSent(OtpVerificationMail::class);
