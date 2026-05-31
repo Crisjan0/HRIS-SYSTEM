@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class EmployeeAccountController extends Controller
@@ -33,8 +34,20 @@ class EmployeeAccountController extends Controller
     /**
      * Approve an employee account.
      */
-    public function approve(User $user): RedirectResponse
+    public function approve(Request $request, User $user): RedirectResponse
     {
+        $validated = $request->validate([
+            'account_role' => ['required', 'string', 'in:employee,hrstaff,chief,regionaldirector,admin'],
+        ]);
+
+        if (! $user->employee) {
+            return back()->with('error', 'Account could not be approved because the employee record is missing.');
+        }
+
+        $user->employee->update([
+            'account_role' => $validated['account_role'],
+        ]);
+
         $user->update(['is_approved' => true]);
 
         return back()->with('success', 'Account for ' . $user->display_name . ' has been approved successfully.');

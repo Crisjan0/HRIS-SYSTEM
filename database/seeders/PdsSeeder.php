@@ -80,7 +80,7 @@ class PdsSeeder extends Seeder
                 $employee->pdsWorkExperiences()->create([
                     'date_from' => $faker->dateTimeBetween('-5 years', '-1 year')->format('Y-m-d'),
                     'date_to' => now()->format('Y-m-d'),
-                    'position_title' => $faker->jobTitle,
+                    'position_title' => $employee->position ?? 'N/A',
                     'company' => $faker->company,
                     'monthly_salary' => $faker->numberBetween(25000, 85000),
                 ]);

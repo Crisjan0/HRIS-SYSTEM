@@ -19,15 +19,16 @@ class EmployeeSeeder extends Seeder
                 'lastname' => 'Dela Cruz',
                 'firstname' => 'Juan',
                 'middlename' => 'S',
-                'role' => 'admin',
+                'position' => 'admin',
                 'user_id' => 1,
+                
             ],
             [
                 'email' => 'hrstaff@example.com',
                 'lastname' => 'Reyes',
                 'firstname' => 'Maria',
                 'middlename' => 'B',
-                'role' => 'hrstaff',
+                'position' => 'hrstaff',
                 'user_id' => 2,
             ],
             [
@@ -35,7 +36,7 @@ class EmployeeSeeder extends Seeder
                 'lastname' => 'Mendoza',
                 'firstname' => 'Pedro',
                 'middlename' => 'G',
-                'role' => 'regionaldirector',
+                'position' => 'regionaldirector',
                 'user_id' => 4,
             ],
             [
@@ -43,7 +44,7 @@ class EmployeeSeeder extends Seeder
                 'lastname' => 'Garcia',
                 'firstname' => 'Anna',
                 'middlename' => 'V',
-                'role' => 'employee',
+                'position' => 'employee',
                 'user_id' => 5,
             ],
             [
@@ -51,7 +52,7 @@ class EmployeeSeeder extends Seeder
                 'lastname' => 'Aquino',
                 'firstname' => 'Miguel',
                 'middlename' => 'T',
-                'role' => 'chief',
+                'position' => 'chief',
                 'user_id' => 6,
             ],
         ];
@@ -65,7 +66,8 @@ class EmployeeSeeder extends Seeder
                     'lastname' => $data['lastname'],
                     'firstname' => $data['firstname'],
                     'middlename' => $data['middlename'],
-                    'role' => $data['role'],
+                    'position' => $data['position'],
+                    'account_role' => $data['position'], // Assuming account_role is the same as position for seeding
                     'user_id' => $data['user_id'],
                 ]);
             }
