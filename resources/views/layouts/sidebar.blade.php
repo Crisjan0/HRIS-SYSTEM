@@ -107,7 +107,7 @@
                     {{ __('Administration') }}
                 </h3>
 
-                <x-sidebar-dropdown :label="__('Manage Leave & Employee')" :active="request()->routeIs(['employees.*', 'employee-accounts.*', 'leave-types.*', 'leave-applications.*', 'leave-calendar', 'holidays.*'])">
+                <x-sidebar-link :href="route('employees.index')" :active="request()->routeIs('employees.*') || request()->routeIs('employee-accounts.*')">
                     <x-slot name="icon">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                             xmlns="http://www.w3.org/2000/svg">
@@ -116,24 +116,20 @@
                             </path>
                         </svg>
                     </x-slot>
+                    {{ __('Manage Employee') }}
+                </x-sidebar-link>
 
-                    <x-sidebar-link :href="route('employees.index')" :active="request()->routeIs('employees.*') || request()->routeIs('employee-accounts.*')"
-                        class="text-xs">
-                        {{ __('Manage Employee') }}
-                    </x-sidebar-link>
-                    <x-sidebar-link :href="route('leave-types.index')" :active="request()->routeIs('leave-types.*')"
-                        class="text-xs">
-                        {{ __('Manage Leave Types') }}
-                    </x-sidebar-link>
-                    <x-sidebar-link :href="route('holidays.index')" :active="request()->routeIs('holidays.*')"
-                        class="text-xs">
-                        {{ __('Manage Holiday') }}
-                    </x-sidebar-link>
-                    <x-sidebar-link :href="route('leave-applications.index')"
-                        :active="request()->routeIs(['leave-applications.index', 'leave-applications.all', 'leave-applications.show', 'leave-calendar'])" class="text-xs">
-                        {{ __('Manage Leave') }}
-                    </x-sidebar-link>
-                </x-sidebar-dropdown>
+                <x-sidebar-link :href="route('leave-applications.index')" :active="request()->routeIs(['leave-applications.*', 'leave-calendar', 'leave-types.*', 'holidays.*'])">
+                    <x-slot name="icon">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                            </path>
+                        </svg>
+                    </x-slot>
+                    {{ __('Manage Leave') }}
+                </x-sidebar-link>
                 <x-sidebar-link :href="route('hr.travel-orders.index')" :active="request()->routeIs('hr.travel-orders.*')">
                     <x-slot name="icon">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"

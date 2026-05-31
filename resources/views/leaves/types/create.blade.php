@@ -3,6 +3,8 @@
 
     <div class="py-12">
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
+            @include('leaves._manage-tabs')
+
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-100">
                 <div class="p-8">
                     <form method="POST" action="{{ route('leave-types.store') }}" class="space-y-6">

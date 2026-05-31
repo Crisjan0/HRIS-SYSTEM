@@ -261,7 +261,7 @@
 
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                             @forelse($approvedAccounts as $user)
-                                <div class="border border-gray-100 rounded-2xl p-5 bg-white shadow-sm hover:shadow-md transition account-card" data-link="{{ $user->employee ? route('employees.show', $user->employee) : '' }}">
+                                <div class="border border-gray-100 rounded-2xl p-5 bg-white shadow-sm hover:shadow-md transition account-card" data-link="{{ $user->employee ? route('employee-accounts.show', $user) : '' }}">
                                     <div class="flex items-start justify-between gap-4">
                                         <div class="flex items-center gap-3">
                                             <div class="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-sm text-white font-bold shrink-0">
@@ -269,7 +269,7 @@
                                             </div>
                                             <div>
                                                 @if($user->employee)
-                                                    <a href="{{ route('employees.show', $user->employee) }}" class="text-sm font-semibold text-gray-900 hover:text-indigo-700 hover:underline">
+                                                    <a href="{{ route('employee-accounts.show', $user) }}" class="text-sm font-semibold text-gray-900 hover:text-indigo-700 hover:underline">
                                                         {{ $user->employee->lastname }}, {{ $user->employee->firstname }} {{ $user->employee->middlename ?? '' }}
                                                     </a>
                                                 @else
