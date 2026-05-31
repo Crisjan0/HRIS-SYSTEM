@@ -65,6 +65,7 @@ Route::middleware(['auth', 'approved'])->group(function () {
     Route::get('my-dtr', [DtrController::class, 'myDtr'])->name('my-dtr.index');
     Route::resource('dtr', DtrController::class)->only(['index', 'show']);
     Route::post('/dtr/import', [DtrController::class, 'syncFromFile'])->name('dtr.import');
+    Route::get('/hr/locator-slips', [LocatorSlipController::class, 'manageIndex'])->name('hr.locator-slips.index');
     Route::get('/hr/locator-slips/all', [LocatorSlipController::class, 'allIndex'])->name('hr.locator-slips.all');
     Route::get('/hr/locator-slips/pending', [LocatorSlipController::class, 'pendingIndex'])->name('hr.locator-slips.pending');
     Route::get('/hr/locator-slips/{locatorSlip}', [LocatorSlipController::class, 'hrShow'])->name('hr.locator-slips.show');

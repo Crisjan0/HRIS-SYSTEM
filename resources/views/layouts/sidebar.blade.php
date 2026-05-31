@@ -107,7 +107,7 @@
                     {{ __('Administration') }}
                 </h3>
 
-                <x-sidebar-dropdown :label="__('Manage Locator Slip')" :active="request()->routeIs(['hr.locator-slips.all', 'hr.locator-slips.pending'])">
+                <x-sidebar-link :href="route('hr.locator-slips.index')" :active="request()->routeIs('hr.locator-slips.*')">
                     <x-slot name="icon">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                             xmlns="http://www.w3.org/2000/svg">
@@ -115,14 +115,8 @@
                                 d="M12 6.253v11.494m-9-5.747h18"></path>
                         </svg>
                     </x-slot>
-
-                    <x-sidebar-link :href="route('hr.locator-slips.all')" :active="request()->routeIs('hr.locator-slips.all')" class="text-xs">
-                        {{ __('All Locator Slips') }}
-                    </x-sidebar-link>
-                    <x-sidebar-link :href="route('hr.locator-slips.pending')" :active="request()->routeIs('hr.locator-slips.pending')" class="text-xs">
-                        {{ __('Pending Locator Slips') }}
-                    </x-sidebar-link>
-                </x-sidebar-dropdown>
+                    {{ __('Manage Locator Slip') }}
+                </x-sidebar-link>
 
                 <x-sidebar-dropdown :label="__('Manage Leave & Employee')" :active="request()->routeIs(['employees.*', 'employee-accounts.*', 'leave-types.*', 'leave-applications.*', 'leave-calendar', 'holidays.*'])">
                     <x-slot name="icon">
@@ -152,7 +146,7 @@
                     </x-sidebar-link>
                 </x-sidebar-dropdown>
 
-                <x-sidebar-dropdown :label="__('Announcement')" :active="request()->routeIs(['announcements.index', 'announcements.create', 'announcements.edit', 'announcements.show'])">
+                <x-sidebar-link :href="route('announcements.index')" :active="request()->routeIs('announcements.*') && !request()->routeIs('announcements.view')">
                     <x-slot name="icon">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                             xmlns="http://www.w3.org/2000/svg">
@@ -161,14 +155,10 @@
                             </path>
                         </svg>
                     </x-slot>
+                    {{ __('Announcement') }}
+                </x-sidebar-link>
 
-                    <x-sidebar-link :href="route('announcements.index')" :active="request()->routeIs('announcements.index')"
-                        class="text-xs">
-                        {{ __('Manage Announcement') }}
-                    </x-sidebar-link>
-                </x-sidebar-dropdown>
-
-                <x-sidebar-dropdown :label="__('Attendance')" :active="request()->routeIs('dtr.*')">
+                <x-sidebar-link :href="route('dtr.index')" :active="request()->routeIs('dtr.*')">
                     <x-slot name="icon">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                             xmlns="http://www.w3.org/2000/svg">
@@ -176,11 +166,8 @@
                                 d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                     </x-slot>
-
-                    <x-sidebar-link :href="route('dtr.index')" :active="request()->routeIs('dtr.*')" class="text-xs">
-                        {{ __('Manage DTR') }}
-                    </x-sidebar-link>
-                </x-sidebar-dropdown>
+                    {{ __('Attendance') }}
+                </x-sidebar-link>
 
                 <x-sidebar-link :href="route('hr.travel-orders.index')" :active="request()->routeIs('hr.travel-orders.*')">
                     <x-slot name="icon">
