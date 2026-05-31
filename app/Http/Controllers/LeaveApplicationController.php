@@ -122,13 +122,13 @@ class LeaveApplicationController extends Controller
                 if ($role === 'chief') {
                     // Chief approved -> Notify Level 2 (HR/Admin)
                     $nextLevelUsers = User::whereHas('employee', function ($query) {
-                        $query->whereIn('role', ['hrstaff', 'admin']);
+                        $query->whereIn('account_role', ['hrstaff', 'admin']);
                     })->get();
                     Notification::send($nextLevelUsers, new LeaveRequestNotification($leaveApplication));
                 } elseif (in_array($role, ['hrstaff', 'admin'])) {
                     // HR/Admin approved -> Notify Level 3 (Regional Director)
                     $nextLevelUsers = User::whereHas('employee', function ($query) {
-                        $query->whereIn('role', ['regional director', 'regionaldirector', 'director']);
+                        $query->whereIn('account_role', ['regional director', 'regionaldirector', 'director']);
                     })->get();
                     Notification::send($nextLevelUsers, new LeaveRequestNotification($leaveApplication));
                 }

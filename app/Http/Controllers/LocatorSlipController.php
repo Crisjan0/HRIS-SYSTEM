@@ -47,7 +47,7 @@ class LocatorSlipController extends Controller
 
         // Notify Chief
         $chiefs = User::whereHas('employee', function ($query) {
-            $query->where('role', 'CHIEF');
+            $query->where('account_role', 'CHIEF');
         })->get();
 
         foreach ($chiefs as $chief) {
@@ -102,7 +102,7 @@ class LocatorSlipController extends Controller
 
             // Notify Regional Director
             $directors = User::whereHas('employee', function ($query) {
-                $query->whereIn('role', ['REGIONALDIRECTOR', 'REGIONAL DIRECTOR', 'regionaldirector', 'regional director']);
+                $query->whereIn('account_role', ['REGIONALDIRECTOR', 'REGIONAL DIRECTOR', 'regionaldirector', 'regional director']);
             })->get();
 
             foreach ($directors as $director) {
