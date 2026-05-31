@@ -134,6 +134,28 @@ class Employee extends Model
         return null;
     }
 
+    /**
+     * Absolute filesystem path for embedding images in PDF exports.
+     */
+    public function getProfilePictureAbsolutePathAttribute(): ?string
+    {
+        if (! $this->profile_picture) {
+            return null;
+        }
+
+        $uploadsPath = public_path('uploads/'.$this->profile_picture);
+        if (file_exists($uploadsPath)) {
+            return $uploadsPath;
+        }
+
+        $storagePath = storage_path('app/public/'.$this->profile_picture);
+        if (file_exists($storagePath)) {
+            return $storagePath;
+        }
+
+        return null;
+    }
+
     public function getInitialsAttribute(): string
     {
         $initials = strtoupper(substr($this->firstname ?? '', 0, 1).substr($this->lastname ?? '', 0, 1));

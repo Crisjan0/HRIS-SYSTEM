@@ -19,7 +19,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                                         d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                 </svg>
-                                Download PDS (.doc)
+                                Download PDS (PDF)
                             </a>
                             <a href="{{ route('pds.edit') }}"
                                 class="inline-flex items-center px-6 py-2.5 bg-indigo-700 border-2 border-indigo-800 rounded-xl font-bold text-sm text-white shadow-lg shadow-indigo-100 hover:bg-indigo-800 active:scale-95 transition-all duration-300">
@@ -31,6 +31,12 @@
                             </a>
                         </div>
                     </div>
+
+                    @if(session('error'))
+                        <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-lg text-sm">
+                            {{ session('error') }}
+                        </div>
+                    @endif
 
                     @if(session('success'))
                         <div class="mb-8 p-4 bg-emerald-50 border border-emerald-100 text-emerald-900 rounded-xl flex items-center shadow-sm">
