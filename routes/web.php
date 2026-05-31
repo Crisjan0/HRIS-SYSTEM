@@ -40,6 +40,8 @@ Route::middleware(['auth', 'approved'])->group(function () {
     Route::post('/locator-slips', [LocatorSlipController::class, 'store'])->name('locator-slips.store');
     Route::resource('employees', EmployeeController::class)->middleware('role:ADMIN,HRSTAFF,DIRECTOR');
     Route::get('employee-accounts', [EmployeeAccountController::class, 'index'])->name('employee-accounts.index')->middleware('role:ADMIN,HRSTAFF,DIRECTOR');
+    Route::get('employee-accounts/{user}', [EmployeeAccountController::class, 'show'])->name('employee-accounts.show')->middleware('role:ADMIN,HRSTAFF,DIRECTOR');
+    Route::patch('employee-accounts/{user}', [EmployeeAccountController::class, 'update'])->name('employee-accounts.update')->middleware('role:ADMIN,HRSTAFF,DIRECTOR');
     Route::patch('employee-accounts/{user}/approve', [EmployeeAccountController::class, 'approve'])->name('employee-accounts.approve')->middleware('role:ADMIN,HRSTAFF,DIRECTOR');
     Route::delete('employee-accounts/{user}/reject', [EmployeeAccountController::class, 'reject'])->name('employee-accounts.reject')->middleware('role:ADMIN,HRSTAFF,DIRECTOR');
     Route::resource('leave-types', LeaveTypeController::class)->middleware('role:ADMIN,HRSTAFF,DIRECTOR');

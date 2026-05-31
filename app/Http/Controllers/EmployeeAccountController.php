@@ -32,6 +32,37 @@ class EmployeeAccountController extends Controller
     }
 
     /**
+     * Display the specified employee account.
+     */
+    public function show(User $user): View
+    {
+        $user->load('employee');
+        return view('employees.accounts-show', compact('user'));
+    }
+
+    /**
+     * Update the specified employee account details.
+     */
+    public function update(Request $request, User $user): RedirectResponse
+    {
+        $validated = $request->validate([
+            'lastname' => 'required|string|max:255',
+            'firstname' => 'required|string|max:255',
+            'middlename' => 'nullable|string|max:255',
+            'suffix' => 'nullable|string|max:255',
+            'division' => 'nullable|string|max:255',
+            'position' => 'nullable|string|max:255',
+            'remarks' => 'nullable|string',
+        ]);
+
+        if ($user->employee) {
+            $user->employee->update($validated);
+        }
+
+        return redirect()->route('employee-accounts.show', $user)->with('success', 'Employee data updated successfully.');
+    }
+
+    /**
      * Approve an employee account.
      */
     public function approve(Request $request, User $user): RedirectResponse

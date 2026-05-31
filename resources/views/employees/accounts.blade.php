@@ -191,9 +191,9 @@
                                                 <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-xs text-white font-bold shrink-0">
                                                     {{ substr($user->display_name, 0, 1) }}
                                                 </div>
-                                                <p class="text-sm font-semibold text-gray-900">
+                                                <a href="{{ route('employee-accounts.show', $user) }}" class="text-sm font-semibold text-blue-600 hover:text-blue-800 hover:underline">
                                                     {{ $user->employee?->lastname ?? '-' }}, {{ $user->employee?->firstname ?? '-' }} {{ $user->employee?->middlename ?? '' }}
-                                                </p>
+                                                </a>
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ $user->email }}</td>

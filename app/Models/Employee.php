@@ -19,6 +19,7 @@ class Employee extends Model
         'contact_number',
         'position',
         'account_role',
+        'remarks',
         'user_id',
         'rfid_number',
         'profile_picture',
