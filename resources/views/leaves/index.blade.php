@@ -24,7 +24,7 @@
                 </a>
             </div>
 
-            <div x-data="{ tab: 'credits' }">
+            <div x-data="{ tab: 'applications' }">
                 <!-- Tabs Navigation -->
                 <div class="border-b border-gray-200 mb-6">
                     <nav class="-mb-px flex space-x-8" aria-label="Tabs">

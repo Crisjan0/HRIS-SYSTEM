@@ -69,7 +69,7 @@
                 </x-sidebar-link>
 
                 @if(in_array(auth()->user()->role, ['employee', 'admin', 'hrstaff', 'director', 'chief', 'regionaldirector', 'regional director']))
-                    <x-sidebar-dropdown label="{{ __('My Account') }}" :active="request()->routeIs(['pds.*', 'saln.*', 'ildp.*', 'leaves.*', 'my-dtr.*', 'locator-slips.*'])">
+                    <x-sidebar-dropdown label="{{ __('My Account') }}" :active="request()->routeIs(['pds.*', 'salns.*', 'ildp.*', 'leaves.*', 'my-dtr.*', 'locator-slips.*', 'travel-orders.*'])">
                         <x-slot name="icon">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                                 xmlns="http://www.w3.org/2000/svg">
@@ -92,6 +92,9 @@
                         </x-sidebar-link>
                         <x-sidebar-link :href="route('my-dtr.index')" :active="request()->routeIs('my-dtr.*')" class="text-xs">
                             {{ __('Attendance / DTR') }}
+                        </x-sidebar-link>
+                        <x-sidebar-link :href="route('travel-orders.index')" :active="request()->routeIs('travel-orders.*')" class="text-xs">
+                            {{ __('Travel Order') }}
                         </x-sidebar-link>
                     </x-sidebar-dropdown>
                 @endif
@@ -178,6 +181,17 @@
                         {{ __('Manage DTR') }}
                     </x-sidebar-link>
                 </x-sidebar-dropdown>
+
+                <x-sidebar-link :href="route('hr.travel-orders.index')" :active="request()->routeIs('hr.travel-orders.*')">
+                    <x-slot name="icon">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </x-slot>
+                    {{ __('Manage Travel Order') }}
+                </x-sidebar-link>
             </div>
         @endif
 

@@ -2,17 +2,20 @@
 
 use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\DtrController;
-use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\EmployeeAccountController;
+use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\HolidayController;
 use App\Http\Controllers\LeaveApplicationController;
 use App\Http\Controllers\LeaveTypeController;
+use App\Http\Controllers\LocatorSlipController;
 use App\Http\Controllers\MyLeaveController;
 use App\Http\Controllers\PdsController;
+use App\Http\Controllers\PdsSectionReviewController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SalnController;
+use App\Http\Controllers\TravelOrderController;
 use App\Models\Announcement;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\LocatorSlipController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -70,11 +73,16 @@ Route::middleware(['auth', 'approved'])->group(function () {
     Route::patch('/locator-slips/{locatorSlip}/reject', [LocatorSlipController::class, 'reject'])->name('locator-slips.reject');
     Route::get('/locator-slips/{locatorSlip}/edit', [LocatorSlipController::class, 'edit'])->name('locator-slips.edit');
     Route::put('/locator-slips/{locatorSlip}', [LocatorSlipController::class, 'update'])->name('locator-slips.update');
-    
-    Route::post('/employees/{employee}/pds-reviews', [\App\Http\Controllers\PdsSectionReviewController::class, 'store'])->name('pds-reviews.store');
+
+    Route::post('/employees/{employee}/pds-reviews', [PdsSectionReviewController::class, 'store'])->name('pds-reviews.store');
 
     // SALN Routes
-    Route::resource('salns', \App\Http\Controllers\SalnController::class);
+    Route::resource('salns', SalnController::class);
+
+    // Travel Order Routes
+    Route::resource('travel-orders', TravelOrderController::class)->only(['index', 'create', 'store', 'show']);
+    Route::get('/hr/travel-orders', [TravelOrderController::class, 'adminIndex'])->name('hr.travel-orders.index')->middleware('role:ADMIN,HRSTAFF,DIRECTOR,CHIEF,REGIONALDIRECTOR,REGIONAL DIRECTOR');
+    Route::put('/travel-orders/{travelOrder}/status', [TravelOrderController::class, 'updateStatus'])->name('travel-orders.update-status')->middleware('role:CHIEF,REGIONALDIRECTOR,REGIONAL DIRECTOR,DIRECTOR');
 });
 
 require __DIR__.'/auth.php';

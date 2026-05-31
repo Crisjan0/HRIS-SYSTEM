@@ -111,6 +111,11 @@ class Employee extends Model
         return $this->hasMany(Saln::class);
     }
 
+    public function travelOrders(): HasMany
+    {
+        return $this->hasMany(TravelOrder::class);
+    }
+
     /**
      * Ensure the employee has leave credits for the given year.
      */
