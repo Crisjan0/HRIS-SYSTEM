@@ -13,6 +13,7 @@ class LeaveRequest extends Model
         'end_date',
         'date_filed',
         'reason',
+        'attachment_path',
         'status',
         'approved_by_chief',
         'chief_status',
