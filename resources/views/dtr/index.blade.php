@@ -58,9 +58,7 @@
                                     <tr class="group hover:-translate-y-1 transition-all duration-300">
                                         <td class="px-6 py-5 bg-gray-50/50 rounded-l-[1.5rem] group-hover:bg-white border-y border-l border-transparent group-hover:border-gray-100 group-hover:shadow-sm">
                                             <div class="flex items-center gap-3">
-                                                <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white text-xs font-black shadow-lg shadow-indigo-100 group-hover:scale-110 transition-transform">
-                                                    {{ substr($record->employee->firstname ?? '?', 0, 1) }}
-                                                </div>
+                                                <x-profile-avatar :employee="$record->employee" size="md" variant="indigo" rounded="2xl" class="shadow-lg shadow-indigo-100 group-hover:scale-110 transition-transform" />
                                                 <div>
                                                     <p class="text-sm font-black text-gray-900 group-hover:text-indigo-600 transition-colors">{{ $record->employee->firstname ?? 'Unknown' }} {{ $record->employee->lastname ?? '' }}</p>
                                                     <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">ID: {{ $record->employee_id }}</p>

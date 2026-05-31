@@ -68,6 +68,20 @@ class User extends Authenticatable
         return $this->hasOne(Employee::class);
     }
 
+    public function getProfilePictureUrlAttribute(): ?string
+    {
+        return $this->employee?->profile_picture_url;
+    }
+
+    public function getInitialsAttribute(): string
+    {
+        if ($this->employee) {
+            return $this->employee->initials;
+        }
+
+        return strtoupper(substr($this->display_name, 0, 1)) ?: '?';
+    }
+
     /**
      * Get the user's display name. Prioritizes the bound Employee's name.
      */

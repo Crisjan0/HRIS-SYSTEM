@@ -1,9 +1,7 @@
 <div class="bg-white overflow-hidden shadow-sm rounded-xl border border-gray-100 p-6 flex flex-col md:flex-row md:items-center justify-between hover:shadow-md transition-shadow duration-300 gap-4">
     <div class="flex-1">
         <div class="flex items-center gap-3 mb-1">
-            <div class="w-9 h-9 bg-indigo-600 rounded-lg flex items-center justify-center text-white text-xs font-black shrink-0">
-                {{ substr($order->employee->firstname, 0, 1) }}{{ substr($order->employee->lastname, 0, 1) }}
-            </div>
+            <x-profile-avatar :employee="$order->employee" size="sm" variant="indigo" rounded="2xl" />
             <div>
                 <h3 class="text-base font-bold text-gray-900 leading-tight">
                     {{ $order->employee->firstname }} {{ $order->employee->lastname }}

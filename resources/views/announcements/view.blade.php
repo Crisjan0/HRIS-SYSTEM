@@ -56,9 +56,7 @@
                         <div class="px-8 py-6 bg-gray-50/50 border-t border-gray-50 flex items-center justify-between group-hover:bg-white transition-colors duration-300">
                             <div class="flex items-center">
                                 <div class="relative">
-                                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-[10px] text-white font-black shadow-md ring-2 ring-white">
-                                        {{ substr($announcement->author->display_name, 0, 1) }}
-                                    </div>
+                                    <x-profile-avatar :user="$announcement->author" size="sm" class="ring-2 ring-white shadow-md" />
                                     <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white rounded-full shadow-sm"></div>
                                 </div>
                                 <div class="ml-3 font-bold">

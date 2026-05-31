@@ -9,9 +9,7 @@
                     <div class="bg-white overflow-hidden shadow-sm rounded-3xl border border-gray-100 p-8 md:p-10">
                         {{-- Employee Header --}}
                         <div class="flex items-center gap-4 mb-8 pb-8 border-b border-gray-50">
-                            <div class="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center text-white text-2xl font-black">
-                                {{ substr($travelOrder->employee->firstname, 0, 1) }}{{ substr($travelOrder->employee->lastname, 0, 1) }}
-                            </div>
+                            <x-profile-avatar :employee="$travelOrder->employee" size="xl" variant="indigo" rounded="2xl" />
                             <div>
                                 <h1 class="text-2xl font-black text-gray-900">{{ $travelOrder->employee->firstname }} {{ $travelOrder->employee->lastname }}</h1>
                                 <div class="flex items-center gap-2">
@@ -69,9 +67,7 @@
                                     <div class="space-y-2">
                                         @foreach($travelOrder->companions as $companion)
                                             <div class="flex items-center gap-3 p-3 bg-gray-50/50 rounded-xl border border-gray-100">
-                                                <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white text-xs font-black">
-                                                    {{ substr($companion->firstname, 0, 1) }}{{ substr($companion->lastname, 0, 1) }}
-                                                </div>
+                                                <x-profile-avatar :employee="$companion" size="sm" variant="indigo" rounded="2xl" />
                                                 <div>
                                                     <div class="text-sm font-bold text-gray-900">{{ $companion->firstname }} {{ $companion->lastname }}</div>
                                                     @if($companion->position)

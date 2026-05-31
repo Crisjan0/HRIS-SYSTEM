@@ -75,9 +75,7 @@
                                     <tr class="hover:bg-amber-50/50 transition-colors duration-200">
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="flex items-center gap-3">
-                                                <div class="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center text-xs text-white font-bold shrink-0">
-                                                    {{ substr($user->display_name, 0, 1) }}
-                                                </div>
+                                                <x-profile-avatar :user="$user" size="sm" variant="amber" />
                                                 <div>
                                                     <p class="text-sm font-semibold text-gray-900">
                                                         {{ $user->employee?->lastname ?? '-' }}, {{ $user->employee?->firstname ?? '-' }} {{ $user->employee?->middlename ?? '' }}
@@ -188,9 +186,7 @@
                                     <tr class="hover:bg-gray-50 transition-colors duration-200">
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="flex items-center gap-3">
-                                                <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-xs text-white font-bold shrink-0">
-                                                    {{ substr($user->display_name, 0, 1) }}
-                                                </div>
+                                                <x-profile-avatar :user="$user" size="sm" variant="green" />
                                                 <a href="{{ route('employee-accounts.show', $user) }}" class="text-sm font-semibold text-blue-600 hover:text-blue-800 hover:underline">
                                                     {{ $user->employee?->lastname ?? '-' }}, {{ $user->employee?->firstname ?? '-' }} {{ $user->employee?->middlename ?? '' }}
                                                 </a>

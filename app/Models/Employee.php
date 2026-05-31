@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
 class Employee extends Model
 {
@@ -114,6 +115,30 @@ class Employee extends Model
     public function travelOrders(): HasMany
     {
         return $this->hasMany(TravelOrder::class);
+    }
+
+    public function getProfilePictureUrlAttribute(): ?string
+    {
+        if (! $this->profile_picture) {
+            return null;
+        }
+
+        if (Storage::disk('public_uploads')->exists($this->profile_picture)) {
+            return asset('uploads/'.$this->profile_picture);
+        }
+
+        if (Storage::disk('public')->exists($this->profile_picture)) {
+            return asset('storage/'.$this->profile_picture);
+        }
+
+        return null;
+    }
+
+    public function getInitialsAttribute(): string
+    {
+        $initials = strtoupper(substr($this->firstname ?? '', 0, 1).substr($this->lastname ?? '', 0, 1));
+
+        return $initials !== '' ? $initials : '?';
     }
 
     /**

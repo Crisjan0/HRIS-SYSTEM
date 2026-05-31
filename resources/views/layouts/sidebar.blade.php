@@ -44,17 +44,6 @@
                 {{ __('Dashboard') }}
             </x-sidebar-link>
 
-            @if(auth()->user()->employee)
-            <x-sidebar-link :href="route('personal-information.show')" :active="request()->routeIs('personal-information.show')">
-                <x-slot name="icon">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                    </svg>
-                </x-slot>
-                {{ __('Personal Information') }}
-            </x-sidebar-link>
-            @endif
-
             @if($isApproved)
                 <x-sidebar-link :href="route('announcements.view')" :active="request()->routeIs('announcements.view')">
                     <x-slot name="icon">
@@ -215,16 +204,13 @@
 
     <!-- User Section -->
         <div class="px-4 py-6 border-t border-white/40 bg-white/40 backdrop-blur-sm">
-            <div class="flex items-center gap-3 px-3 group cursor-pointer">
-                <div
-                    class="w-10 h-10 rounded-full bg-gradient-to-br from-[#0038a8] to-[#ce1126] flex items-center justify-center text-white font-bold shadow-md shadow-[#0038a8]/20 ring-2 ring-white transition-transform duration-300 group-hover:scale-110">
-                    {{ substr(Auth::user()->display_name, 0, 1) }}
-                </div>
+            <a href="{{ auth()->user()?->employee ? route('personal-information.show') : route('profile.edit') }}" class="flex items-center gap-3 px-3 group rounded-xl hover:bg-white/60 transition-colors duration-200">
+                <x-profile-avatar :user="auth()->user()" size="md" variant="brand" class="shadow-md shadow-[#0038a8]/20 ring-2 ring-white transition-transform duration-300 group-hover:scale-110" />
                 <div class="overflow-hidden">
                     <p class="text-sm font-bold text-gray-900 truncate">{{ Auth::user()->display_name }}</p>
                     <p class="text-xs text-gray-600 truncate">{{ Auth::user()->email }}</p>
                 </div>
-            </div>
+            </a>
         </div>
     </div> <!-- /End relative z-10 container -->
 </div>

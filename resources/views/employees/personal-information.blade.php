@@ -15,13 +15,7 @@
                     <div class="relative z-10 flex flex-col items-center">
                         <!-- Avatar Container -->
                         <div class="relative group">
-                            <div class="w-32 h-32 bg-white/10 rounded-full flex items-center justify-center text-indigo-100 text-4xl font-bold shadow-2xl uppercase overflow-hidden ring-4 ring-white/20 backdrop-blur-sm transition-all duration-300 group-hover:ring-white/40">
-                                @if($employee->profile_picture)
-                                    <img src="{{ asset('storage/' . $employee->profile_picture) }}" alt="Profile Picture" class="w-full h-full object-cover">
-                                @else
-                                    {{ substr($employee->firstname, 0, 1) }}{{ substr($employee->lastname, 0, 1) }}
-                                @endif
-                            </div>
+                            <x-profile-avatar :employee="$employee" size="4xl" variant="ghost" class="shadow-2xl ring-4 ring-white/20 backdrop-blur-sm transition-all duration-300 group-hover:ring-white/40" />
                             
                             <!-- Upload Trigger Overlay -->
                             <label for="profile_picture_upload" class="absolute inset-0 bg-slate-900/60 flex flex-col items-center justify-center rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition-all duration-200 backdrop-blur-xs scale-95 group-hover:scale-100" title="{{ __('Upload Profile Picture') }}">

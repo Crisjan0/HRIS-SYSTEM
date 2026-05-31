@@ -46,9 +46,7 @@
                         <div class="lg:col-span-4">
                             <div class="bg-gray-50/50 border-2 border-gray-100 p-6 rounded-2xl shadow-sm">
                                 <div class="flex flex-col items-center text-center">
-                                    <div class="w-20 h-20 bg-indigo-700 rounded-2xl flex items-center justify-center text-white text-3xl font-black shadow-xl mb-4">
-                                        {{ substr($employee->firstname, 0, 1) }}{{ substr($employee->lastname, 0, 1) }}
-                                    </div>
+                                    <x-profile-avatar :employee="$employee" size="2xl" variant="indigo" rounded="2xl" class="shadow-xl mb-4" />
                                     <div class="space-y-1">
                                         <h4 class="text-xl font-black text-gray-900">
                                             {{ $employee->firstname }} {{ $employee->lastname }}

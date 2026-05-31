@@ -9,9 +9,7 @@
                     <div class="bg-white overflow-hidden shadow-sm rounded-3xl border border-gray-100 p-8 md:p-10">
                         <!-- Employee Header -->
                         <div class="flex items-center gap-4 mb-8 pb-8 border-b border-gray-50">
-                            <div class="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center text-white text-2xl font-black">
-                                {{ substr($leaveApplication->employee->firstname, 0, 1) }}{{ substr($leaveApplication->employee->lastname, 0, 1) }}
-                            </div>
+                            <x-profile-avatar :employee="$leaveApplication->employee" size="xl" variant="indigo" rounded="2xl" />
                             <div>
                                 <h1 class="text-2xl font-black text-gray-900">{{ $leaveApplication->employee->firstname }} {{ $leaveApplication->employee->lastname }}</h1>
                                 <div class="flex items-center gap-2">
