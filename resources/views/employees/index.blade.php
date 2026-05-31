@@ -31,14 +31,7 @@
                     </button>
                 </div>
 
-                <div x-show="tab === 'employees'" x-cloak>
-                    <a href="{{ route('employees.create') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-200 hover:-translate-y-1 flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                        </svg>
-                        Add Employee
-                    </a>
-                </div>
+                
             </div>
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-100" x-show="tab === 'employees'" x-cloak>
@@ -88,12 +81,15 @@
                                             @endif
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
-                                            <a href="{{ route('employees.show', $employee) }}" class="text-emerald-600 hover:text-emerald-900 transition-colors duration-200">{{ __('View') }}</a>
-                                            <a href="{{ route('employees.edit', $employee) }}" class="text-indigo-600 hover:text-indigo-900 transition-colors duration-200">{{ __('Edit') }}</a>
+                                            <a href="{{ route('employees.show', $employee) }}" class="text-emerald-600 hover:text-emerald-900 transition-colors duration-200" >
+                                                <i class="fa-solid fa-eye"></i> </a>
+
+                                            <a href="{{ route('employees.edit', $employee) }}" class="text-indigo-600 hover:text-indigo-900 transition-colors duration-200"><i class="fa-solid fa-pen-to-square"></i> </a>
+
                                             <form action="{{ route('employees.destroy', $employee) }}" method="POST" class="inline-block" onsubmit="return confirm('{{ __('Are you sure you want to delete this employee record?') }}')">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="text-red-600 hover:text-red-900 transition-colors duration-200">{{ __('Delete') }}</button>
+                                                <button type="submit" class="text-red-600 hover:text-red-900 transition-colors duration-200"><i class="fa-solid fa-trash"></i></button>
                                             </form>
                                         </td>
                                     </tr>

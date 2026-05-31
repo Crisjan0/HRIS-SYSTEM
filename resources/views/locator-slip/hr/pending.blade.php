@@ -36,17 +36,17 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                     <div class="flex items-center gap-3">
-                                        <a href="{{ route('hr.locator-slips.show', $slip->id) }}" class="text-indigo-600 hover:text-indigo-900 font-bold uppercase tracking-wider text-xs">View</a>
+                                        <a href="{{ route('hr.locator-slips.show', $slip->id) }}" class="text-indigo-600 hover:text-indigo-900 font-bold uppercase tracking-wider text-xs"> <i class="fa-solid fa-eye"></i></a>
                                         @if(in_array(strtolower(Auth::user()->role), ['chief', 'regional director', 'regionaldirector', 'admin']))
                                             <form action="{{ route('locator-slips.approve', $slip->id) }}" method="POST" class="inline">
                                                 @csrf
                                                 @method('PATCH')
-                                                <button type="submit" class="text-green-600 hover:text-green-900 font-bold uppercase tracking-wider text-xs">Approve</button>
+                                                <button type="submit" class="text-green-600 hover:text-green-900 font-bold uppercase tracking-wider text-xs"><i class="fa-solid fa-check"></i></button>
                                             </form>
                                             <form action="{{ route('locator-slips.reject', $slip->id) }}" method="POST" class="inline">
                                                 @csrf
                                                 @method('PATCH')
-                                                <button type="submit" class="text-red-600 hover:text-red-900 font-bold uppercase tracking-wider text-xs">Reject</button>
+                                                <button type="submit" class="text-red-600 hover:text-red-900 font-bold uppercase tracking-wider text-xs"><i class="fa-solid fa-trash"></i></button>
                                             </form>
                                         @endif
                                     </div>

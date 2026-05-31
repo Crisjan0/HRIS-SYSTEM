@@ -26,7 +26,7 @@
                                 </h3>
                                 <div class="md:hidden">
                                     @if($leaf->status === 'approved')
-                                        <span class="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border {{ $leaf->is_paid ? 'text-green-600 bg-green-50 border-green-100' : 'text-indigo-600 bg-indigo-50 border-indigo-100' }}">
+                                        <span class="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border {{ $leaf->is_paid ? 'text-green-600 bg-green-50 border-green-100' : 'text-blue-900 bg-blue-800 border-blue-900' }}">
                                             {{ $leaf->status_label }}
                                         </span>
                                     @elseif($leaf->status === 'rejected')
@@ -72,7 +72,7 @@
                                 @endif
                             </div>
                             <a href="{{ route('leave-applications.show', $leaf->id) }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-md hover:-translate-y-0.5">
-                                VIEW
+                              <i class="fa-solid fa-eye"></i>
                             </a>
                         </div>
                     </div>

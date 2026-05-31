@@ -16,7 +16,7 @@
 
             <!-- Header Actions -->
             <div class="flex justify-end mb-6">
-                <a href="{{ route('leaves.create') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-200 hover:-translate-y-1 flex items-center gap-2">
+                <a href="{{ route('leaves.create') }}" class="bg-blue-900 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-blue-200 hover:-translate-y-1 flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                     </svg>
@@ -29,12 +29,12 @@
                 <div class="border-b border-gray-200 mb-6">
                     <nav class="-mb-px flex space-x-8" aria-label="Tabs">
                         <button @click="tab = 'applications'"
-                                :class="tab === 'applications' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                                :class="tab === 'applications' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
                                 class="whitespace-nowrap py-4 px-1 border-b-2 font-bold text-sm uppercase tracking-widest transition-colors duration-200">
                             My Leave Applications
                         </button>
                         <button @click="tab = 'credits'"
-                                :class="tab === 'credits' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                                :class="tab === 'credits' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
                                 class="whitespace-nowrap py-4 px-1 border-b-2 font-bold text-sm uppercase tracking-widest transition-colors duration-200">
                             My Leave Credits
                         </button>
@@ -47,7 +47,7 @@
                         @foreach($credits as $credit)
                             <div
                                 class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 ring-1 ring-black/5 transform hover:scale-105 transition-all duration-300">
-                                <div class="text-[10px] font-black uppercase text-indigo-600 tracking-widest mb-1">
+                                <div class="text-[10px] font-black uppercase text-blue-900 tracking-widest mb-1">
                                     {{ $credit->leaveType->name }}</div>
                                 <div class="flex items-baseline gap-1">
                                     <span class="text-3xl font-black text-gray-900">{{ number_format($credit->balance, 1) }}</span>
@@ -57,7 +57,7 @@
                                     @php
                                         $total = $credit->leaveType->days_per_year ?? 15;
                                         $percentage = $total > 0 ? ($credit->balance / $total) * 100 : 0;
-                                        $color = $percentage > 50 ? 'bg-indigo-600' : ($percentage > 20 ? 'bg-yellow-500' : 'bg-red-500');
+                                        $color = $percentage > 50 ? 'bg-blue-900' : ($percentage > 20 ? 'bg-yellow-500' : 'bg-red-500');
                                     @endphp
                                     <div class="{{ $color }} h-full transition-all duration-1000" style="width: {{ $percentage }}%">
                                     </div>
@@ -82,7 +82,7 @@
                                             @php
                                                 $statusColors = [
                                                     'pending' => 'text-orange-500 bg-orange-50 border-orange-100',
-                                                    'approved' => $leaf->is_paid ? 'text-green-600 bg-green-50 border-green-100' : 'text-indigo-600 bg-indigo-50 border-indigo-100',
+                                                    'approved' => $leaf->is_paid ? 'text-green-600 bg-green-50 border-green-100' : 'text-blue-600 bg-blue-50 border-blue-100',
                                                     'rejected' => 'text-red-600 bg-red-50 border-red-100',
                                                     'cancelled' => 'text-gray-500 bg-gray-50 border-gray-100',
                                                 ];
@@ -113,7 +113,7 @@
 
                                     @if($leaf->remarks)
                                         <div
-                                            class="mt-3 p-3 bg-indigo-50/30 rounded-lg text-xs text-indigo-700 italic border-l-2 border-indigo-200">
+                                            class="mt-3 p-3 bg-blue-50/30 rounded-lg text-xs text-blue-700 italic border-l-2 border-blue-200">
                                             <span class="font-bold uppercase tracking-tighter text-[9px] block not-italic mb-1">Admin
                                                 Remarks:</span>
                                             "{{ $leaf->remarks }}"
@@ -145,8 +145,8 @@
                                     </div>
 
                                     <div class="flex items-center gap-3">
-                                        <a href="{{ route('leaves.show', $leaf) }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-md hover:-translate-y-0.5">
-                                            VIEW
+                                        <a href="{{ route('leaves.show', $leaf) }}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-md hover:-translate-y-0.5">
+                                             <i class="fa-solid fa-eye"></i>
                                         </a>
                                     </div>
                                 </div>
@@ -164,7 +164,7 @@
                                 <p class="text-lg font-medium text-gray-400 italic">
                                     {{ __('You haven\'t filed any leave requests yet.') }}</p>
                                 <a href="{{ route('leaves.create') }}"
-                                    class="mt-4 inline-flex items-center text-indigo-600 hover:underline font-bold text-sm">
+                                    class="mt-4 inline-flex items-center text-blue-600 hover:underline font-bold text-sm">
                                     {{ __('File your first leave now') }}
                                     <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

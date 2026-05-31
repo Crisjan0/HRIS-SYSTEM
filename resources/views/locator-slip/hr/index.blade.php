@@ -35,7 +35,9 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <a href="{{ route('hr.locator-slips.show', $slip->id) }}" class="text-indigo-600 hover:text-indigo-900 font-bold uppercase tracking-wider text-xs">View</a>
+                                    <a href="{{ route('hr.locator-slips.show', $slip->id) }}" class="text-indigo-600 hover:text-indigo-900 font-bold uppercase tracking-wider text-xs"> 
+                                   
+                                    <i class="fa-solid fa-eye"></i></a>
                                 </td>
                             </tr>
                         @empty
