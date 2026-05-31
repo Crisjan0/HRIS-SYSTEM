@@ -27,9 +27,9 @@ class EmployeeController extends Controller
     public function create(): View
     {
         $users = User::whereDoesntHave('employee')->get();
-        $roles = ['user', 'employee', 'hrstaff', 'chief', 'regional director', 'admin'];
+        $positions = ['employee', 'hrstaff', 'chief', 'regionaldirector', 'admin'];
 
-        return view('employees.create', compact('users', 'roles'));
+        return view('employees.create', compact('users', 'positions'));
     }
 
     /**
@@ -42,7 +42,7 @@ class EmployeeController extends Controller
             'firstname' => 'required|string|max:255',
             'middlename' => 'nullable|string|max:255',
             'contact_number' => 'nullable|string|max:20',
-            'role' => 'required|string',
+            'position' => 'required|string',
             'user_id' => 'nullable|exists:users,id|unique:employees,user_id',
             'rfid_number' => 'nullable|string|max:255|unique:employees,rfid_number',
         ]);
@@ -149,9 +149,9 @@ class EmployeeController extends Controller
         $users = User::whereDoesntHave('employee', function ($query) use ($employee) {
             $query->where('id', '!=', $employee->id);
         })->get();
-        $roles = ['user', 'employee', 'hrstaff', 'chief', 'regional director', 'admin'];
+        $positions = ['employee', 'hrstaff', 'chief', 'regionaldirector', 'admin'];
 
-        return view('employees.edit', compact('employee', 'users', 'roles'));
+        return view('employees.edit', compact('employee', 'users', 'positions'));
     }
 
     /**
@@ -164,7 +164,7 @@ class EmployeeController extends Controller
             'firstname' => 'required|string|max:255',
             'middlename' => 'nullable|string|max:255',
             'contact_number' => 'nullable|string|max:20',
-            'role' => 'required|string',
+            'position' => 'required|string',
             'user_id' => 'nullable|exists:users,id|unique:employees,user_id,' . $employee->id,
             'rfid_number' => 'nullable|string|max:255|unique:employees,rfid_number,' . $employee->id,
         ]);

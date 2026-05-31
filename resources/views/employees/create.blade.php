@@ -44,19 +44,19 @@
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6 pt-4 border-b border-gray-100">
                             <div>
-                                <h3 class="text-lg font-medium text-gray-900 mb-1">{{ __('Job Role & Permission') }}</h3>
-                                <p class="text-sm text-gray-500">{{ __('Assign a specific role for this employee record.') }}</p>
+                                <h3 class="text-lg font-medium text-gray-900 mb-1">{{ __('Position') }}</h3>
+                                <p class="text-sm text-gray-500">{{ __('Assign the employee position for this record.') }}</p>
                             </div>
                             <div class="space-y-4">
                                 <div>
-                                    <x-input-label for="role" :value="__('Role')" />
-                                    <select id="role" name="role" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
-                                        <option value="" disabled selected>{{ __('Select a role') }}</option>
-                                        @foreach($roles as $role)
-                                            <option value="{{ $role }}" {{ old('role') == $role ? 'selected' : '' }}>{{ strtoupper($role) }}</option>
+                                    <x-input-label for="position" :value="__('Position')" />
+                                        <select id="position" name="position" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                                            <option value="" disabled selected>{{ __('Select a position') }}</option>
+                                            @foreach($positions as $position)
+                                                <option value="{{ $position }}" {{ old('position') == $position ? 'selected' : '' }}>{{ strtoupper($position) }}</option>
                                         @endforeach
                                     </select>
-                                    <x-input-error class="mt-2" :messages="$errors->get('role')" />
+                                        <x-input-error class="mt-2" :messages="$errors->get('position')" />
                                 </div>
                             </div>
                         </div>

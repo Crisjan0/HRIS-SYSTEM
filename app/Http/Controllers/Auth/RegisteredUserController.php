@@ -60,7 +60,7 @@ class RegisteredUserController extends Controller
             'middlename' => $validated['middlename'] ?? null,
             'suffix' => $validated['suffix'] ?? null,
             'division' => $validated['division'],
-            'role' => $validated['position'],
+            'position' => strtolower($validated['position']),
             'user_id' => $user->id,
         ]);
 

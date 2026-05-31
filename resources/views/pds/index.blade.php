@@ -55,7 +55,7 @@
                                         </h4>
                                         <div class="flex items-center justify-center gap-2 mt-1">
                                             <p class="inline-block px-3 py-1 bg-indigo-100 text-indigo-900 text-[10px] font-black uppercase tracking-widest rounded-full">
-                                                {{ ucfirst($employee->role) }}
+                                                {{ ucfirst($employee->position) }}
                                             </p>
                                         </div>
                                         

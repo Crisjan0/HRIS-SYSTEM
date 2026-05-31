@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="title">{{ __('Employee Accounts') }}</x-slot>
 
-    <div class="py-12">
+    <div class="py-12" x-data="{ tab: 'pending' }">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             @if(session('success'))
                 <div class="mb-4 p-4 bg-green-100 border-l-4 border-green-500 text-green-700 rounded-r-lg flex items-center gap-2">
@@ -20,8 +20,25 @@
                 </div>
             @endif
 
+            <div class="mb-6">
+                <div class="inline-flex rounded-xl bg-white border border-gray-100 shadow-sm p-1">
+                    <button type="button"
+                            class="px-4 py-2 text-sm font-semibold rounded-lg transition"
+                            :class="tab === 'pending' ? 'bg-amber-100 text-amber-700' : 'text-gray-500 hover:text-gray-700'"
+                            @click="tab = 'pending'">
+                        Pending Accounts ({{ $pendingAccounts->count() }})
+                    </button>
+                    <button type="button"
+                            class="px-4 py-2 text-sm font-semibold rounded-lg transition"
+                            :class="tab === 'approved' ? 'bg-green-100 text-green-700' : 'text-gray-500 hover:text-gray-700'"
+                            @click="tab = 'approved'">
+                        Active Accounts ({{ $approvedAccounts->count() }})
+                    </button>
+                </div>
+            </div>
+
             {{-- Pending Accounts Section --}}
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-100 mb-8">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-100 mb-8" x-show="tab === 'pending'" x-cloak>
                 <div class="p-6">
                     <div class="flex items-center gap-3 mb-6">
                         <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
@@ -81,7 +98,7 @@
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <span class="px-2 py-0.5 inline-flex text-xs font-semibold rounded-full bg-gray-100 text-gray-700 uppercase">
-                                                {{ $user->employee?->role ?? 'N/A' }}
+                                                {{ $user->employee?->position ?? 'N/A' }}
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
@@ -137,7 +154,7 @@
             </div>
 
             {{-- Approved Accounts Section --}}
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-100">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-100" x-show="tab === 'approved'" x-cloak>
                 <div class="p-6">
                     <div class="flex items-center gap-3 mb-6">
                         <div class="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center">
@@ -183,7 +200,7 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-xs text-gray-600">{{ $user->employee?->division ?? '-' }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <span class="px-2 py-0.5 inline-flex text-xs font-semibold rounded-full bg-indigo-100 text-indigo-800 uppercase">
-                                                {{ $user->employee?->role ?? 'N/A' }}
+                                                {{ $user->employee?->position ?? 'N/A' }}
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
