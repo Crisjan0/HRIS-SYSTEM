@@ -4,13 +4,13 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Mail\AccountPendingApprovalMail;
 use App\Mail\OtpVerificationMail;
 use App\Models\Employee;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
@@ -126,8 +126,11 @@ class RegisteredUserController extends Controller
 
         event(new Registered($user));
 
+        // Send pending approval notification email
+        Mail::to($user->email)->send(new AccountPendingApprovalMail($user->name));
+
         return redirect()->route('login')
-            ->with('status', 'Email verified successfully! Your account is now pending HR approval. You will be able to log in once approved.');
+            ->with('status', 'Email verified successfully! Your account is now pending HR approval. Please wait up to 24 hours for HR to activate your account.');
     }
 
     /**
