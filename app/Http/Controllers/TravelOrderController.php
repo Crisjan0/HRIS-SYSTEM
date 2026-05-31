@@ -112,13 +112,24 @@ class TravelOrderController extends Controller
     /**
      * Display all travel orders for admin/HR management.
      */
-    public function adminIndex(): View
+    public function adminIndex(Request $request): View
     {
-        $travelOrders = TravelOrder::with(['employee', 'companions'])
+        $allTravelOrders = TravelOrder::with(['employee', 'companions'])
+            ->whereIn('status', ['approved', 'rejected'])
             ->latest()
             ->get();
 
-        return view('travel-orders.admin-index', compact('travelOrders'));
+        $pendingTravelOrders = TravelOrder::with(['employee', 'companions'])
+            ->where('status', 'pending')
+            ->latest()
+            ->get();
+
+        $tab = $request->query('tab', 'pending');
+        if (! in_array($tab, ['all', 'pending'])) {
+            $tab = 'pending';
+        }
+
+        return view('travel-orders.admin-index', compact('allTravelOrders', 'pendingTravelOrders', 'tab'));
     }
 
     /**
@@ -193,6 +204,6 @@ class TravelOrderController extends Controller
 
         $msg = $validated['status'] === 'approved' ? 'Travel order approved successfully.' : 'Travel order rejected.';
 
-        return redirect()->route('hr.travel-orders.index')->with('success', $msg);
+        return redirect()->route('hr.travel-orders.index', ['tab' => 'pending'])->with('success', $msg);
     }
 }
