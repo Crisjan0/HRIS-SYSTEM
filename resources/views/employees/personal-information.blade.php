@@ -48,7 +48,7 @@
 
                         <!-- Clean Position Badge -->
                         <div class="mt-4 inline-flex items-center px-3 py-1 bg-white/10 rounded-full border border-white/10 backdrop-blur-md">
-                            <span class="text-xs font-semibold text-indigo-100 uppercase tracking-wider">{{ $employee->role }}</span>
+                            <span class="text-xs font-semibold text-indigo-100 uppercase tracking-wider">{{ $employee->position }}</span>
                         </div>
                     </div>
                 </div>
@@ -73,7 +73,7 @@
                                     </div>
                                     <div class="min-w-0">
                                         <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">{{ __('Organizational Position') }}</span>
-                                        <span class="text-sm font-semibold text-slate-700 block mt-0.5 truncate">{{ strtoupper($employee->role) }}</span>
+                                        <span class="text-sm font-semibold text-slate-700 block mt-0.5 truncate">{{ strtoupper($employee->position) }}</span>
                                     </div>
                                 </div>
                             </div>

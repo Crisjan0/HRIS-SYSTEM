@@ -60,15 +60,6 @@ class LoginRequest extends FormRequest
             return;
         }
 
-        // Block unapproved users — account is verified but waiting for HR approval
-        if ($user instanceof User && ! $user->is_approved) {
-            Auth::logout();
-
-            throw ValidationException::withMessages([
-                'email' => 'Your account is pending HR approval. Please wait for your account to be activated.',
-            ]);
-        }
-
         RateLimiter::clear($this->throttleKey());
     }
 
