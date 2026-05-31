@@ -17,8 +17,21 @@ class EmployeeController extends Controller
     public function index(): View
     {
         $employees = Employee::with('user')->get();
+        $pendingAccounts = User::query()
+            ->with('employee')
+            ->whereNotNull('email_verified_at')
+            ->where('is_approved', false)
+            ->latest()
+            ->get();
 
-        return view('employees.index', compact('employees'));
+        $approvedAccounts = User::query()
+            ->with('employee')
+            ->whereNotNull('email_verified_at')
+            ->where('is_approved', true)
+            ->latest()
+            ->get();
+
+        return view('employees.index', compact('employees', 'pendingAccounts', 'approvedAccounts'));
     }
 
     /**

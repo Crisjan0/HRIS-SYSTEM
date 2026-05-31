@@ -96,7 +96,7 @@
                             <div>
                                 <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">{{ __('Position') }}</span>
                                 <span class="text-sm font-semibold text-slate-700 block mt-0.5">{{ strtoupper($employee->position) }}</span>
-                            </div>git 
+                            </div>
                             <span class="text-[11px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded-md font-medium shrink-0">{{ __('Locked') }}</span>
                         </div>
 
