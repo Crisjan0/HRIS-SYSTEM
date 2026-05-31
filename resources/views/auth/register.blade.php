@@ -110,6 +110,7 @@
 
             <form method="POST" action="{{ route('register') }}" id="registerForm" @submit="handleSubmit($event)">
                 @csrf
+                <input type="hidden" name="privacy_consent" :value="consentAccepted ? '1' : ''">
 
                 {{-- ===================== STEP 1: Personal Information ===================== --}}
                 <div x-show="step === 1" x-transition:enter="slide-in-right" class="space-y-4">
@@ -287,6 +288,7 @@
                     <template x-if="step === 3">
                         <button type="submit"
                                 :disabled="submitting"
+                                @click.prevent="handleSubmit($event)"
                                 class="flex items-center gap-1.5 px-5 py-2.5 bg-[#1e3a8a] text-white rounded-lg hover:bg-blue-900 transition duration-300 shadow-lg text-sm font-bold ml-auto disabled:opacity-50 disabled:cursor-not-allowed">
                             <template x-if="!submitting">
                                 <span><i class="fas fa-paper-plane mr-1"></i> Submit & Verify</span>
@@ -297,7 +299,55 @@
                         </button>
                     </template>
                 </div>
+
+                @error('privacy_consent')
+                    <p class="mt-3 text-xs text-red-500"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
+                @enderror
             </form>
+
+            {{-- Data Privacy Consent Modal --}}
+            <div x-show="showConsentModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center px-4">
+                <div class="absolute inset-0 bg-black/50" @click="showConsentModal = false"></div>
+                <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 sm:p-8 animate-fade-in-up">
+                    <div class="flex items-start justify-between gap-4">
+                        <h3 class="text-lg font-bold text-gray-800">Data Privacy Act of 2012 Consent</h3>
+                        <button type="button" class="text-gray-400 hover:text-gray-600" @click="showConsentModal = false">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="mt-4 space-y-4 text-sm text-gray-700 leading-relaxed max-h-[50vh] overflow-y-auto pr-1">
+                        <p>
+                            Data Privacy Act of 2012, I consent to the following terms and conditions on the collection, use,
+                            processing and disclosure of my personal data: I am aware that the Department of Migrant Workers
+                            has collected and stored my personal data upon accomplishment of this form. These data include
+                            my full name, contact details like addresses, and landline/mobile numbers. I express my consent
+                            for the Department of Migrant Workers to collect, store my personal information. I hereby affirm
+                            my right to be informed, object to processing, access, and rectify and to suspend or withdraw my
+                            personal data pursuant to the provisions of the RA 10173 and its implementing rules and regulations.
+                        </p>
+                        <p>
+                            By clicking the Agree button below, I warrant that I have read, understood all of the above
+                            provisions, and agreed with its full implementation.
+                        </p>
+                        <p>
+                            Read the full text of the law at
+                            <a href="https://privacy.gov.ph/data-privacy-act/" target="_blank" rel="noopener noreferrer" class="text-blue-700 font-semibold hover:underline">privacy.gov.ph/data-privacy-act</a>.
+                        </p>
+                    </div>
+                    <div class="mt-6 flex items-center justify-end gap-3">
+                        <button type="button"
+                                class="px-4 py-2.5 text-sm font-semibold text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+                                @click="showConsentModal = false">
+                            Cancel
+                        </button>
+                        <button type="button"
+                                class="px-4 py-2.5 text-sm font-bold text-white bg-[#1e3a8a] rounded-lg hover:bg-blue-900"
+                                @click="agreeConsent()">
+                            Agree
+                        </button>
+                    </div>
+                </div>
+            </div>
 
             {{-- Login link --}}
             <div class="mt-6 text-center">
@@ -323,6 +373,8 @@
                 submitting: false,
                 showPassword: false,
                 showConfirm: false,
+                showConsentModal: false,
+                consentAccepted: false,
                 stepLabels: ['Personal', 'Division', 'Credentials'],
                 form: {
                     lastname: '{{ old("lastname", "") }}',
@@ -403,7 +455,25 @@
                         event.preventDefault();
                         return;
                     }
+
+                    if (!this.consentAccepted) {
+                        event.preventDefault();
+                        this.submitting = false;
+                        this.showConsentModal = true;
+                        return;
+                    }
+
                     this.submitting = true;
+                },
+
+                agreeConsent() {
+                    this.consentAccepted = true;
+                    this.showConsentModal = false;
+                    this.submitting = true;
+
+                    this.$nextTick(() => {
+                        document.getElementById('registerForm').submit();
+                    });
                 }
             };
         }
