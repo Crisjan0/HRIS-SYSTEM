@@ -114,7 +114,7 @@ class RegisteredUserController extends Controller
             return back()->withErrors(['otp' => 'Invalid verification code. Please try again.']);
         }
 
-        // OTP is valid — verify the user
+        // OTP is valid — verify the email but keep account pending HR approval
         $user->forceFill([
             'email_verified_at' => now(),
             'otp' => null,
@@ -125,9 +125,8 @@ class RegisteredUserController extends Controller
 
         event(new Registered($user));
 
-        Auth::login($user);
-
-        return redirect(route('dashboard', absolute: false));
+        return redirect()->route('login')
+            ->with('status', 'Email verified successfully! Your account is now pending HR approval. You will be able to log in once approved.');
     }
 
     /**

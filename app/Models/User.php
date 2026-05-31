@@ -25,6 +25,7 @@ class User extends Authenticatable
         'password',
         'otp',
         'otp_expires_at',
+        'is_approved',
     ];
 
     /**
@@ -48,6 +49,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'otp_expires_at' => 'datetime',
             'password' => 'hashed',
+            'is_approved' => 'boolean',
         ];
     }
 

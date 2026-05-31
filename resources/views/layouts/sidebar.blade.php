@@ -118,7 +118,7 @@
                     </x-sidebar-link>
                 </x-sidebar-dropdown>
 
-                <x-sidebar-dropdown :label="__('Manage Leave & Employee')" :active="request()->routeIs(['employees.*', 'leave-types.*', 'leave-applications.*', 'leave-calendar', 'holidays.*'])">
+                <x-sidebar-dropdown :label="__('Manage Leave & Employee')" :active="request()->routeIs(['employees.*', 'employee-accounts.*', 'leave-types.*', 'leave-applications.*', 'leave-calendar', 'holidays.*'])">
                     <x-slot name="icon">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                             xmlns="http://www.w3.org/2000/svg">
@@ -131,6 +131,10 @@
                     <x-sidebar-link :href="route('employees.index')" :active="request()->routeIs('employees.*')"
                         class="text-xs">
                         {{ __('Manage Employee') }}
+                    </x-sidebar-link>
+                    <x-sidebar-link :href="route('employee-accounts.index')" :active="request()->routeIs('employee-accounts.*')"
+                        class="text-xs">
+                        {{ __('Employees Acct') }}
                     </x-sidebar-link>
                     <x-sidebar-link :href="route('leave-types.index')" :active="request()->routeIs('leave-types.*')"
                         class="text-xs">
