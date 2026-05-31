@@ -131,13 +131,9 @@
                         </svg>
                     </x-slot>
 
-                    <x-sidebar-link :href="route('employees.index')" :active="request()->routeIs('employees.*')"
+                    <x-sidebar-link :href="route('employees.index')" :active="request()->routeIs('employees.*') || request()->routeIs('employee-accounts.*')"
                         class="text-xs">
                         {{ __('Manage Employee') }}
-                    </x-sidebar-link>
-                    <x-sidebar-link :href="route('employee-accounts.index')" :active="request()->routeIs('employee-accounts.*')"
-                        class="text-xs">
-                        {{ __('Employees Acct') }}
                     </x-sidebar-link>
                     <x-sidebar-link :href="route('leave-types.index')" :active="request()->routeIs('leave-types.*')"
                         class="text-xs">

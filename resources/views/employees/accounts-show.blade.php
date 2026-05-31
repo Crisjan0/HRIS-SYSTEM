@@ -69,15 +69,30 @@
                             </div>
 
                             <!-- Division -->
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">{{ __('Division') }}</label>
-                                <input type="text" name="division" value="{{ old('division', $user->employee?->division) }}" class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                            <div class="col-span-1">
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Division</label>
+                                <select name="division" id="division" 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200 text-sm bg-white">
+                                    <option value="">-- Select Division --</option>
+                                    <option value="Finance and Administrative Division" {{ $user->employee?->division == 'Finance and Administrative Division' ? 'selected' : '' }}>Finance and Administrative Division</option>
+                                    <option value="Licensing and Regulation Division" {{ $user->employee?->division == 'Licensing and Regulation Division' ? 'selected' : '' }}>Licensing and Regulation Division</option>
+                                    <option value="Operations Division" {{ $user->employee?->division == 'Operations Division' ? 'selected' : '' }}>Operations Division</option>
+                                    <option value="Legal Division" {{ $user->employee?->division == 'Legal Division' ? 'selected' : '' }}>Legal Division</option>
+                                </select>
                             </div>
 
                             <!-- Position -->
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">{{ __('Position') }}</label>
-                                <input type="text" name="position" value="{{ old('position', $user->employee?->position) }}" class="block w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                            <div class="col-span-1">
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Position</label>
+                                <select name="position" id="position" 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200 text-sm bg-white">
+                                    <option value="">-- Select Position --</option>
+                                    <option value="hrstaff" {{ $user->employee?->position == 'hrstaff' ? 'selected' : '' }}>HR Staff</option>
+                                    <option value="chief" {{ $user->employee?->position == 'chief' ? 'selected' : '' }}>Chief</option>
+                                    <option value="regionaldirector" {{ $user->employee?->position == 'regionaldirector' ? 'selected' : '' }}>Regional Director</option>
+                                    <option value="admin" {{ $user->employee?->position == 'admin' ? 'selected' : '' }}>Admin</option>
+                                    <option value="employee" {{ $user->employee?->position == 'employee' ? 'selected' : '' }}>Regular Employee</option>
+                                </select>
                             </div>
 
                             <!-- Remarks -->
