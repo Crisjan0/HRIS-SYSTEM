@@ -117,6 +117,11 @@ class Employee extends Model
         return $this->hasMany(TravelOrder::class);
     }
 
+    public function ctoRequests(): HasMany
+    {
+        return $this->hasMany(CtoRequest::class);
+    }
+
     public function getProfilePictureUrlAttribute(): ?string
     {
         if (! $this->profile_picture) {

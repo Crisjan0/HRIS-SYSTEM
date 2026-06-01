@@ -50,8 +50,10 @@ class SalnSeeder extends Seeder
                             'description' => 'Residential Lot',
                             'kind' => 'Residential',
                             'exact_location' => $faker->city,
+                            'location' => $faker->city,
                             'assessed_value' => $realPropCost * 0.4,
                             'current_fair_market_value' => $realPropCost * 1.5,
+                            'fair_market_value' => $realPropCost * 1.5,
                             'acquisition_year' => $faker->year,
                             'acquisition_mode' => 'Purchase',
                             'acquisition_cost' => $realPropCost,
@@ -61,11 +63,13 @@ class SalnSeeder extends Seeder
                         [
                             'description' => 'Cash in Bank',
                             'year_acquired' => $faker->dateTimeBetween('-5 years', 'now')->format('Y'),
+                            'acquisition_year' => $faker->dateTimeBetween('-5 years', 'now')->format('Y'),
                             'acquisition_cost' => $personalPropCost * 0.4,
                         ],
                         [
                             'description' => 'Vehicle',
                             'year_acquired' => $faker->dateTimeBetween('-10 years', 'now')->format('Y'),
+                            'acquisition_year' => $faker->dateTimeBetween('-10 years', 'now')->format('Y'),
                             'acquisition_cost' => $personalPropCost * 0.6,
                         ]
                     ],
@@ -73,6 +77,7 @@ class SalnSeeder extends Seeder
                         [
                             'nature' => 'Personal Loan',
                             'name_of_creditors' => $faker->company,
+                            'creditor' => $faker->company,
                             'outstanding_balance' => $liabilityAmount,
                         ]
                     ],

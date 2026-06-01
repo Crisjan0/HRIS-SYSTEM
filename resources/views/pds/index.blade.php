@@ -13,7 +13,7 @@
                             <p class="text-sm text-gray-500 font-medium italic">Civil Service Records Management Dashboard.</p>
                         </div>
                         <div class="flex gap-4">
-                            <a href="{{ route('pds.download') }}"
+                            <a href="{{ route('pds.download') }}" data-no-transition
                                 class="inline-flex items-center px-6 py-2.5 bg-emerald-600 border-2 border-emerald-700 rounded-xl font-bold text-sm text-white shadow-lg shadow-emerald-100 hover:bg-emerald-700 active:scale-95 transition-all duration-300">
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"

@@ -135,6 +135,19 @@
                     {{ __('Manage Travel Order') }}
                 </x-sidebar-link>
 
+                @if(in_array(auth()->user()->role, ['admin', 'hrstaff', 'chief']))
+                <x-sidebar-link :href="route('hr.cto.index')" :active="request()->routeIs('hr.cto.*') || request()->routeIs('cto.update-status')">
+                    <x-slot name="icon">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </x-slot>
+                    {{ __('Manage CTO') }}
+                </x-sidebar-link>
+                @endif
+
                 <x-sidebar-link :href="route('hr.locator-slips.index')" :active="request()->routeIs('hr.locator-slips.*')">
                     <x-slot name="icon">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"

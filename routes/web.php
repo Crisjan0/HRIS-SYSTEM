@@ -8,6 +8,7 @@ use App\Http\Controllers\HolidayController;
 use App\Http\Controllers\LeaveApplicationController;
 use App\Http\Controllers\LeaveTypeController;
 use App\Http\Controllers\LocatorSlipController;
+use App\Http\Controllers\CtoController;
 use App\Http\Controllers\MyCtoController;
 use App\Http\Controllers\MyLeaveController;
 use App\Http\Controllers\PdsController;
@@ -65,6 +66,9 @@ Route::middleware(['auth', 'approved'])->group(function () {
     Route::resource('announcements', AnnouncementController::class)->only(['show']);
     Route::get('my-dtr', [DtrController::class, 'myDtr'])->name('my-dtr.index');
     Route::get('my-cto', [MyCtoController::class, 'index'])->name('my-cto.index');
+    Route::get('my-cto/create', [MyCtoController::class, 'create'])->name('my-cto.create');
+    Route::post('my-cto', [MyCtoController::class, 'store'])->name('my-cto.store');
+    Route::get('my-cto/{ctoRequest}', [MyCtoController::class, 'show'])->name('my-cto.show');
     Route::resource('dtr', DtrController::class)->only(['index', 'show']);
     Route::post('/dtr/import', [DtrController::class, 'syncFromFile'])->name('dtr.import');
     Route::get('/hr/locator-slips', [LocatorSlipController::class, 'manageIndex'])->name('hr.locator-slips.index');
@@ -80,12 +84,17 @@ Route::middleware(['auth', 'approved'])->group(function () {
     Route::post('/employees/{employee}/pds-reviews', [PdsSectionReviewController::class, 'store'])->name('pds-reviews.store');
 
     // SALN Routes
+    Route::get('salns/{saln}/download', [SalnController::class, 'download'])->name('salns.download');
     Route::resource('salns', SalnController::class);
 
     // Travel Order Routes
     Route::resource('travel-orders', TravelOrderController::class)->only(['index', 'create', 'store', 'show']);
     Route::get('/hr/travel-orders', [TravelOrderController::class, 'adminIndex'])->name('hr.travel-orders.index')->middleware('role:ADMIN,HRSTAFF,DIRECTOR,CHIEF,REGIONALDIRECTOR,REGIONAL DIRECTOR');
     Route::put('/travel-orders/{travelOrder}/status', [TravelOrderController::class, 'updateStatus'])->name('travel-orders.update-status')->middleware('role:CHIEF,REGIONALDIRECTOR,REGIONAL DIRECTOR,DIRECTOR');
+
+    // Compensatory Time-Off Routes
+    Route::get('/hr/cto', [CtoController::class, 'adminIndex'])->name('hr.cto.index')->middleware('role:ADMIN,HRSTAFF,CHIEF');
+    Route::put('/cto/{ctoRequest}/status', [CtoController::class, 'updateStatus'])->name('cto.update-status')->middleware('role:CHIEF,HRSTAFF,ADMIN');
 });
 
 require __DIR__.'/auth.php';

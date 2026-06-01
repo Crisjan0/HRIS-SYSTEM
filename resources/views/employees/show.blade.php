@@ -416,7 +416,7 @@
                                                         <tr>
                                                             <td class="px-4 py-3 whitespace-nowrap text-gray-900 font-bold" x-text="prop.description"></td>
                                                             <td class="px-4 py-3 whitespace-nowrap text-gray-600" x-text="prop.kind"></td>
-                                                            <td class="px-4 py-3 whitespace-nowrap text-gray-600" x-text="prop.exact_location"></td>
+                                                            <td class="px-4 py-3 whitespace-nowrap text-gray-600" x-text="prop.location || prop.exact_location || ''"></td>
                                                             <td class="px-4 py-3 whitespace-nowrap text-gray-600" x-text="prop.acquisition_year"></td>
                                                             <td class="px-4 py-3 whitespace-nowrap text-gray-600" x-text="prop.acquisition_mode"></td>
                                                             <td class="px-4 py-3 whitespace-nowrap text-right text-gray-900 font-bold" x-text="'₱ ' + Number(prop.acquisition_cost).toLocaleString('en-US', {minimumFractionDigits: 2})"></td>
