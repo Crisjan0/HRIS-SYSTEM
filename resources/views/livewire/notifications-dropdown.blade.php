@@ -48,18 +48,24 @@
                     $bgColor = match($type) {
                         'leave_request' => 'bg-blue-100',
                         'leave_status' => ($data['status'] === 'approved' ? 'bg-green-100' : 'bg-red-100'),
+                        'travel_order' => 'bg-sky-100',
+                        'cto_request' => 'bg-purple-100',
                         'announcement' => 'bg-amber-100',
                         default => 'bg-gray-100'
                     };
                     $textColor = match($type) {
                         'leave_request' => 'text-blue-600',
                         'leave_status' => ($data['status'] === 'approved' ? 'text-green-600' : 'text-red-600'),
+                        'travel_order' => 'text-sky-600',
+                        'cto_request' => 'text-purple-600',
                         'announcement' => 'text-amber-600',
                         default => 'text-gray-600'
                     };
                     $borderColor = match($type) {
                         'leave_request' => 'border-blue-200',
                         'leave_status' => ($data['status'] === 'approved' ? 'border-green-200' : 'border-red-200'),
+                        'travel_order' => 'border-sky-200',
+                        'cto_request' => 'border-purple-200',
                         'announcement' => 'border-amber-200',
                         default => 'border-gray-200'
                     };
@@ -84,6 +90,14 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                     </svg>
                                 @endif
+                            @elseif($type === 'travel_order')
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                                </svg>
+                            @elseif($type === 'cto_request')
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
                             @elseif($type === 'announcement')
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path>

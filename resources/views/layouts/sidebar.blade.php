@@ -13,22 +13,48 @@
     <div class="relative z-10 flex flex-col h-full">
 
         <!-- Logo -->
-        <div class="px-6 py-8 flex items-center shrink-0">
+        <div class="px-4 py-5 flex items-center gap-3 shrink-0 border-b border-gray-100" :class="sidebarCollapsed ? 'justify-center px-3' : ''">
             <a href="{{ route('dashboard') }}"
-                class="flex items-center gap-3 group transition-all duration-300 transform hover:scale-105">
-                <x-application-logo class="w-10 h-10 fill-current text-[#0038a8] drop-shadow-md" />
+                class="flex items-center gap-3 min-w-0 group transition-all duration-300">
+                <x-application-logo class="w-20 h-12 shrink-0 object-contain drop-shadow-sm transition-all duration-300" />
                 <span
-                    class="text-xl font-black tracking-tight bg-gradient-to-r from-[#0038a8] to-[#ce1126] bg-clip-text text-transparent">
-                    DMW HRIS
+                    x-show="!sidebarCollapsed"
+                    x-transition
+                    class="text-[9px] leading-tight font-black tracking-tight bg-gradient-to-r from-[#0038a8] to-[#ce1126] bg-clip-text text-transparent">
+                    Department of <br> Migrant Workers
                 </span>
             </a>
+
+            <button
+                type="button"
+                class="ml-auto h-9 w-9 shrink-0 items-center justify-center rounded-lg text-gray-500 hover:text-[#0038a8] hover:bg-blue-50 transition"
+                :class="sidebarCollapsed ? 'hidden' : 'inline-flex'"
+                @click="sidebarCollapsed = !sidebarCollapsed"
+                title="Collapse sidebar"
+            >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16" />
+                </svg>
+            </button>
+
+            <button
+                type="button"
+                class="h-9 w-9 shrink-0 items-center justify-center rounded-lg text-gray-500 hover:text-[#0038a8] hover:bg-blue-50 transition"
+                :class="sidebarCollapsed ? 'inline-flex' : 'hidden'"
+                @click="sidebarCollapsed = !sidebarCollapsed"
+                title="Expand sidebar"
+            >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16" />
+                </svg>
+            </button>
         </div>
 
     <!-- Navigation -->
     @php($isApproved = auth()->user()?->is_approved)
     <nav class="flex-1 px-4 space-y-1.5 overflow-y-auto mt-2">
         <div class="pb-4 mb-4 border-b border-gray-50">
-            <h3 class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+            <h3 x-show="!sidebarCollapsed" x-transition class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
                 {{ __('Main Menu') }}
             </h3>
 
@@ -97,7 +123,7 @@
 
         @if($isApproved && in_array(auth()->user()->role, ['admin', 'hrstaff', 'director', 'chief', 'regionaldirector', 'regional director']))
             <div class="pb-4">
-                <h3 class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                <h3 x-show="!sidebarCollapsed" x-transition class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
                     {{ __('Administration') }}
                 </h3>
 
@@ -187,7 +213,7 @@
         @endif
 
         <div class="pb-4">
-            <h3 class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+            <h3 x-show="!sidebarCollapsed" x-transition class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
                 {{ __('Settings') }}
             </h3>
 
@@ -207,14 +233,15 @@
             <form method="POST" action="{{ route('logout') }}" class="group mt-auto">
                 @csrf
                 <button type="submit"
-                    class="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-red-600 hover:bg-red-50 hover:text-red-700 transition duration-150 ease-in-out">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    class="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-red-600 hover:bg-red-50 hover:text-red-700 transition duration-150 ease-in-out"
+                    :class="sidebarCollapsed ? 'justify-center px-2' : ''">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                         xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
                         </path>
                     </svg>
-                    <span>{{ __('Log Out') }}</span>
+                    <span x-show="!sidebarCollapsed" x-transition>{{ __('Log Out') }}</span>
                 </button>
             </form>
         </div>
@@ -222,9 +249,9 @@
 
     <!-- User Section -->
         <div class="px-4 py-6 border-t border-white/40 bg-white/40 backdrop-blur-sm">
-            <a href="{{ auth()->user()?->employee ? route('personal-information.show') : route('profile.edit') }}" class="flex items-center gap-3 px-3 group rounded-xl hover:bg-white/60 transition-colors duration-200">
+            <a href="{{ auth()->user()?->employee ? route('personal-information.show') : route('profile.edit') }}" class="flex items-center gap-3 px-3 group rounded-xl hover:bg-white/60 transition-colors duration-200" :class="sidebarCollapsed ? 'justify-center px-2' : ''">
                 <x-profile-avatar :user="auth()->user()" size="md" variant="brand" class="shadow-md shadow-[#0038a8]/20 ring-2 ring-white transition-transform duration-300 group-hover:scale-110" />
-                <div class="overflow-hidden">
+                <div class="overflow-hidden" x-show="!sidebarCollapsed" x-transition>
                     <p class="text-sm font-bold text-gray-900 truncate">{{ Auth::user()->display_name }}</p>
                     <p class="text-xs text-gray-600 truncate">{{ Auth::user()->email }}</p>
                 </div>

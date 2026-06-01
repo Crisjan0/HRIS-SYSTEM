@@ -15,7 +15,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @livewireStyles
     </head>
-    <body class="font-sans antialiased text-gray-900 bg-gray-50/50" x-data="{ sidebarOpen: false }">
+    <body class="font-sans antialiased text-gray-900 bg-gray-50/50" x-data="{ sidebarOpen: false, sidebarCollapsed: false }">
         <div class="flex h-screen overflow-hidden">
             <!-- Off-canvas menu for mobile -->
             <div x-show="sidebarOpen" 
@@ -66,8 +66,11 @@
                 </div>
             </div>
 
-            <!-- Static sidebar for desktop -->
-            <aside class="hidden lg:flex lg:flex-col lg:w-72 lg:shrink-0 h-full">
+            <!-- Collapsible sidebar for desktop -->
+            <aside
+                class="hidden lg:flex lg:flex-col lg:shrink-0 h-full transition-all duration-300"
+                :class="sidebarCollapsed ? 'lg:w-20' : 'lg:w-72'"
+            >
                 @include('layouts.sidebar')
             </aside>
 
@@ -76,7 +79,7 @@
                 <!-- Mobile top bar -->
                 <header class="lg:hidden flex items-center justify-between h-16 px-4 shrink-0 bg-white border-b border-gray-100 shadow-sm z-40">
                     <button type="button" 
-                            class="p-2 -ml-0.5 text-gray-500 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500" 
+                            class="p-2 -ml-0.5 text-gray-500 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500" 
                             @click="sidebarOpen = true">
                         <span class="sr-only">Open sidebar</span>
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -84,7 +87,7 @@
                         </svg>
                     </button>
                     <div class="flex-1 flex justify-center lg:hidden">
-                        <x-application-logo class="w-10 h-10 fill-current text-indigo-600" />
+                        <x-application-logo class="w-10 h-10 fill-current text-blue-600" />
                     </div>
                     <div class="flex items-center gap-2">
                         <livewire:notifications-dropdown wire:key="mobile-notifications" />
@@ -103,12 +106,12 @@
                         <div class="h-6 w-px bg-gray-100 mx-1"></div>
 
                         <a href="{{ auth()->user()?->employee ? route('personal-information.show') : route('profile.edit') }}"
-                           class="flex items-center gap-3 pl-2 rounded-xl hover:bg-gray-50 transition-colors duration-200 {{ request()->routeIs(['personal-information.*', 'profile.edit']) ? 'ring-2 ring-indigo-100 bg-indigo-50/50' : '' }}">
+                           class="flex items-center gap-3 pl-2 rounded-xl hover:bg-gray-50 transition-colors duration-200 {{ request()->routeIs(['personal-information.*', 'profile.edit']) ? 'ring-2 ring-blue-900 bg-blue-50/50' : '' }}">
                             <div class="text-right hidden xl:block">
                                 <p class="text-sm font-bold text-gray-900 leading-none mb-0.5">{{ Auth::user()->display_name }}</p>
-                                <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-tighter">{{ Auth::user()->role ?? 'Employee' }}</p>
+                                <p class="text-[10px] font-bold text-blue-500 uppercase tracking-tighter">{{ Auth::user()->role ?? 'Employee' }}</p>
                             </div>
-                            <x-profile-avatar :user="auth()->user()" size="md" class="ring-2 ring-white hover:ring-indigo-100 transition-all duration-300" />
+                            <x-profile-avatar :user="auth()->user()" size="md" class="ring-2 ring-white hover:ring-blue-100 transition-all duration-300" />
                         </a>
                     </div>
                 </header>
