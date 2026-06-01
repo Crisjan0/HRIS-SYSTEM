@@ -31,7 +31,7 @@
     .saln-official th,
     .saln-official td {
         border: 1px solid #000;
-        padding: 4px 5px;
+        padding: 6px 8px;
         vertical-align: middle;
     }
     .saln-official .saln-th {
@@ -96,6 +96,36 @@
     }
     .saln-official .saln-cell-input:focus {
         background: #fefce8;
+    }
+    .saln-official .saln-add-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        font-size: 10px;
+        font-weight: 700;
+        color: #4338ca;
+        background: #eef2ff;
+        border: 1px solid #c7d2fe;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+    .saln-official .saln-add-btn:hover {
+        background: #e0e7ff;
+    }
+    .saln-official .saln-remove-btn {
+        margin-left: 4px;
+        font-size: 9px;
+        font-weight: 700;
+        color: #dc2626;
+        cursor: pointer;
+    }
+    .saln-official .saln-empty-row td {
+        text-align: center;
+        color: #9ca3af;
+        font-style: italic;
+        font-size: 10px;
+        padding: 10px;
     }
     .saln-official .saln-checkbox-row,
     .saln-official .saln-compliance-row {
