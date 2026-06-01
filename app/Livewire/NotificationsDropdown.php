@@ -30,7 +30,10 @@ class NotificationsDropdown extends Component
                 $notification->markAsRead();
             }
 
-            $url = $notification->data['action_url'] ?? '#';
+            $url = match ($notification->data['type'] ?? null) {
+                'announcement' => route('announcements.view'),
+                default => $notification->data['action_url'] ?? '#',
+            };
 
             return redirect($url);
         }

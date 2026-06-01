@@ -15,6 +15,7 @@ class TravelOrder extends Model
         'travel_date_end',
         'places_of_travel',
         'purpose',
+        'attachment_path',
         'status',
         'approved_by_chief',
         'chief_status',

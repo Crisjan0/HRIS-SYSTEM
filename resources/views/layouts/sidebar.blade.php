@@ -44,8 +44,8 @@
                 {{ __('Dashboard') }}
             </x-sidebar-link>
 
-            @if($isApproved)
-                <x-sidebar-link :href="route('announcements.view')" :active="request()->routeIs('announcements.view')">
+            @if($isApproved && auth()->user()->role !== 'hrstaff')
+                <x-sidebar-link :href="route('announcements.view')" :active="request()->routeIs(['announcements.view', 'announcements.show'])">
                     <x-slot name="icon">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                             xmlns="http://www.w3.org/2000/svg">
@@ -56,9 +56,11 @@
                     </x-slot>
                     {{ __('Announcements') }}
                 </x-sidebar-link>
+            @endif
 
+            @if($isApproved)
                 @if(in_array(auth()->user()->role, ['employee', 'admin', 'hrstaff', 'director', 'chief', 'regionaldirector', 'regional director']))
-                    <x-sidebar-dropdown label="{{ __('My Account') }}" :active="request()->routeIs(['pds.*', 'salns.*', 'ildp.*', 'leaves.*', 'my-dtr.*', 'locator-slips.*', 'travel-orders.*'])">
+                    <x-sidebar-dropdown label="{{ __('My Account') }}" :active="request()->routeIs(['pds.*', 'salns.*', 'ildp.*', 'leaves.*', 'my-dtr.*', 'my-cto.*', 'locator-slips.*', 'travel-orders.*'])">
                         <x-slot name="icon">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                                 xmlns="http://www.w3.org/2000/svg">
@@ -84,6 +86,9 @@
                         </x-sidebar-link>
                         <x-sidebar-link :href="route('travel-orders.index')" :active="request()->routeIs('travel-orders.*')" class="text-xs">
                             {{ __('Travel Order') }}
+                        </x-sidebar-link>
+                        <x-sidebar-link :href="route('my-cto.index')" :active="request()->routeIs('my-cto.*')" class="text-xs">
+                            {{ __('Compensatory Time-Off') }}
                         </x-sidebar-link>
                     </x-sidebar-dropdown>
                 @endif
@@ -141,7 +146,7 @@
                     {{ __('Manage Locator Slip') }}
                 </x-sidebar-link>
 
-                <x-sidebar-link :href="route('announcements.index')" :active="request()->routeIs('announcements.*') && !request()->routeIs('announcements.view')">
+                <x-sidebar-link :href="route('announcements.index')" :active="request()->routeIs('announcements.*') && (auth()->user()->role === 'hrstaff' || !request()->routeIs(['announcements.view', 'announcements.show']))">
                     <x-slot name="icon">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                             xmlns="http://www.w3.org/2000/svg">

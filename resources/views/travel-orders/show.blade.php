@@ -60,6 +60,28 @@
                                 <p class="text-gray-700 font-medium leading-relaxed italic">"{{ $travelOrder->purpose }}"</p>
                             </div>
 
+                            @if($travelOrder->attachment_path)
+                                <div>
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-3">Attached File</span>
+                                    <div class="flex items-center justify-between p-4 bg-gray-50/50 rounded-xl border border-gray-100">
+                                        <div class="flex items-center gap-3 min-w-0">
+                                            <div class="p-2 bg-indigo-100 rounded-lg text-indigo-600 shrink-0">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+                                                </svg>
+                                            </div>
+                                            <div class="min-w-0">
+                                                <p class="text-sm font-bold text-gray-900 truncate">{{ basename($travelOrder->attachment_path) }}</p>
+                                                <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">{{ strtoupper(pathinfo($travelOrder->attachment_path, PATHINFO_EXTENSION)) }} File</p>
+                                            </div>
+                                        </div>
+                                        <a href="{{ asset('storage/' . $travelOrder->attachment_path) }}" target="_blank" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-md hover:-translate-y-0.5 flex items-center gap-2 shrink-0">
+                                            View
+                                        </a>
+                                    </div>
+                                </div>
+                            @endif
+
                             {{-- Companions --}}
                             @if($travelOrder->companions->count())
                                 <div>
@@ -135,6 +157,7 @@
                     $role = strtolower(auth()->user()->role ?? '');
                     $isChief = $role === 'chief';
                     $isDirector = in_array($role, ['regional director', 'regionaldirector', 'director']);
+                    $isApprover = in_array($role, ['admin', 'hrstaff', 'director', 'chief', 'regionaldirector', 'regional director']);
 
                     $isMyTurn = false;
                     $waitingMessage = '';
@@ -153,6 +176,27 @@
                 @endphp
 
                 <div class="space-y-8">
+                    @if($isApprover && $travelOrder->attachment_path)
+                        <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                            <span class="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-3">{{ __('Attached File') }}</span>
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="p-2 bg-indigo-100 rounded-lg text-indigo-600 shrink-0">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+                                    </svg>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-bold text-gray-900 truncate">{{ basename($travelOrder->attachment_path) }}</p>
+                                    <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">{{ strtoupper(pathinfo($travelOrder->attachment_path, PATHINFO_EXTENSION)) }} File</p>
+                                </div>
+                            </div>
+                            <a href="{{ asset('storage/' . $travelOrder->attachment_path) }}" target="_blank" class="mt-4 w-full bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-md hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                {{ __('View Attachment') }}
+                            </a>
+                        </div>
+                    @endif
+
                     @if($isMyTurn)
                     <div class="bg-indigo-600 rounded-3xl p-8 text-white shadow-2xl shadow-indigo-200 sticky top-12">
                         <div class="mb-8">
@@ -217,7 +261,7 @@
 
                     {{-- Back Button --}}
                     <div class="text-center">
-                        <a href="{{ route('travel-orders.index') }}" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 transition-colors inline-flex items-center gap-2">
+                        <a href="{{ $isApprover ? route('hr.travel-orders.index') : route('travel-orders.index') }}" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 transition-colors inline-flex items-center gap-2">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                             {{ __('Back to Travel Orders') }}
                         </a>

@@ -8,6 +8,7 @@ use App\Http\Controllers\HolidayController;
 use App\Http\Controllers\LeaveApplicationController;
 use App\Http\Controllers\LeaveTypeController;
 use App\Http\Controllers\LocatorSlipController;
+use App\Http\Controllers\MyCtoController;
 use App\Http\Controllers\MyLeaveController;
 use App\Http\Controllers\PdsController;
 use App\Http\Controllers\PdsSectionReviewController;
@@ -63,6 +64,7 @@ Route::middleware(['auth', 'approved'])->group(function () {
     Route::resource('announcements', AnnouncementController::class)->except(['show'])->middleware('role:ADMIN,HRSTAFF');
     Route::resource('announcements', AnnouncementController::class)->only(['show']);
     Route::get('my-dtr', [DtrController::class, 'myDtr'])->name('my-dtr.index');
+    Route::get('my-cto', [MyCtoController::class, 'index'])->name('my-cto.index');
     Route::resource('dtr', DtrController::class)->only(['index', 'show']);
     Route::post('/dtr/import', [DtrController::class, 'syncFromFile'])->name('dtr.import');
     Route::get('/hr/locator-slips', [LocatorSlipController::class, 'manageIndex'])->name('hr.locator-slips.index');

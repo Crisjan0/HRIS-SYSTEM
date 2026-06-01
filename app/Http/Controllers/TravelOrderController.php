@@ -62,7 +62,13 @@ class TravelOrderController extends Controller
             'purpose' => 'required|string',
             'companions' => 'nullable|array',
             'companions.*' => 'exists:employees,id',
+            'attachment' => 'nullable|file|mimes:pdf,jpg,png,doc,docx|max:5120',
         ]);
+
+        $attachmentPath = null;
+        if ($request->hasFile('attachment')) {
+            $attachmentPath = $request->file('attachment')->store('travel-order-attachments', 'public');
+        }
 
         $travelOrder = $employee->travelOrders()->create([
             'travel_type' => $validated['travel_type'],
@@ -70,6 +76,7 @@ class TravelOrderController extends Controller
             'travel_date_end' => $validated['travel_date_end'],
             'places_of_travel' => $validated['places_of_travel'],
             'purpose' => $validated['purpose'],
+            'attachment_path' => $attachmentPath,
         ]);
 
         if (! empty($validated['companions'])) {
