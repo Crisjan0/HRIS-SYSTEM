@@ -54,11 +54,12 @@
                                             @endif
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                                            <a href="{{ route('leave-types.edit', $type) }}" class="text-indigo-600 hover:text-indigo-900 transition-colors duration-200">{{ __('Edit') }}</a>
+                                            <a href="{{ route('leave-types.edit', $type) }}" class="text-indigo-600 hover:text-indigo-900 transition-colors duration-200">        <i class="fa-solid fa-pen-to-square"></i>
+</a>
                                             <form action="{{ route('leave-types.destroy', $type) }}" method="POST" class="inline-block" onsubmit="return confirm('{{ __('Are you sure you want to delete this leave type?') }}')">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="text-red-600 hover:text-red-900 transition-colors duration-200">{{ __('Delete') }}</button>
+                                                <button type="submit" class="text-red-600 hover:text-red-900 transition-colors duration-200"><i class="fa-solid fa-trash"></i></button>
                                             </form>
                                         </td>
                                     </tr>

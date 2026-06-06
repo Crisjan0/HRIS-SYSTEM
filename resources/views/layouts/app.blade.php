@@ -10,7 +10,7 @@
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=manrope:300,400,500,600,700,800&display=swap" rel="stylesheet" />
-
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @livewireStyles
@@ -76,7 +76,7 @@
                 <!-- Mobile top bar -->
                 <header class="lg:hidden flex items-center justify-between h-16 px-4 shrink-0 bg-white border-b border-gray-100 shadow-sm z-40">
                     <button type="button" 
-                            class="p-2 -ml-0.5 text-gray-500 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500" 
+                            class="p-2 -ml-0.5 text-gray-500 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-bg-[#0038a8]" 
                             @click="sidebarOpen = true">
                         <span class="sr-only">Open sidebar</span>
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -84,7 +84,7 @@
                         </svg>
                     </button>
                     <div class="flex-1 flex justify-center lg:hidden">
-                        <x-application-logo class="w-10 h-10 fill-current text-indigo-600" />
+                        <x-application-logo class="w-10 h-10 fill-current text-blue-800" />
                     </div>
                     <div class="flex items-center gap-2">
                         <livewire:notifications-dropdown wire:key="mobile-notifications" />
@@ -97,7 +97,7 @@
                             {{ $title ?? 'Dashboard' }}
                         </h2>
                     </div>
-                    <div class="flex items-center gap-5">
+                        <div class="flex items-center gap-3">
                         <livewire:notifications-dropdown wire:key="desktop-notifications" />
                         
                         <div class="h-6 w-px bg-gray-100 mx-1"></div>
@@ -106,7 +106,7 @@
                            class="flex items-center gap-3 pl-2 rounded-xl hover:bg-gray-50 transition-colors duration-200 {{ request()->routeIs(['personal-information.*', 'profile.edit']) ? 'ring-2 ring-indigo-100 bg-indigo-50/50' : '' }}">
                             <div class="text-right hidden xl:block">
                                 <p class="text-sm font-bold text-gray-900 leading-none mb-0.5">{{ Auth::user()->display_name }}</p>
-                                <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-tighter">{{ Auth::user()->role ?? 'Employee' }}</p>
+                                <p class="text-[10px] font-bold text-blue-800 uppercase tracking-tighter">{{ Auth::user()->role ?? 'Employee' }}</p>
                             </div>
                             <x-profile-avatar :user="auth()->user()" size="md" class="ring-2 ring-white hover:ring-indigo-100 transition-all duration-300" />
                         </a>

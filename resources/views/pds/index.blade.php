@@ -22,7 +22,7 @@
                                 Download PDS (PDF)
                             </a>
                             <a href="{{ route('pds.edit') }}"
-                                class="inline-flex items-center px-6 py-2.5 bg-indigo-700 border-2 border-indigo-800 rounded-xl font-bold text-sm text-white shadow-lg shadow-indigo-100 hover:bg-indigo-800 active:scale-95 transition-all duration-300">
+                                class="inline-flex items-center px-6 py-2.5 bg-blue-800 border-2 border-blue-900 rounded-xl font-bold text-sm text-white shadow-lg shadow-blue-200 hover:bg-blue-800 active:scale-95 transition-all duration-300">
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                                         d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -58,7 +58,7 @@
                                             {{ $employee->firstname }} {{ $employee->lastname }}
                                         </h4>
                                         <div class="flex items-center justify-center gap-2 mt-1">
-                                            <p class="inline-block px-3 py-1 bg-indigo-100 text-indigo-900 text-[10px] font-black uppercase tracking-widest rounded-full">
+                                            <p class="inline-block px-3 py-1 bg-blue-100 text-blue-900 text-[10px] font-black uppercase tracking-widest rounded-full">
                                                 {{ ucfirst($employee->position) }}
                                             </p>
                                         </div>
@@ -137,14 +137,14 @@
                                         <h4 class="text-lg font-black text-gray-900">Completion Status</h4>
                                         <p class="text-sm text-gray-500 font-medium italic">Civil Service record sections compliance.</p>
                                     </div>
-                                    <div class="bg-indigo-700 text-white px-5 py-2 rounded-xl shadow-md border-b-2 border-indigo-900 leading-none">
+                                    <div class="bg-blue-900 text-white px-5 py-2 rounded-xl shadow-md border-b-2 border-blue-900 leading-none">
                                         <span class="text-2xl font-black">{{ $percentage }}%</span>
                                     </div>
                                 </div>
 
                                 <!-- Progress Bar -->
                                 <div class="w-full bg-white border-2 border-gray-50 rounded-2xl h-4 mb-8 overflow-hidden shadow-inner flex items-center p-1">
-                                    <div class="bg-indigo-700 h-full rounded-xl transition-all duration-1000 ease-out shadow-sm"
+                                    <div class="bg-blue-900 h-full rounded-xl transition-all duration-1000 ease-out shadow-sm"
                                         style="width: {{ $percentage }}%">
                                     </div>
                                 </div>
@@ -156,11 +156,11 @@
                                             $review = $employee->pdsSectionReviews->where('section_name', $section['label'])->first();
                                             $reviewStatus = $review ? $review->status : 'pending';
                                         @endphp
-                                        <a href="{{ route('pds.edit') }}" class="group flex items-center p-4 bg-white rounded-xl border border-gray-100 shadow-sm transition-all duration-200 hover:border-indigo-300 hover:shadow-md cursor-pointer relative overflow-hidden">
+                                        <a href="{{ route('pds.edit') }}" class="group flex items-center p-4 bg-white rounded-xl border border-gray-100 shadow-sm transition-all duration-200 hover:border-blue-300 hover:shadow-md cursor-pointer relative overflow-hidden">
                                             <!-- Hover indicator bar -->
-                                            <div class="absolute left-0 top-0 bottom-0 w-1 bg-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                            <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                             
-                                            <div class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center mr-4 transition-transform group-hover:scale-110 {{ $section['filled'] ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-400 group-hover:bg-indigo-50 group-hover:text-indigo-500' }}">
+                                            <div class="flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center mr-4 transition-transform group-hover:scale-110 {{ $section['filled'] ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-400 group-hover:bg-blue-50 group-hover:text-blue-500' }}">
                                                 @if($section['filled'])
                                                     <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                                                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
@@ -172,11 +172,11 @@
                                                 @endif
                                             </div>
                                             <div class="overflow-hidden flex-1">
-                                                <span class="block text-sm font-black truncate tracking-tight transition-colors {{ $section['filled'] ? 'text-gray-900 group-hover:text-emerald-700' : 'text-gray-400 group-hover:text-indigo-600' }}">{{ $section['label'] }}</span>
+                                                <span class="block text-sm font-black truncate tracking-tight transition-colors {{ $section['filled'] ? 'text-gray-900 group-hover:text-emerald-700' : 'text-gray-400 group-hover:text-blue-600' }}">{{ $section['label'] }}</span>
                                                 <div class="flex items-center justify-between mt-0.5">
                                                     <div class="flex items-center gap-1.5 leading-none flex-wrap">
-                                                        <div class="w-1.5 h-1.5 rounded-full {{ $section['filled'] ? 'bg-emerald-500' : 'bg-gray-300 group-hover:bg-indigo-400' }}"></div>
-                                                        <span class="text-[9px] font-black uppercase tracking-widest transition-colors {{ $section['filled'] ? 'text-emerald-600' : 'text-gray-400 group-hover:text-indigo-500' }}">
+                                                        <div class="w-1.5 h-1.5 rounded-full {{ $section['filled'] ? 'bg-emerald-500' : 'bg-gray-300 group-hover:bg-blue-400' }}"></div>
+                                                        <span class="text-[9px] font-black uppercase tracking-widest transition-colors {{ $section['filled'] ? 'text-emerald-600' : 'text-gray-400 group-hover:text-blue-500' }}">
                                                             {{ $section['filled'] ? 'Saved' : 'Blank' }}
                                                         </span>
                                                         @if($section['filled'])
@@ -189,7 +189,7 @@
                                                             @endif
                                                         @endif
                                                     </div>
-                                                    <svg class="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <svg class="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-blue-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
                                                     </svg>
                                                 </div>

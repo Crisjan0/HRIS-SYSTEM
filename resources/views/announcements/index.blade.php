@@ -41,7 +41,7 @@
                             </div>
 
                             <a href="{{ route('announcements.show', $announcement) }}" class="block group/title">
-                                <h3 class="text-lg font-bold text-gray-900 mb-2 line-clamp-1 group-hover/title:text-indigo-600 transition-colors cursor-pointer hover:underline decoration-indigo-200 underline-offset-4">
+                                <h3 class="text-lg font-bold text-gray-900 mb-2 line-clamp-1 group-hover/title:text-blue-600 transition-colors cursor-pointer hover:underline decoration-blue-200 underline-offset-4">
                                     {{ $announcement->title }}
                                 </h3>
                             </a>
@@ -53,7 +53,7 @@
                             @if($announcement->tags)
                                 <div class="flex flex-wrap gap-2 mb-4">
                                     @foreach(explode(',', $announcement->tags) as $tag)
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-50 text-indigo-700">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700">
                                             #{{ trim($tag) }}
                                         </span>
                                     @endforeach
@@ -67,7 +67,7 @@
                                 <span class="ml-2 text-xs font-semibold text-gray-700">{{ $announcement->author->display_name }}</span>
                             </div>
                             
-                            <a href="{{ route('announcements.show', $announcement) }}" class="inline-flex items-center text-xs font-black text-indigo-600 hover:text-indigo-700 uppercase tracking-widest gap-1 group/btn">
+                            <a href="{{ route('announcements.show', $announcement) }}" class="inline-flex items-center text-xs font-black text-blue-600 hover:text-blue-700 uppercase tracking-widest gap-1 group/btn">
                                 {{ __('View') }}
                                 <svg class="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
@@ -85,7 +85,7 @@
                             </div>
                             <h3 class="text-xl font-bold text-gray-900 mb-1">{{ __('No announcements yet') }}</h3>
                             <p class="text-gray-500 mb-6">{{ __('Create your first announcement to share important updates.') }}</p>
-                            <a href="{{ route('announcements.create') }}" class="inline-flex items-center px-6 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition duration-150">
+                            <a href="{{ route('announcements.create') }}" class="inline-flex items-center px-6 py-2.5 bg-blue-900 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-150">
                                 {{ __('Get Started') }}
                             </a>
                         </div>
