@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class EmployeeController extends Controller
@@ -212,13 +213,27 @@ class EmployeeController extends Controller
         ]);
 
         if ($request->hasFile('profile_picture')) {
-            if ($employee->profile_picture && \Illuminate\Support\Facades\Storage::disk('public')->exists($employee->profile_picture)) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($employee->profile_picture);
-            }
-            $path = $request->file('profile_picture')->store('profile_pictures', 'public');
+            $this->deleteProfilePicture($employee->profile_picture);
+
+            $path = $request->file('profile_picture')->store('profile_pictures', 'public_uploads');
             $employee->update(['profile_picture' => $path]);
         }
 
         return back()->with('success', 'Profile picture updated successfully.');
+    }
+
+    private function deleteProfilePicture(?string $path): void
+    {
+        if (! $path) {
+            return;
+        }
+
+        if (Storage::disk('public_uploads')->exists($path)) {
+            Storage::disk('public_uploads')->delete($path);
+        }
+
+        if (Storage::disk('public')->exists($path)) {
+            Storage::disk('public')->delete($path);
+        }
     }
 }

@@ -63,9 +63,7 @@
 
                         <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
                             <div class="flex items-center">
-                                <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-[10px] text-white font-bold shadow-sm ring-2 ring-white">
-                                    {{ substr($announcement->author->display_name, 0, 1) }}
-                                </div>
+                                <x-profile-avatar :user="$announcement->author" size="xs" variant="indigo" class="ring-2 ring-white shadow-sm" />
                                 <span class="ml-2 text-xs font-semibold text-gray-700">{{ $announcement->author->display_name }}</span>
                             </div>
                             

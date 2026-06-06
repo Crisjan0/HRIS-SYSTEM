@@ -47,7 +47,7 @@ class LocatorSlipController extends Controller
 
         // Notify Chief
         $chiefs = User::whereHas('employee', function ($query) {
-            $query->where('role', 'CHIEF');
+            $query->where('account_role', 'CHIEF');
         })->get();
 
         foreach ($chiefs as $chief) {
@@ -57,17 +57,34 @@ class LocatorSlipController extends Controller
         return redirect()->route('locator-slips.index')->with('message', 'Locator slip submitted successfully.');
     }
 
-    public function allIndex()
+    public function manageIndex(Request $request)
     {
-        $locatorSlips = LocatorSlip::with('employee')
+        $allLocatorSlips = LocatorSlip::with('employee')
             ->whereIn('status', ['approved', 'rejected'])
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('locator-slip.hr.index', compact('locatorSlips'));
+        $pendingLocatorSlips = $this->getPendingLocatorSlips();
+
+        $tab = $request->query('tab', 'pending');
+        if (! in_array($tab, ['all', 'pending'])) {
+            $tab = 'pending';
+        }
+
+        return view('locator-slip.hr.manage', compact('allLocatorSlips', 'pendingLocatorSlips', 'tab'));
+    }
+
+    public function allIndex()
+    {
+        return redirect()->route('hr.locator-slips.index', ['tab' => 'all']);
     }
 
     public function pendingIndex()
+    {
+        return redirect()->route('hr.locator-slips.index', ['tab' => 'pending']);
+    }
+
+    private function getPendingLocatorSlips()
     {
         $user = Auth::user();
         $query = LocatorSlip::with('employee')->orderBy('created_at', 'desc');
@@ -77,16 +94,13 @@ class LocatorSlipController extends Controller
         } elseif (in_array(strtolower($user->role), ['regional director', 'regionaldirector'])) {
             $query->where('status', 'approved by chief');
         } else {
-            // For admin, hrstaff, etc., show all pending
-            $query->where(function($q) {
+            $query->where(function ($q) {
                 $q->where('status', 'pending')
-                  ->orWhere('status', 'approved by chief');
+                    ->orWhere('status', 'approved by chief');
             });
         }
 
-        $locatorSlips = $query->get();
-
-        return view('locator-slip.hr.pending', compact('locatorSlips'));
+        return $query->get();
     }
 
     public function approve(LocatorSlip $locatorSlip)
@@ -102,7 +116,7 @@ class LocatorSlipController extends Controller
 
             // Notify Regional Director
             $directors = User::whereHas('employee', function ($query) {
-                $query->whereIn('role', ['REGIONALDIRECTOR', 'REGIONAL DIRECTOR', 'regionaldirector', 'regional director']);
+                $query->whereIn('account_role', ['REGIONALDIRECTOR', 'REGIONAL DIRECTOR', 'regionaldirector', 'regional director']);
             })->get();
 
             foreach ($directors as $director) {

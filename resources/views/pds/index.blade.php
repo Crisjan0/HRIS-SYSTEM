@@ -13,13 +13,13 @@
                             <p class="text-sm text-gray-500 font-medium italic">Civil Service Records Management Dashboard.</p>
                         </div>
                         <div class="flex gap-4">
-                            <a href="{{ route('pds.download') }}"
+                            <a href="{{ route('pds.download') }}" data-no-transition
                                 class="inline-flex items-center px-6 py-2.5 bg-emerald-600 border-2 border-emerald-700 rounded-xl font-bold text-sm text-white shadow-lg shadow-emerald-100 hover:bg-emerald-700 active:scale-95 transition-all duration-300">
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                                         d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                 </svg>
-                                Download PDS (.doc)
+                                Download PDS (PDF)
                             </a>
                             <a href="{{ route('pds.edit') }}"
                                 class="inline-flex items-center px-6 py-2.5 bg-blue-800 border-2 border-blue-900 rounded-xl font-bold text-sm text-white shadow-lg shadow-blue-200 hover:bg-blue-800 active:scale-95 transition-all duration-300">
@@ -31,6 +31,12 @@
                             </a>
                         </div>
                     </div>
+
+                    @if(session('error'))
+                        <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-lg text-sm">
+                            {{ session('error') }}
+                        </div>
+                    @endif
 
                     @if(session('success'))
                         <div class="mb-8 p-4 bg-emerald-50 border border-emerald-100 text-emerald-900 rounded-xl flex items-center shadow-sm">
@@ -46,9 +52,7 @@
                         <div class="lg:col-span-4">
                             <div class="bg-gray-50/50 border-2 border-gray-100 p-6 rounded-2xl shadow-sm">
                                 <div class="flex flex-col items-center text-center">
-                                    <div class="w-20 h-20 bg-blue-900 rounded-2xl flex items-center justify-center text-white text-3xl font-black shadow-xl mb-4">
-                                        {{ substr($employee->firstname, 0, 1) }}{{ substr($employee->lastname, 0, 1) }}
-                                    </div>
+                                    <x-profile-avatar :employee="$employee" size="2xl" variant="indigo" rounded="2xl" class="shadow-xl mb-4" />
                                     <div class="space-y-1">
                                         <h4 class="text-xl font-black text-gray-900">
                                             {{ $employee->firstname }} {{ $employee->lastname }}

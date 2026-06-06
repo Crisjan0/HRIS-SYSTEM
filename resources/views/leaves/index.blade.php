@@ -24,7 +24,7 @@
                 </a>
             </div>
 
-            <div x-data="{ tab: 'credits' }">
+            <div x-data="{ tab: 'applications' }">
                 <!-- Tabs Navigation -->
                 <div class="border-b border-gray-200 mb-6">
                     <nav class="-mb-px flex space-x-8" aria-label="Tabs">
@@ -131,6 +131,13 @@
                                             <span>Filed on
                                                 {{ \Carbon\Carbon::parse($leaf->date_filed)->format('M d, Y h:i A') }}</span>
                                         </div>
+
+                                        @if($leaf->attachment_path)
+                                            <a href="{{ asset('storage/' . $leaf->attachment_path) }}" target="_blank" class="flex items-center gap-1 text-indigo-500 hover:text-indigo-700 transition-colors">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
+                                                <span class="font-bold">Attachment</span>
+                                            </a>
+                                        @endif
                                     </div>
                                 </div>
 

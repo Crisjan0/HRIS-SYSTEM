@@ -5,8 +5,7 @@
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-2xl sm:rounded-2xl border border-gray-100 ring-1 ring-black/5">
                 <div class="p-8">
-                    <form method="POST" action="{{ route('leaves.store') }}" class="space-y-8">
-                        @csrf
+                    <form method="POST" action="{{ route('leaves.store') }}" class="space-y-8" enctype="multipart/form-data">                        @csrf
 
                         <!-- Leave Type -->
                         @php
@@ -103,6 +102,42 @@
                             <x-input-label for="reason" :value="__('Reason for Leave')" class="text-[10px] font-black uppercase text-indigo-600 tracking-[0.2em] mb-2" />
                             <textarea id="reason" name="reason" class="mt-1 block w-full border-gray-100 focus:border-indigo-500 focus:ring-indigo-500 rounded-xl shadow-sm text-sm font-bold py-3 px-4 bg-gray-50/50" rows="5" required placeholder="{{ __('Please provide a detailed reason for your leave request...') }}">{{ old('reason') }}</textarea>
                             <x-input-error class="mt-2" :messages="$errors->get('reason')" />
+                        </div>
+                        <div class="mt-6" x-data="{ fileName: '' }">
+                            <x-input-label for="attachment" :value="__('Supporting Documents (Optional)')" class="text-[10px] font-black uppercase text-indigo-600 tracking-[0.2em] mb-2" />
+                            
+                            <div class="relative group">
+                                <input type="file" 
+                                    name="attachment" 
+                                    id="attachment" 
+                                    class="hidden" 
+                                    @change="fileName = $event.target.files[0]?.name || ''"
+                                    accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+                                
+                                <label for="attachment" 
+                                    class="flex items-center justify-between w-full border-2 border-dashed border-gray-200 group-hover:border-indigo-400 rounded-xl p-4 bg-gray-50/50 cursor-pointer transition-all duration-300">
+                                    <div class="flex items-center gap-3">
+                                        <div class="p-2 bg-indigo-100 rounded-lg text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <span x-show="!fileName" class="text-sm font-bold text-gray-500 uppercase tracking-tight">{{ __('Attach Document / File') }}</span>
+                                            <span x-show="fileName" x-text="fileName" class="text-sm font-bold text-indigo-700 truncate max-w-xs"></span>
+                                            <p class="text-[10px] text-gray-400">{{ __('PDF, JPG, PNG or DOC (Max 5MB)') }}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <span x-show="!fileName" class="text-[10px] font-black text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                        BROWSE
+                                    </span>
+                                    <button type="button" x-show="fileName" @click.prevent="fileName = ''; $refs.attachment.value = ''" class="text-red-500 hover:text-red-700">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    </button>
+                                </label>
+                            </div>
+                            <x-input-error class="mt-2" :messages="$errors->get('attachment')" />
                         </div>
 
                         <div class="flex items-center justify-end gap-6 pt-6 border-t border-gray-50">

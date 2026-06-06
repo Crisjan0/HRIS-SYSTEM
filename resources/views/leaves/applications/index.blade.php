@@ -9,18 +9,7 @@
                 </div>
             @endif
 
-            <!-- Tabs Navigation -->
-            <div class="mb-6 flex space-x-2 bg-white p-1 rounded-xl shadow-sm border border-gray-100 w-fit">
-                <a href="{{ route('leave-applications.index') }}" class="px-6 py-2.5 text-sm font-semibold rounded-lg {{ request()->routeIs('leave-applications.index') ? 'bg-[#0038a8] text-white shadow-md' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50' }} transition-all duration-200">
-                    Pending Leave
-                </a>
-                <a href="{{ route('leave-applications.all') }}" class="px-6 py-2.5 text-sm font-semibold rounded-lg {{ request()->routeIs('leave-applications.all') ? 'bg-[#0038a8] text-white shadow-md' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50' }} transition-all duration-200">
-                    All Leave Applications
-                </a>
-                <a href="{{ route('leave-calendar') }}" class="px-6 py-2.5 text-sm font-semibold rounded-lg {{ request()->routeIs('leave-calendar') ? 'bg-[#0038a8] text-white shadow-md' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50' }} transition-all duration-200">
-                    Leave Calendar
-                </a>
-            </div>
+            @include('leaves._manage-tabs')
 
             <div class="space-y-4">
                 @forelse($leaves as $leaf)
@@ -39,6 +28,13 @@
                             <div class="mt-2 flex items-center gap-2">
                                 <span class="text-[10px] font-black uppercase tracking-widest text-gray-400">Status:</span>
                                 <span class="text-[10px] font-black uppercase tracking-widest text-orange-500 bg-orange-50 px-2 py-0.5 rounded">PENDING</span>
+
+                                @if($leaf->attachment_path)
+                                    <a href="{{ asset('storage/' . $leaf->attachment_path) }}" target="_blank" class="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded transition-colors">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
+                                        Attachment
+                                    </a>
+                                @endif
                             </div>
                         </div>
 

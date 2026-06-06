@@ -68,9 +68,7 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             @if($employee->user)
                                                 <div class="flex items-center gap-2">
-                                                    <div class="w-6 h-6 rounded-full bg-indigo-500 flex items-center justify-center text-[10px] text-white font-bold shrink-0">
-                                                        {{ substr($employee->user->name, 0, 1) }}
-                                                    </div>
+                                                    <x-profile-avatar :employee="$employee" size="xs" variant="indigo" />
                                                     <div class="flex flex-col">
                                                         <span>{{ $employee->user->name }}</span>
                                                         <span class="text-xs text-gray-400">{{ $employee->user->email }}</span>
@@ -154,9 +152,7 @@
                                 <div class="border border-gray-100 rounded-2xl p-5 bg-white shadow-sm hover:shadow-md transition account-card" data-link="{{ $user->employee ? route('employee-accounts.show', $user) : '' }}">
                                     <div class="flex items-start justify-between gap-4">
                                         <div class="flex items-center gap-3">
-                                            <div class="w-10 h-10 rounded-full bg-amber-500 flex items-center justify-center text-sm text-white font-bold shrink-0">
-                                                {{ substr($user->display_name, 0, 1) }}
-                                            </div>
+                                            <x-profile-avatar :user="$user" size="md" variant="amber" />
                                             <div>
                                                 @if($user->employee)
                                                     <a href="{{ route('employee-accounts.show', $user) }}" class="text-sm font-semibold text-gray-900 hover:text-indigo-700 hover:underline">
@@ -257,15 +253,13 @@
 
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                             @forelse($approvedAccounts as $user)
-                                <div class="border border-gray-100 rounded-2xl p-5 bg-white shadow-sm hover:shadow-md transition account-card" data-link="{{ $user->employee ? route('employees.show', $user->employee) : '' }}">
+                                <div class="border border-gray-100 rounded-2xl p-5 bg-white shadow-sm hover:shadow-md transition account-card" data-link="{{ $user->employee ? route('employee-accounts.show', $user) : '' }}">
                                     <div class="flex items-start justify-between gap-4">
                                         <div class="flex items-center gap-3">
-                                            <div class="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-sm text-white font-bold shrink-0">
-                                                {{ substr($user->display_name, 0, 1) }}
-                                            </div>
+                                            <x-profile-avatar :user="$user" size="md" variant="green" />
                                             <div>
                                                 @if($user->employee)
-                                                    <a href="{{ route('employees.show', $user->employee) }}" class="text-sm font-semibold text-gray-900 hover:text-indigo-700 hover:underline">
+                                                    <a href="{{ route('employee-accounts.show', $user) }}" class="text-sm font-semibold text-gray-900 hover:text-indigo-700 hover:underline">
                                                         {{ $user->employee->lastname }}, {{ $user->employee->firstname }} {{ $user->employee->middlename ?? '' }}
                                                     </a>
                                                 @else

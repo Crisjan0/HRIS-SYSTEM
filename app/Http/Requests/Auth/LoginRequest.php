@@ -60,6 +60,15 @@ class LoginRequest extends FormRequest
             return;
         }
 
+        // Block unapproved users — they cannot access the system at all
+        if ($user instanceof User && ! $user->is_approved) {
+            Auth::logout();
+
+            throw ValidationException::withMessages([
+                'email' => 'Your account is still pending HR approval. Please wait up to 24 hours for your account to be activated.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 

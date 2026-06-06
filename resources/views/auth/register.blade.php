@@ -243,6 +243,46 @@
                         <p x-show="errors.password" x-text="errors.password" class="text-red-500 text-xs mt-1"></p>
                     </div>
 
+                    {{-- Password Strength Meter --}}
+                    <div x-show="form.password.length > 0" x-transition class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold text-gray-500">Password Strength</span>
+                            <span class="text-xs font-bold"
+                                  :class="{
+                                      'text-red-500': getPasswordStrength() === 'Weak',
+                                      'text-yellow-500': getPasswordStrength() === 'Fair',
+                                      'text-green-500': getPasswordStrength() === 'Strong',
+                                  }"
+                                  x-text="getPasswordStrength()"></span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                            <div class="h-full rounded-full transition-all duration-500 ease-out"
+                                 :class="{
+                                     'bg-red-500': getPasswordStrength() === 'Weak',
+                                     'bg-yellow-400': getPasswordStrength() === 'Fair',
+                                     'bg-green-500': getPasswordStrength() === 'Strong',
+                                 }"
+                                 :style="'width: ' + getPasswordStrengthPercent() + '%'"></div>
+                        </div>
+                        <ul class="space-y-1 mt-1">
+                            <li class="text-xs flex items-center gap-1.5"
+                                :class="form.password.length >= 8 ? 'text-green-600' : 'text-gray-400'">
+                                <i :class="form.password.length >= 8 ? 'fas fa-check-circle' : 'fas fa-circle'" class="text-[8px]"></i>
+                                At least 8 characters
+                            </li>
+                            <li class="text-xs flex items-center gap-1.5"
+                                :class="/[A-Z]/.test(form.password) ? 'text-green-600' : 'text-gray-400'">
+                                <i :class="/[A-Z]/.test(form.password) ? 'fas fa-check-circle' : 'fas fa-circle'" class="text-[8px]"></i>
+                                At least one uppercase letter
+                            </li>
+                            <li class="text-xs flex items-center gap-1.5"
+                                :class="/[0-9]/.test(form.password) ? 'text-green-600' : 'text-gray-400'">
+                                <i :class="/[0-9]/.test(form.password) ? 'fas fa-check-circle' : 'fas fa-circle'" class="text-[8px]"></i>
+                                At least one number
+                            </li>
+                        </ul>
+                    </div>
+
                     {{-- Confirm Password --}}
                     <div class="relative">
                         <label class="block text-xs font-semibold text-gray-600 mb-1">Confirm Password <span class="text-red-500">*</span></label>
@@ -426,8 +466,8 @@
                         if (!this.form.password) {
                             this.errors.password = 'Password is required.';
                             valid = false;
-                        } else if (this.form.password.length < 8) {
-                            this.errors.password = 'Password must be at least 8 characters.';
+                        } else if (this.getPasswordStrength() !== 'Strong') {
+                            this.errors.password = 'Password must be Strong (at least 8 characters, one uppercase letter, and one number).';
                             valid = false;
                         }
                         if (this.form.password !== this.form.password_confirmation) {
@@ -464,6 +504,26 @@
                     }
 
                     this.submitting = true;
+                },
+
+                getPasswordStrength() {
+                    const pw = this.form.password;
+                    if (!pw) return '';
+
+                    const hasLength = pw.length >= 8;
+                    const hasUpper = /[A-Z]/.test(pw);
+                    const hasNumber = /[0-9]/.test(pw);
+
+                    if (hasLength && hasUpper && hasNumber) return 'Strong';
+                    if (hasLength && (hasUpper || hasNumber)) return 'Fair';
+                    return 'Weak';
+                },
+
+                getPasswordStrengthPercent() {
+                    const s = this.getPasswordStrength();
+                    if (s === 'Strong') return 100;
+                    if (s === 'Fair') return 55;
+                    return 25;
                 },
 
                 agreeConsent() {

@@ -10,6 +10,8 @@
         }
     }">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            @include('leaves._manage-tabs')
+
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <!-- Add Holiday Form -->
                 <div class="lg:col-span-1">

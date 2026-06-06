@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreSalnRequest;
 use App\Models\Saln;
-use Illuminate\Http\Request;
+use App\Services\SalnPdfExporter;
+use Illuminate\Http\Response;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 
 class SalnController extends Controller
@@ -16,26 +19,20 @@ class SalnController extends Controller
 
     public function create()
     {
-        return view('saln.create');
+        $employee = Auth::user()->employee;
+
+        if (! $employee) {
+            abort(403, 'User is not linked to an employee record.');
+        }
+
+        return view('saln.create', compact('employee'));
     }
 
-    public function store(Request $request)
+    public function store(StoreSalnRequest $request)
     {
-        $validated = $request->validate([
-            'type_of_filing' => 'required|string',
-            'as_of_date' => 'required|date',
-            'declarant_info' => 'required|array',
-            'spouse_info' => 'nullable|array',
-            'filing_status' => 'required|string',
-            'children' => 'nullable|array',
-            'real_properties' => 'nullable|array',
-            'personal_properties' => 'nullable|array',
-            'liabilities' => 'nullable|array',
-            'has_business_interests' => 'required|boolean',
-            'business_interests' => 'nullable|array',
-            'has_relatives_in_gov' => 'required|boolean',
-            'relatives_in_gov' => 'nullable|array',
-        ]);
+        $validated = $request->validated();
+        $validated['has_business_interests'] = $request->boolean('has_business_interests');
+        $validated['has_relatives_in_gov'] = $request->boolean('has_relatives_in_gov');
 
         // Calculate Totals
         $total_assets = 0;
@@ -74,5 +71,22 @@ class SalnController extends Controller
             abort(403);
         }
         return view('saln.show', compact('saln'));
+    }
+
+    public function download(Saln $saln, SalnPdfExporter $exporter): Response|RedirectResponse
+    {
+        $employee = Auth::user()->employee;
+
+        if (! $employee || $saln->employee_id !== $employee->id) {
+            abort(403);
+        }
+
+        try {
+            return $exporter->download($saln);
+        } catch (\Throwable $e) {
+            return redirect()
+                ->route('salns.show', $saln)
+                ->with('error', 'Could not generate PDF. '.$e->getMessage());
+        }
     }
 }

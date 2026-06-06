@@ -9,9 +9,7 @@
                     <div class="bg-white overflow-hidden shadow-sm rounded-3xl border border-gray-100 p-8 md:p-10">
                         <!-- Employee Header -->
                         <div class="flex items-center gap-4 mb-8 pb-8 border-b border-gray-50">
-                            <div class="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center text-white text-2xl font-black">
-                                {{ substr($leaveApplication->employee->firstname, 0, 1) }}{{ substr($leaveApplication->employee->lastname, 0, 1) }}
-                            </div>
+                            <x-profile-avatar :employee="$leaveApplication->employee" size="xl" variant="indigo" rounded="2xl" />
                             <div>
                                 <h1 class="text-2xl font-black text-gray-900">{{ $leaveApplication->employee->firstname }} {{ $leaveApplication->employee->lastname }}</h1>
                                 <div class="flex items-center gap-2">
@@ -52,6 +50,26 @@
                                 <span class="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">Reason for Leave</span>
                                 <p class="text-gray-700 font-medium leading-relaxed italic">"{{ $leaveApplication->reason }}"</p>
                             </div>
+
+                            {{-- Attachment --}}
+                            @if($leaveApplication->attachment_path)
+                                <div class="mt-4">
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-3">Attachment</span>
+                                    <div class="flex items-center gap-4 p-4 bg-gray-50/50 rounded-2xl border border-gray-100">
+                                        <div class="bg-indigo-100 p-3 rounded-xl">
+                                            <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-bold text-gray-900 truncate">{{ basename($leaveApplication->attachment_path) }}</p>
+                                            <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">{{ strtoupper(pathinfo($leaveApplication->attachment_path, PATHINFO_EXTENSION)) }} File</p>
+                                        </div>
+                                        <a href="{{ asset('storage/' . $leaveApplication->attachment_path) }}" target="_blank" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-md hover:-translate-y-0.5 flex items-center gap-2">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                            View
+                                        </a>
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                     </div>
 

@@ -97,20 +97,19 @@
                             {{ $title ?? 'Dashboard' }}
                         </h2>
                     </div>
-                    <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-3">
                         <livewire:notifications-dropdown wire:key="desktop-notifications" />
                         
                         <div class="h-6 w-px bg-gray-100 mx-1"></div>
 
-                        <div class="flex items-center gap-3 pl-2">
+                        <a href="{{ auth()->user()?->employee ? route('personal-information.show') : route('profile.edit') }}"
+                           class="flex items-center gap-3 pl-2 rounded-xl hover:bg-gray-50 transition-colors duration-200 {{ request()->routeIs(['personal-information.*', 'profile.edit']) ? 'ring-2 ring-indigo-100 bg-indigo-50/50' : '' }}">
                             <div class="text-right hidden xl:block">
                                 <p class="text-sm font-bold text-gray-900 leading-none mb-0.5">{{ Auth::user()->display_name }}</p>
                                 <p class="text-[10px] font-bold text-blue-800 uppercase tracking-tighter">{{ Auth::user()->role ?? 'Employee' }}</p>
                             </div>
-                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-[#002061] to-[#758fff] flex items-center justify-center text-white font-bold shadow-sm ring-2 ring-white hover:ring-blue-100 transition-all duration-300 cursor-pointer">
-                                {{ substr(Auth::user()->display_name, 0, 1) }}
-                            </div>
-                        </div>
+                            <x-profile-avatar :user="auth()->user()" size="md" class="ring-2 ring-white hover:ring-indigo-100 transition-all duration-300" />
+                        </a>
                     </div>
                 </header>
 

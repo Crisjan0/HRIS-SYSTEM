@@ -19,7 +19,7 @@ class AnnouncementController extends Controller
      */
     public function index(): View
     {
-        $announcements = Announcement::with('author')
+        $announcements = Announcement::with('author.employee')
             ->latest()
             ->paginate(10);
 
@@ -31,7 +31,7 @@ class AnnouncementController extends Controller
      */
     public function userIndex(): View
     {
-        $announcements = Announcement::with('author')
+        $announcements = Announcement::with('author.employee')
             ->published()
             ->latest()
             ->paginate(12);

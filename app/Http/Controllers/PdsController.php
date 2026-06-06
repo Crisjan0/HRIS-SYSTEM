@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\PdsPdfExporter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -33,9 +34,9 @@ class PdsController extends Controller
     }
 
     /**
-     * Download PDS as a Word document.
+     * Download PDS as PDF (CS Form No. 212 Revised 2017 format).
      */
-    public function download(): Response
+    public function download(PdsPdfExporter $exporter): Response|RedirectResponse
     {
         $employee = Auth::user()->employee;
 
@@ -43,17 +44,13 @@ class PdsController extends Controller
             abort(404);
         }
 
-        $employee->load([
-            'pdsPersonal', 'pdsFamily', 'pdsChildren', 'pdsEducation',
-            'pdsEligibilities', 'pdsWorkExperiences', 'pdsVoluntaryWorks',
-            'pdsTrainings', 'pdsOthers', 'pdsQuestionnaire', 'pdsReferences', 'pdsGovId',
-        ]);
-
-        $filename = 'PDS_'.str_replace(' ', '_', $employee->lastname).'_'.date('Y-m-d').'.doc';
-
-        return response()->view('pds.export', compact('employee'))
-            ->header('Content-Type', 'application/msword')
-            ->header('Content-Disposition', 'attachment; filename="'.$filename.'"');
+        try {
+            return $exporter->download($employee);
+        } catch (\Throwable $e) {
+            return redirect()
+                ->route('pds.index')
+                ->with('error', 'Could not generate PDF. Run: composer require barryvdh/laravel-dompdf — '.$e->getMessage());
+        }
     }
 
     /**

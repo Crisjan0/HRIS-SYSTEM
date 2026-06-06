@@ -37,9 +37,7 @@
                     </h1>
 
                     <div class="flex items-center p-4 bg-gray-50 rounded-2xl mb-10">
-                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg shadow-md ring-4 ring-white">
-                            {{ substr($announcement->author->display_name, 0, 1) }}
-                        </div>
+                        <x-profile-avatar :user="$announcement->author" size="lg" class="ring-4 ring-white shadow-md" />
                         <div class="ml-4">
                             <p class="text-sm font-bold text-gray-900">{{ $announcement->author->display_name }}</p>
                             <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">{{ $announcement->author->role ?? __('Staff') }}</p>

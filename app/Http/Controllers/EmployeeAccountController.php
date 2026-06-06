@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\AccountApprovedMail;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 
 class EmployeeAccountController extends Controller
@@ -37,6 +39,7 @@ class EmployeeAccountController extends Controller
     public function show(User $user): View
     {
         $user->load('employee');
+
         return view('employees.accounts-show', compact('user'));
     }
 
@@ -81,7 +84,10 @@ class EmployeeAccountController extends Controller
 
         $user->update(['is_approved' => true]);
 
-        return back()->with('success', 'Account for ' . $user->display_name . ' has been approved successfully.');
+        // Notify the user that their account has been approved
+        Mail::to($user->email)->send(new AccountApprovedMail($user->name));
+
+        return back()->with('success', 'Account for '.$user->display_name.' has been approved successfully.');
     }
 
     /**
@@ -98,6 +104,6 @@ class EmployeeAccountController extends Controller
 
         $user->delete();
 
-        return back()->with('success', 'Account for ' . $displayName . ' has been rejected and removed.');
+        return back()->with('success', 'Account for '.$displayName.' has been rejected and removed.');
     }
 }

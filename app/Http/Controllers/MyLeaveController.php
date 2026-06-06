@@ -60,7 +60,13 @@ class MyLeaveController extends Controller
             'start_date' => 'required|date|after_or_equal:today',
             'end_date' => 'required|date|after_or_equal:start_date',
             'reason' => 'required|string',
-        ]);
+            'attachment' => 'nullable|file|mimes:pdf,jpg,png,doc,docx|max:5120', // Max 5MB
+            ]);
+
+            if ($request->hasFile('attachment')) {
+                $path = $request->file('attachment')->store('leave-attachments', 'public');
+                $validated['attachment_path'] = $path;
+            }
 
         // Calculate duration and reserved credits (pending)
         $duration = LeaveRequest::calculateBusinessDays($validated['start_date'], $validated['end_date']);
@@ -94,7 +100,7 @@ class MyLeaveController extends Controller
 
         // Notify only the Chief (Level 1 Approval)
         $chiefs = User::whereHas('employee', function ($query) {
-            $query->where('role', 'chief');
+            $query->where('account_role', 'chief');
         })->get();
 
         Notification::send($chiefs, new LeaveRequestNotification($leaveRequest));
