@@ -8,7 +8,7 @@
                 <div class="lg:col-span-2 space-y-8">
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-3xl border border-gray-100 p-8">
                         <div class="flex items-center gap-6">
-                            <div class="w-20 h-20 rounded-2xl bg-indigo-600 flex items-center justify-center text-white text-3xl font-bold shadow-lg shadow-indigo-200">
+                            <div class="w-20 h-20 rounded-2xl bg-blue-900 flex items-center justify-center text-white text-3xl font-bold shadow-lg shadow-blue-200">
                                 {{ substr(Auth::user()->display_name, 0, 1) }}
                             </div>
                             <div>
@@ -20,18 +20,18 @@
 
                     <!-- Additional Dashboard Content can go here -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="bg-indigo-600 rounded-3xl p-6 text-white shadow-xl shadow-indigo-100 relative overflow-hidden group">
+                        <div class="bg-blue-900 rounded-3xl p-6 text-white shadow-xl shadow-blue-200 relative overflow-hidden group">
                             <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
                             <h4 class="text-xs font-black uppercase tracking-widest opacity-80 mb-1">{{ __('My Profile') }}</h4>
                             <p class="text-xl font-bold mb-4 tracking-tight">{{ __('View PDS & SALN') }}</p>
-                            <a href="{{ route('pds.index') }}" class="inline-flex items-center text-xs font-black bg-white text-indigo-600 px-4 py-2 rounded-xl uppercase tracking-widest hover:bg-indigo-50 transition-colors">
+                            <a href="{{ route('pds.index') }}" class="inline-flex items-center text-xs font-black bg-white text-blue-900 px-4 py-2 rounded-xl uppercase tracking-widest hover:bg-blue-100 transition-colors">
                                 {{ __('Go to Profile') }}
                             </a>
                         </div>
                         <div class="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm hover:shadow-md transition-shadow">
                             <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">{{ __('Quick Action') }}</h4>
                             <p class="text-xl font-bold text-gray-900 mb-4 tracking-tight uppercase tracking-widest">{{ __('Apply for Leave') }}</p>
-                            <a href="{{ route('leaves.index') }}" class="inline-flex items-center text-xs font-black text-indigo-600 uppercase tracking-widest gap-1 group">
+                            <a href="{{ route('leaves.index') }}" class="inline-flex items-center text-xs font-black text-blue-900 uppercase tracking-widest gap-1 group">
                                 {{ __('New Request') }}
                                 <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>

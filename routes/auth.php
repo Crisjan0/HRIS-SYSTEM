@@ -9,13 +9,30 @@ use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
+    Route::get('register/consent', function (Request $request) {
+        $request->session()->put('privacy_consent_ack', true);
+
+        return redirect()->route('register');
+    })->name('register.consent');
+
     Route::get('register', [RegisteredUserController::class, 'create'])
+        ->middleware('privacy.consent')
         ->name('register');
 
     Route::post('register', [RegisteredUserController::class, 'store']);
+
+    Route::get('register/verify-otp', [RegisteredUserController::class, 'showOtpForm'])
+        ->name('register.verify-otp');
+
+    Route::post('register/verify-otp', [RegisteredUserController::class, 'verifyOtp'])
+        ->name('register.verify-otp.submit');
+
+    Route::post('register/resend-otp', [RegisteredUserController::class, 'resendOtp'])
+        ->name('register.resend-otp');
 
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');

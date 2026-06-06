@@ -15,7 +15,7 @@
                             <div>
                                 <h1 class="text-2xl font-black text-gray-900">{{ $leaveApplication->employee->firstname }} {{ $leaveApplication->employee->lastname }}</h1>
                                 <div class="flex items-center gap-2">
-                                    <p class="text-gray-400 font-bold uppercase tracking-widest text-[10px]">{{ $leaveApplication->employee->role }}</p>
+                                    <p class="text-gray-400 font-bold uppercase tracking-widest text-[10px]">{{ $leaveApplication->employee->position }}</p>
                                     @if($leaveApplication->status !== 'pending')
                                         <span class="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded border {{ $leaveApplication->is_paid ? 'text-green-600 bg-green-50 border-green-100' : 'text-indigo-600 bg-indigo-50 border-indigo-100' }}">
                                             {{ $leaveApplication->status_label }}

@@ -3,6 +3,7 @@
 use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\DtrController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\EmployeeAccountController;
 use App\Http\Controllers\HolidayController;
 use App\Http\Controllers\LeaveApplicationController;
 use App\Http\Controllers\LeaveTypeController;
@@ -18,10 +19,9 @@ Route::get('/', function () {
 });
 
 Route::middleware(['auth'])->group(function () {
-    
-    Route::get('/locator-slips', [LocatorSlipController::class, 'index'])->name('locator-slips.index');
-    Route::get('/locator-slips/create', [LocatorSlipController::class, 'create'])->name('locator-slips.create');
-    Route::post('/locator-slips', [LocatorSlipController::class, 'store'])->name('locator-slips.store');
+    Route::get('/personal-information', [EmployeeController::class, 'myRecord'])->name('personal-information.show');
+    Route::get('/personal-information/edit', [EmployeeController::class, 'editMyRecord'])->name('personal-information.edit');
+    Route::patch('/personal-information', [EmployeeController::class, 'updateMyRecord'])->name('personal-information.update');
 });
 
 Route::get('/dashboard', function () {
@@ -30,11 +30,20 @@ Route::get('/dashboard', function () {
     return view('dashboard', compact('latestAnnouncement'));
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'approved'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::post('/employees/{employee}/profile-picture', [EmployeeController::class, 'uploadProfilePicture'])->name('employees.profile-picture');
+    Route::get('/locator-slips', [LocatorSlipController::class, 'index'])->name('locator-slips.index');
+    Route::get('/locator-slips/create', [LocatorSlipController::class, 'create'])->name('locator-slips.create');
+    Route::post('/locator-slips', [LocatorSlipController::class, 'store'])->name('locator-slips.store');
     Route::resource('employees', EmployeeController::class)->middleware('role:ADMIN,HRSTAFF,DIRECTOR');
+    Route::get('employee-accounts', [EmployeeAccountController::class, 'index'])->name('employee-accounts.index')->middleware('role:ADMIN,HRSTAFF,DIRECTOR');
+    Route::get('employee-accounts/{user}', [EmployeeAccountController::class, 'show'])->name('employee-accounts.show')->middleware('role:ADMIN,HRSTAFF,DIRECTOR');
+    Route::patch('employee-accounts/{user}', [EmployeeAccountController::class, 'update'])->name('employee-accounts.update')->middleware('role:ADMIN,HRSTAFF,DIRECTOR');
+    Route::patch('employee-accounts/{user}/approve', [EmployeeAccountController::class, 'approve'])->name('employee-accounts.approve')->middleware('role:ADMIN,HRSTAFF,DIRECTOR');
+    Route::delete('employee-accounts/{user}/reject', [EmployeeAccountController::class, 'reject'])->name('employee-accounts.reject')->middleware('role:ADMIN,HRSTAFF,DIRECTOR');
     Route::resource('leave-types', LeaveTypeController::class)->middleware('role:ADMIN,HRSTAFF,DIRECTOR');
     Route::resource('holidays', HolidayController::class)->middleware('role:ADMIN,HRSTAFF,DIRECTOR');
     Route::resource('leaves', MyLeaveController::class);
@@ -61,6 +70,11 @@ Route::middleware('auth')->group(function () {
     Route::patch('/locator-slips/{locatorSlip}/reject', [LocatorSlipController::class, 'reject'])->name('locator-slips.reject');
     Route::get('/locator-slips/{locatorSlip}/edit', [LocatorSlipController::class, 'edit'])->name('locator-slips.edit');
     Route::put('/locator-slips/{locatorSlip}', [LocatorSlipController::class, 'update'])->name('locator-slips.update');
+    
+    Route::post('/employees/{employee}/pds-reviews', [\App\Http\Controllers\PdsSectionReviewController::class, 'store'])->name('pds-reviews.store');
+
+    // SALN Routes
+    Route::resource('salns', \App\Http\Controllers\SalnController::class);
 });
 
 require __DIR__.'/auth.php';

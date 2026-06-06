@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Models\User;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -48,6 +49,15 @@ class LoginRequest extends FormRequest
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),
             ]);
+        }
+
+        // Block unverified users — log them out so the controller can redirect to OTP
+        $user = Auth::user();
+
+        if ($user instanceof User && $user->email_verified_at === null) {
+            Auth::logout();
+
+            return;
         }
 
         RateLimiter::clear($this->throttleKey());

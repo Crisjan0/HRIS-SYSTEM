@@ -7,7 +7,6 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
@@ -24,6 +23,10 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'otp',
+        'otp_expires_at',
+        'privacy_consent',
+        'is_approved',
     ];
 
     /**
@@ -45,8 +48,19 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'otp_expires_at' => 'datetime',
             'password' => 'hashed',
+            'privacy_consent' => 'boolean',
+            'is_approved' => 'boolean',
         ];
+    }
+
+    /**
+     * Check if the OTP has expired.
+     */
+    public function isOtpExpired(): bool
+    {
+        return ! $this->otp_expires_at || $this->otp_expires_at->isPast();
     }
 
     public function employee()
@@ -62,8 +76,10 @@ class User extends Authenticatable
         if ($this->employee) {
             $first = $this->employee->firstname;
             $last = $this->employee->lastname;
+
             return trim("$first $last") ?: $this->name;
         }
+
         return $this->name;
     }
 
@@ -73,7 +89,7 @@ class User extends Authenticatable
      */
     public function getRoleAttribute(): string
     {
-        return $this->employee?->role ?? 'user';
+        return $this->employee?->position ?? 'user';
     }
 
     /**

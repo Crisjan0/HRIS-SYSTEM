@@ -21,39 +21,48 @@ class DatabaseSeeder extends Seeder
             'name' => 'Admin User',
             'email' => 'admin@example.com',
             'password' => 'password',
+            'is_approved' => true,
         ]);
 
         User::factory()->create([
             'name' => 'HR Staff User',
             'email' => 'hrstaff@example.com',
             'password' => 'password',
+            'is_approved' => true,
         ]);
 
         User::factory()->create([
             'name' => 'User',
             'email' => 'user@example.com',
             'password' => 'password',
+            'is_approved' => true,
         ]);
 
         User::factory()->create([
             'name' => 'Director User',
             'email' => 'director@example.com',
             'password' => 'password',
+            'is_approved' => true,
         ]);
 
         User::factory()->create([
             'name' => 'Employee User',
             'email' => 'employee@example.com',
             'password' => 'password',
+            'is_approved' => true,
         ]);
 
         User::factory()->create([
             'name' => 'Chief User',
             'email' => 'chief@example.com',
             'password' => 'password',
+            'is_approved' => true,
         ]);
 
         $this->call(EmployeeSeeder::class);
         $this->call(HolidaySeeder::class);
+        $this->call(LeaveTypeSeeder::class);
+        $this->call(PdsSeeder::class);
+        $this->call(SalnSeeder::class);
     }
 }

@@ -25,6 +25,7 @@
         </div>
 
     <!-- Navigation -->
+    @php($isApproved = auth()->user()?->is_approved)
     <nav class="flex-1 px-4 space-y-1.5 overflow-y-auto mt-2">
         <div class="pb-4 mb-4 border-b border-gray-50">
             <h3 class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
@@ -43,48 +44,61 @@
                 {{ __('Dashboard') }}
             </x-sidebar-link>
 
-            <x-sidebar-link :href="route('announcements.view')" :active="request()->routeIs('announcements.view')">
+            @if(auth()->user()->employee)
+            <x-sidebar-link :href="route('personal-information.show')" :active="request()->routeIs('personal-information.show')">
                 <x-slot name="icon">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z">
-                        </path>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                     </svg>
                 </x-slot>
-                {{ __('Announcements') }}
+                {{ __('Personal Information') }}
             </x-sidebar-link>
+            @endif
 
-            @if(in_array(auth()->user()->role, ['employee', 'admin', 'hrstaff', 'director', 'chief', 'regionaldirector', 'regional director']))
-                <x-sidebar-dropdown label="{{ __('My Profile') }}" :active="request()->routeIs(['pds.*', 'saln.*', 'ildp.*', 'leaves.*', 'my-dtr.*', 'locator-slips.*'])">
+            @if($isApproved)
+                <x-sidebar-link :href="route('announcements.view')" :active="request()->routeIs('announcements.view')">
                     <x-slot name="icon">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                             xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z">
+                            </path>
                         </svg>
                     </x-slot>
+                    {{ __('Announcements') }}
+                </x-sidebar-link>
 
-                    <x-sidebar-link :href="route('pds.index')" :active="request()->routeIs('pds.*')" class="text-xs">
-                        {{ __('PDS') }}
-                    </x-sidebar-link>
-                    <x-sidebar-link href="#" :active="false" class="text-xs">
-                        {{ __('SALN') }}
-                    </x-sidebar-link>
-                    <x-sidebar-link :href="route('locator-slips.index')" :active="request()->routeIs('locator-slips.*')" class="text-xs">
-                        {{ __('Locator Slip') }}
-                    </x-sidebar-link>
-                    <x-sidebar-link :href="route('leaves.index')" :active="request()->routeIs('leaves.*')" class="text-xs">
-                        {{ __('Leave') }}
-                    </x-sidebar-link>
-                    <x-sidebar-link :href="route('my-dtr.index')" :active="request()->routeIs('my-dtr.*')" class="text-xs">
-                        {{ __('Attendance / DTR') }}
-                    </x-sidebar-link>
-                </x-sidebar-dropdown>
+                @if(in_array(auth()->user()->role, ['employee', 'admin', 'hrstaff', 'director', 'chief', 'regionaldirector', 'regional director']))
+                    <x-sidebar-dropdown label="{{ __('My Account') }}" :active="request()->routeIs(['pds.*', 'saln.*', 'ildp.*', 'leaves.*', 'my-dtr.*', 'locator-slips.*'])">
+                        <x-slot name="icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                        </x-slot>
+
+                        <x-sidebar-link :href="route('pds.index')" :active="request()->routeIs('pds.*')" class="text-xs">
+                            {{ __('PDS') }}
+                        </x-sidebar-link>
+                        <x-sidebar-link :href="route('salns.index')" :active="request()->routeIs('salns.*')" class="text-xs">
+                            {{ __('SALN') }}
+                        </x-sidebar-link>
+                        <x-sidebar-link :href="route('locator-slips.index')" :active="request()->routeIs('locator-slips.*')" class="text-xs">
+                            {{ __('Locator Slip') }}
+                        </x-sidebar-link>
+                        <x-sidebar-link :href="route('leaves.index')" :active="request()->routeIs('leaves.*')" class="text-xs">
+                            {{ __('My Leave Application') }}
+                        </x-sidebar-link>
+                        <x-sidebar-link :href="route('my-dtr.index')" :active="request()->routeIs('my-dtr.*')" class="text-xs">
+                            {{ __('Attendance / DTR') }}
+                        </x-sidebar-link>
+                    </x-sidebar-dropdown>
+                @endif
             @endif
         </div>
 
-        @if(in_array(auth()->user()->role, ['admin', 'hrstaff', 'director', 'chief', 'regionaldirector', 'regional director']))
+        @if($isApproved && in_array(auth()->user()->role, ['admin', 'hrstaff', 'director', 'chief', 'regionaldirector', 'regional director']))
             <div class="pb-4">
                 <h3 class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
                     {{ __('Administration') }}
@@ -107,7 +121,7 @@
                     </x-sidebar-link>
                 </x-sidebar-dropdown>
 
-                <x-sidebar-dropdown :label="__('Leave & Employee')" :active="request()->routeIs(['employees.*', 'leave-types.*', 'leave-applications.*', 'leave-calendar', 'holidays.*'])">
+                <x-sidebar-dropdown :label="__('Manage Leave & Employee')" :active="request()->routeIs(['employees.*', 'employee-accounts.*', 'leave-types.*', 'leave-applications.*', 'leave-calendar', 'holidays.*'])">
                     <x-slot name="icon">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                             xmlns="http://www.w3.org/2000/svg">
@@ -117,7 +131,7 @@
                         </svg>
                     </x-slot>
 
-                    <x-sidebar-link :href="route('employees.index')" :active="request()->routeIs('employees.*')"
+                    <x-sidebar-link :href="route('employees.index')" :active="request()->routeIs('employees.*') || request()->routeIs('employee-accounts.*')"
                         class="text-xs">
                         {{ __('Manage Employee') }}
                     </x-sidebar-link>
@@ -130,15 +144,8 @@
                         {{ __('Manage Holiday') }}
                     </x-sidebar-link>
                     <x-sidebar-link :href="route('leave-applications.index')"
-                        :active="request()->routeIs('leave-applications.index')" class="text-xs">
-                        {{ __('Pending Leave') }}
-                    </x-sidebar-link>
-                    <x-sidebar-link :href="route('leave-applications.all')"
-                        :active="request()->routeIs('leave-applications.all')" class="text-xs">
-                        {{ __('All Leave') }}
-                    </x-sidebar-link>
-                    <x-sidebar-link :href="route('leave-calendar')" :active="request()->routeIs('leave-calendar')" class="text-xs">
-                        {{ __('Leave Calendar') }}
+                        :active="request()->routeIs(['leave-applications.index', 'leave-applications.all', 'leave-applications.show', 'leave-calendar'])" class="text-xs">
+                        {{ __('Manage Leave') }}
                     </x-sidebar-link>
                 </x-sidebar-dropdown>
 
@@ -179,16 +186,18 @@
                 {{ __('Settings') }}
             </h3>
 
-            <x-sidebar-link :href="route('profile.edit')" :active="request()->routeIs('profile.edit')">
-                <x-slot name="icon">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                    </svg>
-                </x-slot>
-                {{ __('Profile') }}
-            </x-sidebar-link>
+            @if($isApproved)
+                <x-sidebar-link :href="route('profile.edit')" :active="request()->routeIs('profile.edit')">
+                    <x-slot name="icon">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                    </x-slot>
+                    {{ __('Profile') }}
+                </x-sidebar-link>
+            @endif
 
             <form method="POST" action="{{ route('logout') }}" class="group mt-auto">
                 @csrf
@@ -210,7 +219,7 @@
         <div class="px-4 py-6 border-t border-white/40 bg-white/40 backdrop-blur-sm">
             <div class="flex items-center gap-3 px-3 group cursor-pointer">
                 <div
-                    class="w-10 h-10 rounded-full bg-gradient-to-br from-[#0038a8] to-[#ce1126] flex items-center justify-center text-white font-bold shadow-md shadow-[#0038a8]/20 ring-2 ring-white transition-transform duration-300 group-hover:scale-110">
+                    class="w-10 h-10 rounded-full bg-gradient-to-br from-[#002061] to-[#758fff] flex items-center justify-center text-white font-bold shadow-md shadow-[#0038a8]/20 ring-2 ring-white transition-transform duration-300 group-hover:scale-110">
                     {{ substr(Auth::user()->display_name, 0, 1) }}
                 </div>
                 <div class="overflow-hidden">

@@ -35,6 +35,7 @@ class LeaveTypeController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:leave_types,name',
             'description' => 'nullable|string',
+            'legal_basis' => 'nullable|string|max:255',
             'days_per_year' => 'nullable|integer|min:0',
         ]);
 
@@ -67,6 +68,7 @@ class LeaveTypeController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:leave_types,name,'.$leaveType->id,
             'description' => 'nullable|string',
+            'legal_basis' => 'nullable|string|max:255',
             'days_per_year' => 'nullable|integer|min:0',
             'is_active' => 'boolean',
         ]);

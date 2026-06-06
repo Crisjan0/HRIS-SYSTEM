@@ -10,6 +10,7 @@ class LeaveType extends Model
         'name',
         'description',
         'days_per_year',
+        'legal_basis',
         'is_active',
     ];
 }
