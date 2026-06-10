@@ -19,7 +19,19 @@ return new class extends Migration
             $table->date('travel_date_end');
             $table->string('places_of_travel');
             $table->text('purpose');
+            $table->string('attachment_path')->nullable();
             $table->string('status')->default('pending'); // pending, approved, rejected
+
+            // Chief approval (Level 1)
+            $table->foreignId('approved_by_chief')->nullable()->constrained('employees')->onDelete('set null');
+            $table->string('chief_status')->default('pending');
+            $table->text('chief_remarks')->nullable();
+
+            // Regional Director approval (Level 2)
+            $table->foreignId('approved_by_regionaldirector')->nullable()->constrained('employees')->onDelete('set null');
+            $table->string('rd_status')->default('pending');
+            $table->text('rd_remarks')->nullable();
+
             $table->timestamps();
         });
 

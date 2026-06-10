@@ -15,8 +15,15 @@ return new class extends Migration {
             $table->string('lastname');
             $table->string('firstname');
             $table->string('middlename')->nullable();
+            $table->string('suffix')->nullable();
+            $table->string('contact_number')->nullable();
+            $table->string('division')->nullable();
             $table->string('position')->nullable();
+            $table->string('account_role')->nullable();
             $table->string('rfid_number')->nullable()->unique();
+            $table->text('remarks')->nullable();
+            $table->string('profile_picture')->nullable();
+            $table->decimal('cto_balance', 8, 2)->default(0);
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();
         });
