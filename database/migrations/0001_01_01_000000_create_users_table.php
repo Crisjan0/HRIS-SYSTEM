@@ -19,9 +19,11 @@ return new class extends Migration
             $table->string('password');
             $table->string('otp')->nullable();
             $table->timestamp('otp_expires_at')->nullable();
+            $table->boolean('is_approved')->default(false);
             $table->unsignedTinyInteger('failed_login_attempts')->default(0);
             $table->unsignedSmallInteger('lockout_count')->default(0);
             $table->timestamp('locked_at')->nullable();
+            $table->boolean('privacy_consent')->default(false);
             $table->rememberToken();
             $table->timestamps();
         });

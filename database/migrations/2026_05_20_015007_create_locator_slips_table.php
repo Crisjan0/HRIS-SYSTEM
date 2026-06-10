@@ -18,9 +18,24 @@ return new class extends Migration
             $table->text('purpose');
             $table->time('time_from');
             $table->time('time_to');
+            $table->string('destination')->nullable();
+            $table->string('type')->nullable();
             $table->string('status')->default('pending');
-            $table->foreignId('recommending_approval_id')->nullable()->constrained('users')->onDelete('set null');
-            $table->foreignId('approved_by_id')->nullable()->constrained('users')->onDelete('set null');
+
+            // Chief Approval
+            $table->foreignId('chief_id')->nullable()->constrained('users')->onDelete('set null');
+            $table->string('chief_approval_status')->default('pending');
+            $table->foreignId('approved_by_chief_id')->nullable()->constrained('users');
+            $table->string('approved_by_chief_name')->nullable();
+            $table->timestamp('chief_approval_date')->nullable();
+
+            // Regional Director Approval
+            $table->foreignId('regional_director_id')->nullable()->constrained('users')->onDelete('set null');
+            $table->string('regional_director_approval_status')->default('pending');
+            $table->foreignId('approved_by_regional_director_id')->nullable()->constrained('users');
+            $table->string('approved_by_regional_director_name')->nullable();
+            $table->timestamp('regional_director_approval_date')->nullable();
+
             $table->timestamps();
         });
     }

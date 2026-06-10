@@ -19,6 +19,7 @@ return new class extends Migration
             $table->date('end_date');
             $table->timestamp('date_filed');
             $table->text('reason');
+            $table->string('attachment_path')->nullable();
             $table->string('status')->default('pending'); // overall status: pending, approved, rejected, cancelled
             $table->boolean('is_paid')->nullable();
 
