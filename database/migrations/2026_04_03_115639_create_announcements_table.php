@@ -19,6 +19,7 @@ return new class extends Migration
             $table->foreignId('author_id')->constrained('users')->onDelete('cascade');
             $table->timestamp('published_at')->nullable();
             $table->string('tags')->nullable();
+            $table->string('attachment_path')->nullable();
             $table->timestamps();
         });
     }
