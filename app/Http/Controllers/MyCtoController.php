@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+use App\Notifications\CtoRequestNotification;
+use Illuminate\Support\Facades\Notification;
 use App\Models\CtoRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -59,7 +62,7 @@ class MyCtoController extends Controller
             $attachmentPath = $request->file('attachment')->store('cto-attachments', 'public');
         }
 
-        $employee->ctoRequests()->create([
+        $ctoRequest = $employee->ctoRequests()->create([
             'type' => $validated['type'],
             'date_start' => $validated['date_start'],
             'date_end' => $validated['date_end'],
@@ -67,6 +70,18 @@ class MyCtoController extends Controller
             'purpose' => $validated['purpose'],
             'attachment_path' => $attachmentPath,
         ]);
+
+        $chiefs = User::whereHas('employee', function ($query) {
+    $query->where('account_role', 'chief');
+})->get();
+
+$employeeName = trim($employee->firstname . ' ' . $employee->lastname);
+
+Notification::send($chiefs, new CtoRequestNotification(
+    $ctoRequest,
+    'New CTO Request',
+    "{$employeeName} submitted a CTO request for {$ctoRequest->hours} hour(s)."
+));
 
         return redirect()->route('my-cto.index')->with('success', 'CTO request submitted successfully.');
     }

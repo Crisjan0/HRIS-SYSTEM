@@ -1,11 +1,19 @@
 <x-app-layout>
-    <div class="p-4 sm:p-6 lg:p-8">
+    <div class="p-4 sm:p-6 lg:p-8" x-data="{ printPreviewOpen: false }">
         <div class="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
             <div class="p-6 flex justify-between items-center border-b border-gray-100">
                 <h2 class="text-2xl font-bold text-gray-800">My SALN Records</h2>
-                <a href="{{ route('salns.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 focus:outline-none focus:border-blue-900 focus:ring ring-blue-300 disabled:opacity-25 transition ease-in-out duration-150">
-                    File New SALN
-                </a>
+                <div class="flex flex-wrap items-center gap-3">
+                    <button type="button" @click="printPreviewOpen = true" class="inline-flex w-fit items-center gap-2 rounded-xl bg-[#0038a8] px-5 py-2.5 text-xs font-black uppercase tracking-widest text-white shadow-md shadow-blue-100 hover:bg-[#002f8f] transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2m-12 0h12v-6H6v6z"></path>
+                        </svg>
+                        Print SALN Copy
+                    </button>
+                    <a href="{{ route('salns.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 focus:outline-none focus:border-blue-900 focus:ring ring-blue-300 disabled:opacity-25 transition ease-in-out duration-150">
+                        File New SALN
+                    </a>
+                </div>
             </div>
             
             <div class="overflow-x-auto">
@@ -49,5 +57,7 @@
                 </table>
             </div>
         </div>
+
+        @include('saln.partials.print-preview-modal')
     </div>
 </x-app-layout>

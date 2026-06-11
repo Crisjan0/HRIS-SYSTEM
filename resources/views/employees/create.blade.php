@@ -8,12 +8,12 @@
                     <form action="{{ route('employees.store') }}" method="POST" class="space-y-6">
                         @csrf
                         
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6 border-b border-gray-100">
-                            <div>
+                        <div class="pb-6 border-b border-gray-100">
+                            <div class="mb-5">
                                 <h3 class="text-lg font-medium text-gray-900 mb-1">{{ __('Personal Information') }}</h3>
                                 <p class="text-sm text-gray-500">{{ __('Use the employee\'s official name as per their government records.') }}</p>
                             </div>
-                            <div class="space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <x-input-label for="lastname" :value="__('Last Name')" />
                                     <x-text-input id="lastname" name="lastname" type="text" class="mt-1 block w-full" :value="old('lastname')" required />
@@ -42,12 +42,12 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6 pt-4 border-b border-gray-100">
-                            <div>
+                        <div class="pb-6 pt-4 border-b border-gray-100">
+                            <div class="mb-5">
                                 <h3 class="text-lg font-medium text-gray-900 mb-1">{{ __('Position') }}</h3>
                                 <p class="text-sm text-gray-500">{{ __('Assign the employee position for this record.') }}</p>
                             </div>
-                            <div class="space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <x-input-label for="position" :value="__('Position')" />
                                         <select id="position" name="position" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
@@ -61,12 +61,12 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-                            <div>
+                        <div class="pt-4">
+                            <div class="mb-5">
                                 <h3 class="text-lg font-medium text-gray-900 mb-1">{{ __('Account Linking') }}</h3>
                                 <p class="text-sm text-gray-500">{{ __('Optionally link this record to a registered user account to grant them record access.') }}</p>
                             </div>
-                            <div class="space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <x-input-label for="user_id" :value="__('Linked User Account')" />
                                     <select id="user_id" name="user_id" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
