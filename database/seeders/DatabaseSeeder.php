@@ -19,42 +19,42 @@ class DatabaseSeeder extends Seeder
 
         User::factory()->create([
             'name' => 'Admin User',
-            'email' => 'admin@example.com',
+            'email' => 'admin@dmw.gov.ph',
             'password' => 'password',
             'is_approved' => true,
         ]);
 
         User::factory()->create([
             'name' => 'HR Staff User',
-            'email' => 'hrstaff@example.com',
+            'email' => 'hrstaff@dmw.gov.ph',
             'password' => 'password',
             'is_approved' => true,
         ]);
 
         User::factory()->create([
             'name' => 'User',
-            'email' => 'user@example.com',
+            'email' => 'user@dmw.gov.ph',
             'password' => 'password',
             'is_approved' => true,
         ]);
 
         User::factory()->create([
             'name' => 'Director User',
-            'email' => 'director@example.com',
+            'email' => 'director@dmw.gov.ph',
             'password' => 'password',
             'is_approved' => true,
         ]);
 
         User::factory()->create([
             'name' => 'Employee User',
-            'email' => 'employee@example.com',
+            'email' => 'employee@dmw.gov.ph',
             'password' => 'password',
             'is_approved' => true,
         ]);
 
         User::factory()->create([
             'name' => 'Chief User',
-            'email' => 'chief@example.com',
+            'email' => 'chief@dmw.gov.ph',
             'password' => 'password',
             'is_approved' => true,
         ]);

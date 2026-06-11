@@ -164,6 +164,7 @@ return new class extends Migration
             $table->date('date_from')->nullable();
             $table->date('date_to')->nullable();
             $table->integer('number_of_hours')->nullable();
+            $table->string('attachment_path')->nullable();
             $table->string('type')->nullable(); // Managerial, Technical, etc.
             $table->string('conducted_by')->nullable();
             $table->timestamps();

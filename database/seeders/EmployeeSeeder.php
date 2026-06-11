@@ -15,7 +15,7 @@ class EmployeeSeeder extends Seeder
     {
         $employeeData = [
             [
-                'email' => 'admin@example.com',
+                'email' => 'admin@dmw.gov.ph',
                 'lastname' => 'Dela Cruz',
                 'firstname' => 'Juan',
                 'middlename' => 'S',
@@ -24,7 +24,7 @@ class EmployeeSeeder extends Seeder
                 
             ],
             [
-                'email' => 'hrstaff@example.com',
+                'email' => 'hrstaff@dmw.gov.ph',
                 'lastname' => 'Reyes',
                 'firstname' => 'Maria',
                 'middlename' => 'B',
@@ -32,7 +32,7 @@ class EmployeeSeeder extends Seeder
                 'user_id' => 2,
             ],
             [
-                'email' => 'director@example.com',
+                'email' => 'director@dmw.gov.ph',
                 'lastname' => 'Mendoza',
                 'firstname' => 'Pedro',
                 'middlename' => 'G',
@@ -40,7 +40,7 @@ class EmployeeSeeder extends Seeder
                 'user_id' => 4,
             ],
             [
-                'email' => 'employee@example.com',
+                'email' => 'employee@dmw.gov.ph',
                 'lastname' => 'Garcia',
                 'firstname' => 'Anna',
                 'middlename' => 'V',
@@ -48,7 +48,7 @@ class EmployeeSeeder extends Seeder
                 'user_id' => 5,
             ],
             [
-                'email' => 'chief@example.com',
+                'email' => 'chief@dmw.gov.ph',
                 'lastname' => 'Aquino',
                 'firstname' => 'Miguel',
                 'middlename' => 'T',
