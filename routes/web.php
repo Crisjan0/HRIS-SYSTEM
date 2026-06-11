@@ -44,6 +44,9 @@ Route::middleware(['auth', 'approved'])->group(function () {
     Route::get('/locator-slips/create', [LocatorSlipController::class, 'create'])->name('locator-slips.create');
     Route::post('/locator-slips', [LocatorSlipController::class, 'store'])->name('locator-slips.store');
     Route::resource('employees', EmployeeController::class)->middleware('role:ADMIN,HRSTAFF,DIRECTOR');
+    Route::get('reports', function () {
+        return view('reports.index');
+    })->name('reports.index')->middleware('role:ADMIN,HRSTAFF');
     Route::get('employee-accounts', [EmployeeAccountController::class, 'index'])->name('employee-accounts.index')->middleware('role:ADMIN,HRSTAFF,DIRECTOR');
     Route::get('employee-accounts/{user}', [EmployeeAccountController::class, 'show'])->name('employee-accounts.show')->middleware('role:ADMIN,HRSTAFF,DIRECTOR');
     Route::patch('employee-accounts/{user}', [EmployeeAccountController::class, 'update'])->name('employee-accounts.update')->middleware('role:ADMIN,HRSTAFF,DIRECTOR');
@@ -62,7 +65,7 @@ Route::middleware(['auth', 'approved'])->group(function () {
     Route::get('/pds/edit', [PdsController::class, 'edit'])->name('pds.edit');
     Route::put('/pds', [PdsController::class, 'update'])->name('pds.update');
     Route::get('/view-announcements', [AnnouncementController::class, 'userIndex'])->name('announcements.view');
-    Route::resource('announcements', AnnouncementController::class)->except(['show'])->middleware('role:ADMIN,HRSTAFF');
+    Route::resource('announcements', AnnouncementController::class)->except(['show'])->middleware('role:ADMIN,HRSTAFF,REGIONALDIRECTOR,REGIONAL DIRECTOR');
     Route::resource('announcements', AnnouncementController::class)->only(['show']);
     Route::get('my-dtr', [DtrController::class, 'myDtr'])->name('my-dtr.index');
     Route::get('my-cto', [MyCtoController::class, 'index'])->name('my-cto.index');

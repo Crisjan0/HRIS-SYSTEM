@@ -8,7 +8,7 @@
             <div class="bg-white rounded-2xl shadow-xl shadow-slate-100 border border-slate-100 overflow-hidden grid grid-cols-1 md:grid-cols-12">
                 
                 <!-- Left Section: Avatar & Core Identity -->
-                <div class="md:col-span-5 bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 p-8 flex flex-col items-center justify-center text-center text-white relative overflow-hidden min-h-[320px] md:min-h-[440px]">
+                <div class="md:col-span-5 bg-gradient-to-br from-blue-600 via-blue-700 to-violet-800 p-8 flex flex-col items-center justify-center text-center text-white relative overflow-hidden min-h-[320px] md:min-h-[440px]">
                     <!-- Background Pattern Graphic -->
                     <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"></div>
                     
@@ -37,12 +37,12 @@
                             {{ $employee->firstname }} {{ $employee->lastname }}
                         </h1>
                         @if($employee->middlename)
-                            <p class="text-xs text-indigo-200/70 font-medium mt-0.5 tracking-wide uppercase">{{ $employee->middlename }}</p>
+                            <p class="text-xs text-blue-200/70 font-medium mt-0.5 tracking-wide uppercase">{{ $employee->middlename }}</p>
                         @endif
 
                         <!-- Clean Position Badge -->
                         <div class="mt-4 inline-flex items-center px-3 py-1 bg-white/10 rounded-full border border-white/10 backdrop-blur-md">
-                            <span class="text-xs font-semibold text-indigo-100 uppercase tracking-wider">{{ $employee->position }}</span>
+                            <span class="text-xs font-semibold text-blue-100 uppercase tracking-wider">{{ $employee->position }}</span>
                         </div>
                     </div>
                 </div>
@@ -60,7 +60,7 @@
                             <!-- Position Details Row -->
                             <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100 transition-all hover:border-slate-200">
                                 <div class="flex items-center gap-3.5 min-w-0">
-                                    <div class="w-9 h-9 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-600 shrink-0">
+                                    <div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600 shrink-0">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                                         </svg>
@@ -75,7 +75,7 @@
                             <!-- Email Row -->
                             <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100 transition-all hover:border-slate-200">
                                 <div class="flex items-center gap-3.5 min-w-0">
-                                    <div class="w-9 h-9 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-600 shrink-0">
+                                    <div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600 shrink-0">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                                         </svg>
@@ -92,7 +92,7 @@
                             <!-- Contact Number Row -->
                             <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100 transition-all hover:border-slate-200">
                                 <div class="flex items-center gap-3.5 min-w-0">
-                                    <div class="w-9 h-9 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-600 shrink-0">
+                                    <div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600 shrink-0">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
                                         </svg>
@@ -110,8 +110,8 @@
 
                     <!-- Action Footer Area -->
                     <div class="mt-8 pt-5 border-t border-slate-100 flex justify-end">
-                        <a href="{{ route('personal-information.edit') }}" class="inline-flex items-center justify-center px-5 py-2.5 bg-indigo-600 border border-transparent rounded-xl font-semibold text-sm text-white hover:bg-indigo-700 active:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all shadow-md shadow-indigo-100 group">
-                            <svg class="w-4 h-4 mr-2 text-indigo-200 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <a href="{{ route('personal-information.edit') }}" class="inline-flex items-center justify-center px-5 py-2.5 bg-blue-600 border border-transparent rounded-xl font-semibold text-sm text-white hover:bg-blue-700 active:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all shadow-md shadow-blue-100 group">
+                            <svg class="w-4 h-4 mr-2 text-blue-200 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
                             </svg>
                             {{ __('Update Profile') }}

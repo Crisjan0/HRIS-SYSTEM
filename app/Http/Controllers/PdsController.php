@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class PdsController extends Controller
@@ -150,6 +151,7 @@ class PdsController extends Controller
             'work_experience.*.company' => 'nullable|string',
 
             'training.*.title' => 'nullable|string',
+            'training.*.attachment' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120',
 
             'others.*.type' => 'nullable|in:Skill,Distinction,Membership',
             'others.*.description' => 'nullable|string',
@@ -231,8 +233,21 @@ class PdsController extends Controller
             // Handle Training (Sync)
             $employee->pdsTrainings()->delete();
             if ($request->has('training')) {
-                foreach ($request->training as $train) {
+                foreach ($request->training as $index => $train) {
                     if (! empty($train['title'])) {
+                        // Change: training "Hours" was replaced by an attachment upload in the PDS form.
+                        if ($request->hasFile("training.$index.attachment")) {
+                            if (! empty($train['existing_attachment_path'])) {
+                                Storage::disk('public')->delete($train['existing_attachment_path']);
+                            }
+
+                            $train['attachment_path'] = $request->file("training.$index.attachment")->store('pds-training-attachments', 'public');
+                        } elseif (! empty($train['existing_attachment_path'])) {
+                            $train['attachment_path'] = $train['existing_attachment_path'];
+                        }
+
+                        unset($train['attachment'], $train['existing_attachment_path']);
+
                         $employee->pdsTrainings()->create($train);
                     }
                 }

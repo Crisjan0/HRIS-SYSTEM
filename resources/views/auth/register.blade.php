@@ -31,6 +31,24 @@
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
 
+        .registration-card-scroll {
+            max-height: calc(100vh - 3rem);
+            overflow-y: auto;
+            overscroll-behavior: contain;
+        }
+
+        @supports (height: 100dvh) {
+            .registration-card-scroll {
+                max-height: calc(100dvh - 3rem);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .registration-card-scroll {
+                max-height: calc(100vh - 1.5rem);
+            }
+        }
+
         /* Custom select styling */
         select {
             appearance: none;
@@ -61,7 +79,7 @@
         </div>
 
         {{-- Multi-step registration card --}}
-        <div class="bg-white rounded-2xl shadow-2xl p-8 sm:p-10 w-full max-w-md animate-fade-in-up"
+        <div class="registration-card-scroll bg-white rounded-2xl shadow-2xl p-8 sm:p-10 w-full max-w-md animate-fade-in-up"
              x-data="registrationWizard()"
              x-cloak>
 
@@ -529,11 +547,14 @@
                 agreeConsent() {
                     this.consentAccepted = true;
                     this.showConsentModal = false;
-                    this.submitting = true;
 
-                    this.$nextTick(() => {
-                        document.getElementById('registerForm').submit();
-                    });
+                    if (this.step === 3 && this.validateStep(3)) {
+                        this.submitting = true;
+
+                        this.$nextTick(() => {
+                            document.getElementById('registerForm').submit();
+                        });
+                    }
                 }
             };
         }

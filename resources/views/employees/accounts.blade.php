@@ -110,23 +110,25 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-center">
                                             <div class="flex items-center justify-center gap-2">
                                                 <button type="button"
-                                                        class="inline-flex items-center gap-1 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded-lg transition-colors shadow-sm approve-btn"
+                                                        class="inline-flex h-8 w-8 items-center justify-center bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors shadow-sm approve-btn"
                                                         data-approve-action="{{ route('employee-accounts.approve', $user) }}"
                                                         data-employee-name="{{ $user->employee?->lastname ?? '-' }}, {{ $user->employee?->firstname ?? '-' }}"
-                                                        data-current-role="{{ $user->employee?->account_role ?? '' }}">
+                                                        data-current-role="{{ $user->employee?->account_role ?? '' }}"
+                                                        title="{{ __('Approve') }}"
+                                                        aria-label="{{ __('Approve') }}">
                                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                                     </svg>
-                                                    {{ __('Approve') }}
+                                                    <span class="sr-only">{{ __('Approve') }}</span>
                                                 </button>
                                                 <form action="{{ route('employee-accounts.reject', $user) }}" method="POST" class="inline">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" class="inline-flex items-center gap-1 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg transition-colors shadow-sm" onclick="return confirm('Reject and delete this account? This action cannot be undone.')">
+                                                    <button type="submit" class="inline-flex h-8 w-8 items-center justify-center bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors shadow-sm" onclick="return confirm('Reject and delete this account? This action cannot be undone.')" title="{{ __('Reject') }}" aria-label="{{ __('Reject') }}">
                                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                                         </svg>
-                                                        {{ __('Reject') }}
+                                                        <span class="sr-only">{{ __('Reject') }}</span>
                                                     </button>
                                                 </form>
                                             </div>

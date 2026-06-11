@@ -53,14 +53,26 @@
                                                 </span>
                                             @endif
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                                            <a href="{{ route('leave-types.edit', $type) }}" class="text-indigo-600 hover:text-indigo-900 transition-colors duration-200">        <i class="fa-solid fa-pen-to-square"></i>
-</a>
+                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <div class="flex items-center justify-end gap-2">
+                                            <a href="{{ route('leave-types.edit', $type) }}" class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-blue-700 hover:bg-blue-50 hover:text-blue-900 transition-colors duration-200" title="{{ __('Edit') }}" aria-label="{{ __('Edit') }}">
+                                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487l1.651-1.651a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.5 7.125L16.875 4.5" />
+                                                </svg>
+                                                <span class="sr-only">{{ __('Edit') }}</span>
+                                            </a>
                                             <form action="{{ route('leave-types.destroy', $type) }}" method="POST" class="inline-block" onsubmit="return confirm('{{ __('Are you sure you want to delete this leave type?') }}')">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="text-red-600 hover:text-red-900 transition-colors duration-200"><i class="fa-solid fa-trash"></i></button>
+                                                <button type="submit" class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-red-600 hover:bg-red-50 hover:text-red-900 transition-colors duration-200" title="{{ __('Delete') }}" aria-label="{{ __('Delete') }}">
+                                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 7h12m-9 0V5.25A1.25 1.25 0 0110.25 4h3.5A1.25 1.25 0 0115 5.25V7m-7 0l.75 12A2 2 0 0010.75 21h2.5a2 2 0 002-1.875L16 7" />
+                                                    </svg>
+                                                    <span class="sr-only">{{ __('Delete') }}</span>
+                                                </button>
                                             </form>
+                                            </div>
                                         </td>
                                     </tr>
                                 @empty

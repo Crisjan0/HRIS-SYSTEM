@@ -2,6 +2,162 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+    --brand-azure: #0038a8;
+    --brand-azure-dark: #002a7a;
+    --brand-azure-deeper: #001f5c;
+    --brand-azure-soft: #f8fbff;
+    --brand-azure-soft-border: #e6f7ff;
+}
+
+/* Keep app accents aligned with the login/welcome deep azure palette. */
+.text-indigo-400,
+.text-indigo-500,
+.text-indigo-600,
+.text-indigo-700,
+.text-indigo-800,
+.text-indigo-900,
+.text-blue-500,
+.text-blue-600,
+.text-blue-700,
+.text-blue-800,
+.text-blue-900 {
+    color: var(--brand-azure) !important;
+}
+
+.hover\:text-indigo-500:hover,
+.hover\:text-indigo-600:hover,
+.hover\:text-indigo-700:hover,
+.hover\:text-indigo-800:hover,
+.hover\:text-indigo-900:hover,
+.hover\:text-blue-500:hover,
+.hover\:text-blue-600:hover,
+.hover\:text-blue-700:hover,
+.hover\:text-blue-800:hover,
+.hover\:text-blue-900:hover {
+    color: var(--brand-azure-dark) !important;
+}
+
+.bg-blue-50,
+.bg-blue-50,
+.hover\:bg-blue-50:hover,
+.hover\:bg-blue-50:hover 
+   
+
+.bg-indigo-100,
+.bg-blue-100,
+.hover\:bg-indigo-100:hover,
+.hover\:bg-blue-100:hover {
+    background-color: var(--brand-azure-soft) !important;
+}
+
+.bg-indigo-500,
+.bg-indigo-600,
+.bg-indigo-700,
+.bg-blue-500,
+.bg-blue-600,
+.bg-blue-700,
+.bg-\[\#1e3a8a\],
+.bg-\[\#0038a8\],
+.hover\:bg-indigo-500:hover,
+.hover\:bg-indigo-600:hover,
+.hover\:bg-blue-500:hover,
+.hover\:bg-blue-600:hover {
+    background-color: var(--brand-azure) !important;
+}
+
+.bg-indigo-800,
+.bg-indigo-900,
+.bg-blue-800,
+.bg-blue-900,
+.hover\:bg-indigo-700:hover,
+.hover\:bg-indigo-800:hover,
+.hover\:bg-indigo-900:hover,
+.hover\:bg-blue-700:hover,
+.hover\:bg-blue-800:hover,
+.hover\:bg-blue-900:hover,
+.hover\:bg-\[\#002a7a\]:hover {
+    background-color: var(--brand-azure-dark) !important;
+}
+
+.border-indigo-100,
+.border-blue-100 {
+    border-color: var(--brand-azure-soft-border) !important;
+}
+
+.border-indigo-200,
+.border-indigo-300,
+.border-indigo-500,
+.border-indigo-600,
+.border-indigo-700,
+.border-indigo-800,
+.border-blue-200,
+.border-blue-300,
+.border-blue-500,
+.border-blue-600,
+.border-blue-700,
+.border-blue-800,
+.hover\:border-indigo-300:hover,
+.hover\:border-blue-300:hover,
+.hover\:border-\[\#0038a8\]:hover {
+    border-color: var(--brand-azure) !important;
+}
+
+.focus\:border-indigo-100:focus,
+.focus\:border-indigo-500:focus,
+.focus\:border-blue-500:focus,
+.focus\:border-blue-800:focus,
+.focus\:ring-indigo-500:focus,
+.focus\:ring-blue-300:focus,
+.focus\:ring-blue-500:focus,
+.focus\:ring-blue-800:focus {
+    --tw-ring-color: var(--brand-azure) !important;
+    border-color: var(--brand-azure) !important;
+}
+
+.decoration-indigo-200,
+.decoration-blue-200 {
+    text-decoration-color: var(--brand-azure-soft-border) !important;
+}
+
+.shadow-indigo-50,
+.shadow-indigo-100,
+.shadow-indigo-200,
+.shadow-blue-100,
+.shadow-blue-200,
+.shadow-\[\#0038a8\]\/20 {
+    --tw-shadow-color: rgb(0 56 168 / 0.2) !important;
+    --tw-shadow: var(--tw-shadow-colored) !important;
+}
+
+.from-indigo-50,
+.from-blue-50 {
+    --tw-gradient-from: var(--brand-azure-soft) var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: rgb(238 244 255 / 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+.from-indigo-600,
+.from-indigo-700,
+.from-blue-600,
+.from-blue-700,
+.from-\[\#0038a8\] {
+    --tw-gradient-from: var(--brand-azure) var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: rgb(0 56 168 / 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+.to-indigo-600,
+.to-indigo-700,
+.to-blue-600,
+.to-blue-700 {
+    --tw-gradient-to: var(--brand-azure) var(--tw-gradient-to-position) !important;
+}
+
+.to-\[\#ce1126\] {
+    --tw-gradient-to: var(--brand-azure-dark) var(--tw-gradient-to-position) !important;
+}
+
 @layer base {
     ::-webkit-scrollbar {
         width: 5px;
@@ -11,7 +167,7 @@
         background: transparent;
     }
     ::-webkit-scrollbar-thumb {
-        background: #e2e8f0;
+        background: #95c0f8;
         border-radius: 10px;
     }
     ::-webkit-scrollbar-thumb:hover {
@@ -20,7 +176,9 @@
 }
 
 .glass {
-    @apply bg-white/70 backdrop-blur-md border border-white/20;
+     background-color: rgb(255 255 255 / 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgb(255 255 255 / 0.2);
 }
 
 /* Fix Chrome Autofill to retain correct text and background color */
@@ -38,7 +196,7 @@ input:-webkit-autofill:active {
 .dark input:-webkit-autofill:focus, 
 .dark input:-webkit-autofill:active {
     -webkit-box-shadow: 0 0 0 30px #111827 inset !important;
-    -webkit-text-fill-color: #d1d5db !important; /* Dark mode text */
+    -webkit-text-fill-color: #88a9d9 !important; /* Dark mode text */
 }
 
 /* Page Transition Effects */

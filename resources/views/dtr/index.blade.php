@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="title">{{ __('Daily Time Records (DTR)') }}</x-slot>
 
-    <div class="py-12">
+    <div class="py-12" x-data="{ printPreviewOpen: false }">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
             @if(session('success'))
                 <div class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-6 py-4 rounded-[1.5rem] shadow-sm flex items-center animate-fade-in">
@@ -23,6 +23,19 @@
 
             <div class="bg-white overflow-hidden shadow-2xl shadow-indigo-50 sm:rounded-[2.5rem] border border-gray-100">
                 <div class="p-10">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+                        <div>
+                            <h3 class="text-2xl font-black text-gray-900 tracking-tight">{{ __('Daily Time Record') }}</h3>
+                            <p class="text-sm text-gray-500 font-medium">{{ __('Printable personal DTR copy preview.') }}</p>
+                        </div>
+                        <button type="button" @click="printPreviewOpen = true" class="inline-flex w-fit items-center gap-2 rounded-xl bg-[#0038a8] px-5 py-2.5 text-xs font-black uppercase tracking-widest text-white shadow-md shadow-blue-100 hover:bg-[#002f8f] transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2m-12 0h12v-6H6v6z"></path>
+                            </svg>
+                            {{ __('Print DTR Copy') }}
+                        </button>
+                    </div>
+
                     @if(auth()->user()->hasRole('hrstaff') || auth()->user()->hasRole('admin'))
                     <!-- Stats Section -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
@@ -130,6 +143,66 @@
 
                     <div class="mt-12">
                         {{ $records->links() }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div x-show="printPreviewOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center px-4 py-6">
+            <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" @click="printPreviewOpen = false"></div>
+            <div class="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-2xl border border-gray-100">
+                <div class="px-6 py-5 border-b border-gray-100 flex items-start justify-between gap-4">
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-widest text-[#0038a8]">{{ __('UI Preview Only') }}</p>
+                        <h2 class="text-xl font-black text-gray-900">{{ __('Printable DTR Copy') }}</h2>
+                        <p class="text-xs text-gray-500 mt-1">{{ now()->startOfMonth()->format('M d, Y') }} - {{ now()->format('M d, Y') }}</p>
+                    </div>
+                    <button type="button" @click="printPreviewOpen = false" class="h-9 w-9 rounded-lg text-gray-400 hover:bg-gray-50 hover:text-gray-700">
+                        <svg class="mx-auto w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="p-6 space-y-6">
+                    <div class="rounded-xl border border-gray-100 bg-gray-50 p-5">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+                            <div>
+                                <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">{{ __('Employee') }}</p>
+                                <p class="font-black text-gray-900">{{ auth()->user()->employee?->firstname }} {{ auth()->user()->employee?->lastname }}</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">{{ __('Department') }}</p>
+                                <p class="font-black text-gray-900">{{ auth()->user()->employee?->division ?? 'Sample Division' }}</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">{{ __('Total Hours') }}</p>
+                                <p class="font-black text-gray-900">156.00</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="rounded-2xl border border-gray-100 overflow-hidden">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-gray-50 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                                <tr>
+                                    <th class="px-5 py-3">{{ __('Date') }}</th>
+                                    <th class="px-5 py-3">{{ __('Time In') }}</th>
+                                    <th class="px-5 py-3">{{ __('Time Out') }}</th>
+                                    <th class="px-5 py-3">{{ __('Status') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                <tr><td class="px-5 py-4 font-bold">Jun 02, 2026</td><td class="px-5 py-4 font-bold">08:00 AM</td><td class="px-5 py-4 font-bold">05:00 PM</td><td class="px-5 py-4 font-bold text-emerald-600">Present</td></tr>
+                                <tr><td class="px-5 py-4 font-bold">Jun 03, 2026</td><td class="px-5 py-4 font-bold">08:14 AM</td><td class="px-5 py-4 font-bold">05:05 PM</td><td class="px-5 py-4 font-bold text-amber-600">Late</td></tr>
+                                <tr><td class="px-5 py-4 font-bold">Jun 04, 2026</td><td class="px-5 py-4 font-bold">08:01 AM</td><td class="px-5 py-4 font-bold">05:00 PM</td><td class="px-5 py-4 font-bold text-emerald-600">Present</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="flex justify-end gap-3">
+                        <button type="button" disabled class="rounded-lg bg-gray-100 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-gray-400 cursor-not-allowed">{{ __('Download') }}</button>
+                        <button type="button" disabled class="rounded-lg bg-gray-100 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-gray-400 cursor-not-allowed">{{ __('Print') }}</button>
                     </div>
                 </div>
             </div>

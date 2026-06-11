@@ -228,7 +228,13 @@
                                                 <td class="px-6 py-4 whitespace-nowrap text-gray-600">₱ {{ number_format($saln->total_liabilities, 2) }}</td>
                                                 <td class="px-6 py-4 whitespace-nowrap font-bold text-emerald-600">₱ {{ number_format($saln->net_worth, 2) }}</td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                    <button @click="selectedSaln = {{ json_encode($saln) }}; salnModalOpen = true" class="text-indigo-600 hover:text-indigo-900 font-bold bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors">View Details</button>
+                                                    <button @click="selectedSaln = {{ json_encode($saln) }}; salnModalOpen = true" class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 transition-colors" title="View Details" aria-label="View Details">
+                                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.25 12s3.75-6.75 9.75-6.75S21.75 12 21.75 12 18 18.75 12 18.75 2.25 12 2.25 12z" />
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                        </svg>
+                                                        <span class="sr-only">View Details</span>
+                                                    </button>
                                                 </td>
                                             </tr>
                                         @endforeach
