@@ -15,7 +15,7 @@
                                 </h3>
                                 <div class="md:hidden">
                                     @if($leaf->status === 'approved')
-                                        <span class="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border {{ $leaf->is_paid ? 'text-green-600 bg-green-50 border-green-100' : 'text-indigo-600 bg-indigo-50 border-indigo-100' }}">
+                                        <span class="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border {{ $leaf->is_paid ? 'text-green-600 bg-green-50 border-green-100' : 'text-blue-900 bg-blue-800 border-blue-900' }}">
                                             {{ $leaf->status_label }}
                                         </span>
                                     @elseif($leaf->status === 'rejected')
@@ -66,6 +66,8 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                                 </svg>
                                 {{ __('View') }}
+                            <a href="{{ route('leave-applications.show', $leaf->id) }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-md hover:-translate-y-0.5">
+                              <i class="fa-solid fa-eye"></i>
                             </a>
                         </div>
                     </div>

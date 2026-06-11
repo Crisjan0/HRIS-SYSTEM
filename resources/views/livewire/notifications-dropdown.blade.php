@@ -1,4 +1,4 @@
-<div class="relative" x-data="{ open: false }" @click.outside="open = false" @close.stop="open = false">
+<div class="relative mr-1" x-data="{ open: false }" @click.outside="open = false" @close.stop="open = false">
     <!-- Notification Bell Trigger -->
     <button @click="open = ! open" wire:poll.3s="refresh" 
             class="relative p-2 text-gray-400 hover:text-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-full transition-all duration-300 transform hover:scale-110 active:scale-95 bg-gray-50 hover:bg-indigo-50 shadow-sm border border-transparent hover:border-indigo-100">
@@ -9,7 +9,7 @@
         
         @if($this->unreadCount > 0)
             <!-- Notification Badge -->
-            <span class="absolute top-1.5 right-1.5 flex h-4 w-4">
+            <span class="absolute top-1 right-1 flex h-4 w-4">
                 <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                 <span class="relative inline-flex rounded-full h-4 w-4 bg-red-500 text-[10px] items-center justify-center text-white font-bold border-2 border-white">
                     {{ $this->unreadCount }}

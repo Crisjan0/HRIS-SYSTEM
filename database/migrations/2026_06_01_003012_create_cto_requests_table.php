@@ -26,15 +26,11 @@ return new class extends Migration
             $table->string('chief_status')->default('pending');
             $table->text('chief_remarks')->nullable();
 
-            $table->foreignId('approved_by_regionaldirector')->nullable()->constrained('employees')->nullOnDelete();
-            $table->string('rd_status')->default('pending');
-            $table->text('rd_remarks')->nullable();
+            $table->foreignId('approved_by_hrstaff')->nullable()->constrained('employees')->nullOnDelete();
+            $table->string('hrstaff_status')->default('pending');
+            $table->text('hrstaff_remarks')->nullable();
 
             $table->timestamps();
-        });
-
-        Schema::table('employees', function (Blueprint $table) {
-            $table->decimal('cto_balance', 8, 2)->default(0)->after('profile_picture');
         });
     }
 
@@ -43,10 +39,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('employees', function (Blueprint $table) {
-            $table->dropColumn('cto_balance');
-        });
-
         Schema::dropIfExists('cto_requests');
     }
 };

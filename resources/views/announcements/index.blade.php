@@ -139,6 +139,11 @@
                                     @if($announcement->author_id === auth()->id())
                                         <span class="rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-700">{{ __('My Announcement') }}</span>
                                     @endif
+                            <a href="{{ route('announcements.show', $announcement) }}" class="block group/title">
+                                <h3 class="text-lg font-bold text-gray-900 mb-2 line-clamp-1 group-hover/title:text-blue-600 transition-colors cursor-pointer hover:underline decoration-blue-200 underline-offset-4">
+                                    {{ $announcement->title }}
+                                </h3>
+                            </a>
 
                                     <span class="text-xs font-semibold text-gray-400">{{ $announcement->created_at->format('M d, Y') }}</span>
                                 </div>
@@ -158,6 +163,11 @@
                                         {{ __('Posted by') }}
                                         <span class="text-gray-600">
                                             {{ $announcement->author?->display_name ?: $announcement->author?->name ?: $announcement->author?->email ?: __('HR Office') }}
+                            @if($announcement->tags)
+                                <div class="flex flex-wrap gap-2 mb-4">
+                                    @foreach(explode(',', $announcement->tags) as $tag)
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700">
+                                            #{{ trim($tag) }}
                                         </span>
                                         @if($announcement->author?->role)
                                             <span class="uppercase tracking-widest text-indigo-500">
@@ -204,6 +214,13 @@
                                     </button>
                                 </form>
                             </div>
+                            
+                            <a href="{{ route('announcements.show', $announcement) }}" class="inline-flex items-center text-xs font-black text-blue-600 hover:text-blue-700 uppercase tracking-widest gap-1 group/btn">
+                                {{ __('View') }}
+                                <svg class="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                                </svg>
+                            </a>
                         </div>
                     </article>
                 @empty
@@ -212,6 +229,18 @@
                             <svg class="h-8 w-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path>
                             </svg>
+                    <div class="col-span-full bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
+                        <div class="flex flex-col items-center">
+                            <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                                <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-1">{{ __('No announcements yet') }}</h3>
+                            <p class="text-gray-500 mb-6">{{ __('Create your first announcement to share important updates.') }}</p>
+                            <a href="{{ route('announcements.create') }}" class="inline-flex items-center px-6 py-2.5 bg-blue-900 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-150">
+                                {{ __('Get Started') }}
+                            </a>
                         </div>
                         <h3 class="text-lg font-black text-gray-900">{{ __('No announcements found') }}</h3>
                         <p class="mt-1 text-sm font-medium text-gray-500">{{ __('No announcements match the current search or filter.') }}</p>
