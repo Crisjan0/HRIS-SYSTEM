@@ -190,9 +190,9 @@
                                     <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">{{ strtoupper(pathinfo($travelOrder->attachment_path, PATHINFO_EXTENSION)) }} File</p>
                                 </div>
                             </div>
-                            <a href="{{ asset('storage/' . $travelOrder->attachment_path) }}" target="_blank" class="mt-4 w-full bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-md hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                            <a href="{{ asset('storage/' . $travelOrder->attachment_path) }}" target="_blank" class="mt-4 mx-auto h-10 w-10 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all shadow-md hover:-translate-y-0.5 flex items-center justify-center" title="{{ __('View Attachment') }}" aria-label="{{ __('View Attachment') }}">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                                {{ __('View Attachment') }}
+                                <span class="sr-only">{{ __('View Attachment') }}</span>
                             </a>
                         </div>
                     @endif

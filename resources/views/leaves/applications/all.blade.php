@@ -3,18 +3,7 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <!-- Tabs Navigation -->
-            <div class="mb-6 flex space-x-2 bg-white p-1 rounded-xl shadow-sm border border-gray-100 w-fit">
-                <a href="{{ route('leave-applications.index') }}" class="px-6 py-2.5 text-sm font-semibold rounded-lg {{ request()->routeIs('leave-applications.index') ? 'bg-[#0038a8] text-white shadow-md' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50' }} transition-all duration-200">
-                    Pending Leave
-                </a>
-                <a href="{{ route('leave-applications.all') }}" class="px-6 py-2.5 text-sm font-semibold rounded-lg {{ request()->routeIs('leave-applications.all') ? 'bg-[#0038a8] text-white shadow-md' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50' }} transition-all duration-200">
-                    All Leave Applications
-                </a>
-                <a href="{{ route('leave-calendar') }}" class="px-6 py-2.5 text-sm font-semibold rounded-lg {{ request()->routeIs('leave-calendar') ? 'bg-[#0038a8] text-white shadow-md' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50' }} transition-all duration-200">
-                    Leave Calendar
-                </a>
-            </div>
+            @include('leaves._manage-tabs')
 
             <div class="space-y-4">
                 @forelse($leaves as $leaf)
@@ -71,8 +60,12 @@
                                     <span class="text-[10px] font-black uppercase tracking-widest text-orange-500 bg-orange-50 px-3 py-1 rounded-full border border-orange-100">PENDING</span>
                                 @endif
                             </div>
-                            <a href="{{ route('leave-applications.show', $leaf->id) }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-md hover:-translate-y-0.5">
-                              <i class="fa-solid fa-eye"></i>
+                            <a href="{{ route('leave-applications.show', $leaf->id) }}" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-md hover:-translate-y-0.5">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                                {{ __('View') }}
                             </a>
                         </div>
                     </div>

@@ -176,7 +176,9 @@
 }
 
 .glass {
-    @apply bg-white/70 backdrop-blur-md border border-white/20;
+     background-color: rgb(255 255 255 / 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgb(255 255 255 / 0.2);
 }
 
 /* Fix Chrome Autofill to retain correct text and background color */

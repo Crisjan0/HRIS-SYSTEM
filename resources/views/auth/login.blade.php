@@ -37,8 +37,12 @@
                 
                 <div class="mb-4">
                     <input type="email" name="email" value="{{ old('email') }}" 
-                           placeholder="Email address" 
-                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-800 transition duration-200"
+                           placeholder="name@dmw.gov.ph"
+                           pattern="^[^@\s]+@dmw\.gov\.ph$"
+                           title="Please use your official dmw.gov.ph email address."
+                           oninvalid="this.setCustomValidity('Invalid email. Please use your official dmw.gov.ph email address.')"
+                           oninput="this.setCustomValidity('')"
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-800 transition duration-200 @error('email') border-red-500 @enderror"
                            required autofocus>
                     @error('email')
                         <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
@@ -77,8 +81,7 @@
 
                 <div class="mt-8 text-center space-y-2">
                     <p class="text-gray-700 text-sm">
-                        Don't have an account yet? 
-                        <a href="#" data-consent-href="{{ route('register.consent') }}" class="text-blue-700 font-semibold hover:underline" id="registerLink">Register here</a>
+                        {{ __('Accounts are created by Human Resource personnel.') }}
                     </p>
                     @if (Route::has('password.request'))
                     <a href="{{ route('password.request') }}" class="text-blue-500 text-sm hover:underline">
@@ -94,49 +97,6 @@
                          alt="DMW Seal" class="h-10">
                 </div>
             </form>
-        </div>
-    </div>
-
-    <div id="privacyModal" class="fixed inset-0 z-50 hidden items-center justify-center px-4">
-        <div class="absolute inset-0 bg-black/50" id="privacyBackdrop"></div>
-        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 sm:p-8">
-            <div class="flex items-start justify-between gap-4">
-                <h3 class="text-lg font-bold text-gray-800">Data Privacy Act of 2012 Consent</h3>
-                <button type="button" class="text-gray-400 hover:text-gray-600" id="privacyClose">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="mt-4 space-y-4 text-sm text-gray-700 leading-relaxed max-h-[50vh] overflow-y-auto pr-1">
-                <p>
-                    Data Privacy Act of 2012, I consent to the following terms and conditions on the collection, use,
-                    processing and disclosure of my personal data: I am aware that the Department of Migrant Workers
-                    has collected and stored my personal data upon accomplishment of this form. These data include
-                    my full name, contact details like addresses, and landline/mobile numbers. I express my consent
-                    for the Department of Migrant Workers to collect, store my personal information. I hereby affirm
-                    my right to be informed, object to processing, access, and rectify and to suspend or withdraw my
-                    personal data pursuant to the provisions of the RA 10173 and its implementing rules and regulations.
-                </p>
-                <p>
-                    By clicking the Agree button below, I warrant that I have read, understood all of the above
-                    provisions, and agreed with its full implementation.
-                </p>
-                <p>
-                    Read the full text of the law at
-                    <a href="https://privacy.gov.ph/data-privacy-act/" target="_blank" rel="noopener noreferrer" class="text-blue-700 font-semibold hover:underline">privacy.gov.ph/data-privacy-act</a>.
-                </p>
-            </div>
-            <div class="mt-6 flex items-center justify-end gap-3">
-                <button type="button"
-                        class="px-4 py-2.5 text-sm font-semibold text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
-                        id="privacyCancel">
-                    Cancel
-                </button>
-                <button type="button"
-                        class="px-4 py-2.5 text-sm font-bold text-white bg-[#1e3a8a] rounded-lg hover:bg-blue-900"
-                        id="privacyAgree">
-                    Agree
-                </button>
-            </div>
         </div>
     </div>
 
@@ -156,33 +116,6 @@
         }
     }
 
-    const registerLink = document.getElementById('registerLink');
-    const privacyModal = document.getElementById('privacyModal');
-    const privacyBackdrop = document.getElementById('privacyBackdrop');
-    const privacyClose = document.getElementById('privacyClose');
-    const privacyCancel = document.getElementById('privacyCancel');
-    const privacyAgree = document.getElementById('privacyAgree');
-
-    function openPrivacyModal(event) {
-        event.preventDefault();
-        event.stopPropagation();
-        event.stopImmediatePropagation();
-        privacyModal.classList.remove('hidden');
-        privacyModal.classList.add('flex');
-    }
-
-    function closePrivacyModal() {
-        privacyModal.classList.add('hidden');
-        privacyModal.classList.remove('flex');
-    }
-
-    registerLink.addEventListener('click', openPrivacyModal);
-    privacyBackdrop.addEventListener('click', closePrivacyModal);
-    privacyClose.addEventListener('click', closePrivacyModal);
-    privacyCancel.addEventListener('click', closePrivacyModal);
-    privacyAgree.addEventListener('click', () => {
-        window.location.href = registerLink.getAttribute('data-consent-href');
-    });
   </script>
     
 </body>

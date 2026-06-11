@@ -127,17 +127,19 @@
                     {{ __('Administration') }}
                 </h3>
 
-                <x-sidebar-link :href="route('employees.index')" :active="request()->routeIs('employees.*') || request()->routeIs('employee-accounts.*')">
-                    <x-slot name="icon">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
-                            </path>
-                        </svg>
-                    </x-slot>
-                    {{ __('Manage Employee') }}
-                </x-sidebar-link>
+                @if(! in_array(auth()->user()->role, ['chief', 'regionaldirector', 'regional director']))
+                    <x-sidebar-link :href="route('employees.index')" :active="request()->routeIs('employees.*') || request()->routeIs('employee-accounts.*')">
+                        <x-slot name="icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
+                                </path>
+                            </svg>
+                        </x-slot>
+                        {{ __('Manage Employee') }}
+                    </x-sidebar-link>
+                @endif
 
                 <x-sidebar-link :href="route('leave-applications.index')" :active="request()->routeIs(['leave-applications.*', 'leave-calendar', 'leave-types.*', 'holidays.*'])">
                     <x-slot name="icon">
@@ -185,28 +187,46 @@
                     {{ __('Manage Locator Slip') }}
                 </x-sidebar-link>
 
-                <x-sidebar-link :href="route('announcements.index')" :active="request()->routeIs('announcements.*') && (auth()->user()->role === 'hrstaff' || !request()->routeIs(['announcements.view', 'announcements.show']))">
-                    <x-slot name="icon">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z">
-                            </path>
-                        </svg>
-                    </x-slot>
-                    {{ __('Announcement') }}
-                </x-sidebar-link>
+                @if(auth()->user()->role !== 'chief')
+                    <x-sidebar-link :href="route('announcements.index')" :active="request()->routeIs('announcements.*') && (auth()->user()->role === 'hrstaff' || !request()->routeIs(['announcements.view', 'announcements.show']))">
+                        <x-slot name="icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z">
+                                </path>
+                            </svg>
+                        </x-slot>
+                        {{ __('Announcement') }}
+                    </x-sidebar-link>
+                @endif
 
-                <x-sidebar-link :href="route('dtr.index')" :active="request()->routeIs('dtr.*')">
-                    <x-slot name="icon">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </x-slot>
-                    {{ __('Attendance') }}
-                </x-sidebar-link>
+                @if(! in_array(auth()->user()->role, ['chief', 'regionaldirector', 'regional director']))
+                    <x-sidebar-link :href="route('dtr.index')" :active="request()->routeIs('dtr.*')">
+                        <x-slot name="icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </x-slot>
+                        {{ __('Attendance') }}
+                    </x-sidebar-link>
+                @endif
+
+                @if(in_array(auth()->user()->role, ['admin', 'hrstaff']))
+                    <x-sidebar-link :href="route('reports.index')" :active="request()->routeIs('reports.*')">
+                        <x-slot name="icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 17v-6m4 6V7m4 10v-4M5 19h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                </path>
+                            </svg>
+                        </x-slot>
+                        {{ __('Reports') }}
+                    </x-sidebar-link>
+                @endif
 
                 
             </div>

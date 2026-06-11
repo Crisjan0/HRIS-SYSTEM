@@ -41,6 +41,15 @@
 
                 <!-- Latest Announcement Sidebar -->
                 <div class="lg:col-span-1">
+                    @if(in_array(auth()->user()->role, ['admin', 'hrstaff', 'regionaldirector', 'regional director']))
+                        <a href="{{ route('announcements.index', ['openCreate' => 1]) }}" class="mb-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-xs font-black uppercase tracking-widest text-white shadow-md shadow-indigo-100 hover:bg-indigo-700 transition">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14m7-7H5" />
+                            </svg>
+                            {{ __('New Announcement') }}
+                        </a>
+                    @endif
+
                     @if($latestAnnouncement)
                         <div class="bg-white rounded-[2.5rem] p-8 shadow-2xl shadow-indigo-50 border border-indigo-50/50 flex flex-col h-full relative group overflow-hidden">
                             <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-50/50 rounded-full blur-3xl -mr-16 -mt-16"></div>

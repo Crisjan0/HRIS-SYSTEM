@@ -14,16 +14,19 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
     Route::get('register/consent', function (Request $request) {
-        $request->session()->put('privacy_consent_ack', true);
-
-        return redirect()->route('register');
+        return redirect()->route('login')
+            ->with('status', 'Registration is handled by Human Resource personnel.');
     })->name('register.consent');
 
-    Route::get('register', [RegisteredUserController::class, 'create'])
-        ->middleware('privacy.consent')
-        ->name('register');
+    Route::get('register', function () {
+        return redirect()->route('login')
+            ->with('status', 'Registration is handled by Human Resource personnel.');
+    })->name('register');
 
-    Route::post('register', [RegisteredUserController::class, 'store']);
+    Route::post('register', function () {
+        return redirect()->route('login')
+            ->with('status', 'Registration is handled by Human Resource personnel.');
+    });
 
     Route::get('register/verify-otp', [RegisteredUserController::class, 'showOtpForm'])
         ->name('register.verify-otp');
