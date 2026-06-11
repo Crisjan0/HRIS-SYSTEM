@@ -18,6 +18,7 @@ class Announcement extends Model
         'author_id',
         'published_at',
         'tags',
+        'attachment_path',
     ];
 
     protected function casts(): array

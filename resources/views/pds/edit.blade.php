@@ -7,7 +7,7 @@
         education: {{ $employee->pdsEducation->count() > 0 ? $employee->pdsEducation->toJson() : '[{level: \'\', school_name: \'\', course: \'\', period_from: \'\', period_to: \'\', highest_level: \'\', year_graduated: \'\', honors: \'\'}]' }},
         eligibility: {{ $employee->pdsEligibilities->count() > 0 ? $employee->pdsEligibilities->toJson() : '[{title: \'\', rating: \'\', date_of_exam: \'\', place_of_exam: \'\', license_number: \'\', license_validity: \'\'}]' }},
         work: {{ $employee->pdsWorkExperiences->count() > 0 ? $employee->pdsWorkExperiences->toJson() : '[{date_from: \'\', date_to: \'\', position_title: \'\', company: \'\', monthly_salary: \'\', salary_grade: \'\', appointment_status: \'\', is_gov_service: 0}]' }},
-        training: {{ $employee->pdsTrainings->count() > 0 ? $employee->pdsTrainings->toJson() : '[{title: \'\', date_from: \'\', date_to: \'\', number_of_hours: \'\', type: \'\', conducted_by: \'\'}]' }},
+        training: {{ $employee->pdsTrainings->count() > 0 ? $employee->pdsTrainings->toJson() : '[{title: \'\', date_from: \'\', date_to: \'\', number_of_hours: \'\', attachment_path: \'\', type: \'\', conducted_by: \'\'}]' }},
         voluntary: {{ $employee->pdsVoluntaryWorks->count() > 0 ? $employee->pdsVoluntaryWorks->toJson() : '[{organization_name: \'\', date_from: \'\', date_to: \'\', number_of_hours: \'\', position: \'\'}]' }},
         others: {{ $employee->pdsOthers->count() > 0 ? $employee->pdsOthers->toJson() : '[{type: \'Skill\', description: \'\'}]' }},
         references: {{ $employee->pdsReferences->count() > 0 ? $employee->pdsReferences->toJson() : '[{name: \'\', address: \'\', telephone_no: \'\'}, {name: \'\', address: \'\', telephone_no: \'\'}, {name: \'\', address: \'\', telephone_no: \'\'}]' }}
@@ -50,7 +50,7 @@
                     </div>
                 @endif
 
-                <form action="{{ route('pds.update') }}" method="POST" class="p-8">
+                <form action="{{ route('pds.update') }}" method="POST" class="p-8" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
 
@@ -451,7 +451,7 @@
                                     @if($trainingReview && $trainingReview->remarks)
                                         <span class="bg-yellow-100 text-yellow-800 text-[10px] px-2 py-1 rounded font-bold border border-yellow-200">Has HR Remarks</span>
                                     @endif
-                                    <button type="button" @click="training.push({title: '', date_from: '', date_to: '', number_of_hours: '', type: '', conducted_by: ''})" class="text-[9px] font-black uppercase tracking-[0.1em] bg-indigo-700 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-800 transition">+ Add Training</button>
+                                    <button type="button" @click="training.push({title: '', date_from: '', date_to: '', number_of_hours: '', attachment_path: '', type: '', conducted_by: ''})" class="text-[9px] font-black uppercase tracking-[0.1em] bg-indigo-700 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-800 transition">+ Add Training</button>
                                 </div>
                             </div>
                             @if($trainingReview && $trainingReview->remarks)
@@ -470,7 +470,8 @@
                                             <th class="px-4 py-3">Title of Program</th>
                                             <th class="px-4 py-3">From</th>
                                             <th class="px-4 py-3">To</th>
-                                            <th class="px-4 py-3">Hours</th>
+                                            {{-- Change: replaced Hours with Attachment for PDS training records. --}}
+                                            <th class="px-4 py-3">Attachment</th>
                                             <th class="px-4 py-3 w-8"></th>
                                         </tr>
                                     </thead>
@@ -480,7 +481,15 @@
                                                 <td class="p-1"><x-text-input class="w-full text-[10px] font-bold border-transparent px-3" x-model="t.title" ::name="`training[${index}][title]`" /></td>
                                                 <td class="p-1"><x-text-input type="date" class="w-full text-[10px] font-bold border-transparent px-3" x-model="t.date_from" ::name="`training[${index}][date_from]`" /></td>
                                                 <td class="p-1"><x-text-input type="date" class="w-full text-[10px] font-bold border-transparent px-3" x-model="t.date_to" ::name="`training[${index}][date_to]`" /></td>
-                                                <td class="p-1"><x-text-input type="number" class="w-full text-[10px] font-bold border-transparent px-3" x-model="t.number_of_hours" ::name="`training[${index}][number_of_hours]`" /></td>
+                                                <td class="p-1">
+                                                    <input type="hidden" :name="`training[${index}][existing_attachment_path]`" :value="t.attachment_path || ''">
+                                                    <input type="file" :name="`training[${index}][attachment]`" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" class="block w-full text-[10px] font-bold text-gray-500 file:mr-3 file:rounded-lg file:border-0 file:bg-indigo-50 file:px-3 file:py-2 file:text-[10px] file:font-black file:uppercase file:tracking-widest file:text-indigo-700 hover:file:bg-indigo-100">
+                                                    <template x-if="t.attachment_path">
+                                                        <a :href="`/storage/${t.attachment_path}`" target="_blank" class="mt-1 inline-flex text-[10px] font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-800">
+                                                            View current file
+                                                        </a>
+                                                    </template>
+                                                </td>
                                                 <td class="p-1 text-center"><button type="button" @click="training.splice(index, 1)" class="text-red-400 hover:text-red-600">&times;</button></td>
                                             </tr>
                                         </template>

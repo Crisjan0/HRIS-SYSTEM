@@ -29,8 +29,16 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'ends_with:@dmw.gov.ph'],
             'password' => ['required', 'string'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'email.ends_with' => 'Invalid email. Please use your official dmw.gov.ph email address.',
+            'email.lowercase' => 'Invalid email. Please use lowercase letters for your official dmw.gov.ph email address.',
         ];
     }
 
