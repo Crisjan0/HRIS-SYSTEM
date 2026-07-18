@@ -5,11 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 
 class Employee extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'lastname',
@@ -18,8 +19,10 @@ class Employee extends Model
         'suffix',
         'division',
         'contact_number',
+        'notification_email',
         'position',
         'account_role',
+        'employment_status',
         'remarks',
         'user_id',
         'rfid_number',

@@ -10,9 +10,149 @@ use setasign\Fpdi\Tcpdf\Fpdi;
 
 class Cs212PdfGenerator
 {
+    private const A4_WIDTH_MM = 210;
+    private const A4_HEIGHT_MM = 297;
+
     private ?int $templatePageCount = null;
 
-    public function download(Employee $employee): Response
+    public function printPage1(Employee $employee, bool $showGuide = false): Response
+    {
+        $employee->load(['user', 'pdsPersonal']);
+
+        $pdf = $this->buildPage1Calibration($employee, $showGuide);
+        $personal = $employee->pdsPersonal;
+        $surname = $personal?->surname ?? $employee->lastname;
+        $filename = 'PDS_PAGE_1_'.preg_replace('/\s+/', '_', $surname).'_'.now()->format('Y-m-d').'.pdf';
+
+        return response($pdf->Output($filename, 'S'), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="'.$filename.'"',
+        ]);
+    }
+
+    public function buildPage1Calibration(Employee $employee, bool $showGuide = false): Fpdi
+    {
+        $templatePath = resource_path('pdf/cs_form_212_template.pdf');
+        if (! file_exists($templatePath)) {
+            throw new \RuntimeException("PDS template missing: {$templatePath}");
+        }
+
+        $pdf = new Fpdi('P', 'mm', [self::A4_WIDTH_MM, self::A4_HEIGHT_MM], true, 'UTF-8', false);
+        $pdf->SetMargins(0, 0, 0);
+        $pdf->SetAutoPageBreak(false, 0);
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(false);
+        $pdf->SetCreator('HRIS');
+        $pdf->SetAuthor('HRIS');
+        $pdf->SetTitle('Personal Data Sheet Page 1');
+
+        $pdf->setSourceFile($templatePath);
+        $pdf->AddPage('P', [self::A4_WIDTH_MM, self::A4_HEIGHT_MM]);
+        $template = $pdf->importPage(1);
+        $pdf->useTemplate($template, 0, 0, self::A4_WIDTH_MM, self::A4_HEIGHT_MM);
+
+        if ($showGuide) {
+            $this->drawCoordinateGuide($pdf);
+        }
+
+        $this->fillPage1StarterFields($pdf, $employee);
+
+        return $pdf;
+    }
+
+    private function fillPage1StarterFields(Fpdi $pdf, Employee $employee): void
+    {
+        $p = $employee->pdsPersonal;
+
+        /*
+         * Page 1 calibration map in millimeters.
+         * To adjust a field: open /pds/print?guide=1, read the grid,
+         * then change x to move left/right and y to move up/down.
+         * Keep this starter map small until these five fields print perfectly.
+         */
+        $fields = [
+            'surname' => ['x' => 43.0, 'y' => 34.2, 'w' => 111.0],
+            'first_name' => ['x' => 43.0, 'y' => 39.4, 'w' => 95.0],
+            'middle_name' => ['x' => 43.0, 'y' => 44.7, 'w' => 111.0],
+            'date_of_birth' => ['x' => 43.0, 'y' => 51.6, 'w' => 42.0],
+        ];
+
+        $this->writeTextMm($pdf, $fields['surname'], PdsFormatter::val($p?->surname ?? $employee->lastname));
+        $this->writeTextMm($pdf, $fields['first_name'], PdsFormatter::val($p?->firstname ?? $employee->firstname));
+        $this->writeTextMm($pdf, $fields['middle_name'], PdsFormatter::val($p?->middlename ?? $employee->middlename));
+        $this->writeTextMm($pdf, $fields['date_of_birth'], PdsFormatter::date($p?->date_of_birth), false);
+        $this->markSexMm($pdf, PdsFormatter::val($p?->sex));
+    }
+
+    private function writeTextMm(Fpdi $pdf, array $box, string $text, bool $uppercase = true, float $fontSize = 7.0): void
+    {
+        $text = trim($text);
+        if ($text === '') {
+            return;
+        }
+
+        $pdf->SetFont('helvetica', '', $fontSize);
+        $pdf->SetTextColor(0, 0, 0);
+        $pdf->SetXY($box['x'], $box['y']);
+        $pdf->Cell($box['w'], $box['h'] ?? 4.2, $uppercase ? mb_strtoupper($text) : $text, 0, 0, 'L', false, '', 1);
+    }
+
+    private function writeMultiTextMm(Fpdi $pdf, array $box, string $text, bool $uppercase = true, float $fontSize = 6.5): void
+    {
+        $text = trim($text);
+        if ($text === '') {
+            return;
+        }
+
+        $pdf->SetFont('helvetica', '', $fontSize);
+        $pdf->SetTextColor(0, 0, 0);
+        $pdf->SetXY($box['x'], $box['y']);
+        $pdf->MultiCell($box['w'], $box['line_h'] ?? 3.2, $uppercase ? mb_strtoupper($text) : $text, 0, 'L', false, 1, '', '', true, 0, false, true, $box['h'] ?? 8, 'M');
+    }
+
+    private function markCheckMm(Fpdi $pdf, float $x, float $y): void
+    {
+        $pdf->SetFont('helvetica', 'B', 7);
+        $pdf->SetTextColor(0, 0, 0);
+        $pdf->SetXY($x, $y);
+        $pdf->Cell(3, 3, 'X', 0, 0, 'C');
+    }
+
+    private function markSexMm(Fpdi $pdf, string $sex): void
+    {
+        $value = strtolower($sex);
+        if (str_contains($value, 'female')) {
+            $this->markCheckMm($pdf, 62.2, 84.0);
+        } elseif (str_contains($value, 'male')) {
+            $this->markCheckMm($pdf, 43.0, 84.0);
+        }
+    }
+
+    private function drawCoordinateGuide(Fpdi $pdf): void
+    {
+        $pdf->SetDrawColor(255, 0, 0);
+        $pdf->SetTextColor(255, 0, 0);
+        $pdf->SetFont('helvetica', '', 4);
+
+        for ($x = 0; $x <= self::A4_WIDTH_MM; $x += 10) {
+            $pdf->Line($x, 0, $x, self::A4_HEIGHT_MM);
+            if ($x > 0) {
+                $pdf->Text($x + 0.5, 2, (string) $x);
+            }
+        }
+
+        for ($y = 0; $y <= self::A4_HEIGHT_MM; $y += 10) {
+            $pdf->Line(0, $y, self::A4_WIDTH_MM, $y);
+            if ($y > 0) {
+                $pdf->Text(1, $y + 1.5, (string) $y);
+            }
+        }
+
+        $pdf->SetDrawColor(0, 0, 0);
+        $pdf->SetTextColor(0, 0, 0);
+    }
+
+    public function download(Employee $employee, string $disposition = 'attachment'): Response
     {
         $employee->load([
             'user',
@@ -28,7 +168,7 @@ class Cs212PdfGenerator
 
         return response($pdf->Output($filename, 'S'), 200, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+            'Content-Disposition' => $disposition.'; filename="'.$filename.'"',
         ]);
     }
 
@@ -86,6 +226,14 @@ class Cs212PdfGenerator
      */
     private function bindTemplate(Fpdi $pdf): bool
     {
+        $pngPages = collect(range(1, 4))->every(function (int $page) {
+            return file_exists(public_path("images/pds/pds-page-{$page}.png"));
+        });
+
+        if ($pngPages) {
+            return false;
+        }
+
         $path = resource_path('pdf/cs_form_212_template.pdf');
 
         try {
@@ -110,7 +258,7 @@ class Cs212PdfGenerator
         $pdf->Image($image, 0, 0, $w, $h, '', '', '', false, 300, '', false, false, 0);
     }
 
-    private function initText(Fpdi $pdf, int $size = 0): void
+    private function initText(Fpdi $pdf, float $size = 0): void
     {
         $pdf->SetFont('helvetica', '', $size ?: config('cs212.font_size', 7));
         $pdf->SetTextColor(0, 0, 0);
@@ -123,9 +271,9 @@ class Cs212PdfGenerator
             return;
         }
 
-        $this->initText($pdf);
+        $this->initText($pdf, $this->fitFontSize($pdf, $text, $w));
         $pdf->SetXY($x, $y);
-        $pdf->Cell($w, 8, $text, 0, 0, 'L', false, '', 0, false, 'T', 'M');
+        $pdf->Cell($w, 8, $text, 0, 0, 'L', false, '', 1, false, 'T', 'M');
     }
 
     private function fillPage1(Fpdi $pdf, Employee $employee, array $cfg): void
@@ -140,8 +288,8 @@ class Cs212PdfGenerator
         $this->writeAt($pdf, $m['middle_name']['x'], $m['middle_name']['y'], $m['middle_name']['w'], PdsFormatter::val($p?->middlename ?? $employee->middlename));
         $this->writeAt($pdf, $m['date_of_birth']['x'], $m['date_of_birth']['y'], $m['date_of_birth']['w'], PdsFormatter::date($p?->date_of_birth));
         $this->writeAt($pdf, $m['place_of_birth']['x'], $m['place_of_birth']['y'], $m['place_of_birth']['w'], PdsFormatter::val($p?->place_of_birth));
-        $this->writeAt($pdf, $m['sex']['x'], $m['sex']['y'], $m['sex']['w'], PdsFormatter::val($p?->sex));
-        $this->writeAt($pdf, $m['civil_status']['x'], $m['civil_status']['y'], $m['civil_status']['w'], PdsFormatter::val($p?->civil_status));
+        $this->markSex($pdf, PdsFormatter::val($p?->sex));
+        $this->markCivilStatus($pdf, PdsFormatter::val($p?->civil_status));
         $this->writeAt($pdf, $m['height']['x'], $m['height']['y'], $m['height']['w'], PdsFormatter::val($p?->height_m));
         $this->writeAt($pdf, $m['weight']['x'], $m['weight']['y'], $m['weight']['w'], PdsFormatter::val($p?->weight_kg));
         $this->writeAt($pdf, $m['blood_type']['x'], $m['blood_type']['y'], $m['blood_type']['w'], PdsFormatter::val($p?->blood_type));
@@ -159,7 +307,10 @@ class Cs212PdfGenerator
         if ($p?->citizenship_country) {
             $citizenship .= ' ('.$p->citizenship_country.')';
         }
-        $this->writeAt($pdf, $m['citizenship']['x'], $m['citizenship']['y'], $m['citizenship']['w'], $citizenship);
+        $this->markCitizenship($pdf, PdsFormatter::val($p?->citizenship, 'Filipino'), PdsFormatter::val($p?->citizenship_type));
+        if ($p?->citizenship_country) {
+            $this->writeAt($pdf, 468, 220, 110, PdsFormatter::val($p->citizenship_country));
+        }
 
         $this->writeAt($pdf, $m['res_house']['x'], $m['res_house']['y'], $m['res_house']['w'], PdsFormatter::val($p?->res_house_no));
         $this->writeAt($pdf, $m['res_street']['x'], $m['res_street']['y'], $m['res_street']['w'], PdsFormatter::val($p?->res_street));
@@ -212,13 +363,13 @@ class Cs212PdfGenerator
         foreach ($levels as $level) {
             $edu = $eduByLevel[$level] ?? null;
             if ($edu) {
-                $this->writeAt($pdf, $cols['school'], $y, 58, PdsFormatter::val($edu->school_name));
-                $this->writeAt($pdf, $cols['course'], $y, 22, PdsFormatter::val($edu->course));
-                $this->writeAt($pdf, $cols['from'], $y, 16, PdsFormatter::val($edu->period_from));
-                $this->writeAt($pdf, $cols['to'], $y, 16, PdsFormatter::val($edu->period_to));
-                $this->writeAt($pdf, $cols['units'], $y, 16, PdsFormatter::val($edu->highest_level));
-                $this->writeAt($pdf, $cols['year'], $y, 16, PdsFormatter::val($edu->year_graduated));
-                $this->writeAt($pdf, $cols['honors'], $y, 270, PdsFormatter::val($edu->honors));
+                $this->writeAt($pdf, $cols['school'], $y, 110, PdsFormatter::val($edu->school_name));
+                $this->writeAt($pdf, $cols['course'], $y, 126, PdsFormatter::val($edu->course));
+                $this->writeAt($pdf, $cols['from'], $y, 50, PdsFormatter::val($edu->period_from));
+                $this->writeAt($pdf, $cols['to'], $y, 36, PdsFormatter::val($edu->period_to));
+                $this->writeAt($pdf, $cols['units'], $y, 38, PdsFormatter::val($edu->highest_level));
+                $this->writeAt($pdf, $cols['year'], $y, 44, PdsFormatter::val($edu->year_graduated));
+                $this->writeAt($pdf, $cols['honors'], $y, 38, PdsFormatter::val($edu->honors));
             }
             $y += $eduCfg['row_h'];
         }
@@ -261,11 +412,11 @@ class Cs212PdfGenerator
         $y = $vCfg['y'];
         $c = $vCfg['cols'];
         foreach ($employee->pdsVoluntaryWorks->take($vCfg['max']) as $vol) {
-            $this->writeAt($pdf, $c['org'], $y, 215, $vol->organization_name);
-            $this->writeAt($pdf, $c['from'], $y, 35, PdsFormatter::date($vol->date_from));
-            $this->writeAt($pdf, $c['to'], $y, 35, PdsFormatter::date($vol->date_to));
-            $this->writeAt($pdf, $c['hours'], $y, 35, PdsFormatter::val($vol->number_of_hours));
-            $this->writeAt($pdf, $c['position'], $y, 175, PdsFormatter::val($vol->position));
+            $this->writeAt($pdf, $c['org'], $y, 84, PdsFormatter::val($vol->organization_name));
+            $this->writeAt($pdf, $c['from'], $y, 23, PdsFormatter::date($vol->date_from));
+            $this->writeAt($pdf, $c['to'], $y, 23, PdsFormatter::date($vol->date_to));
+            $this->writeAt($pdf, $c['hours'], $y, 22, PdsFormatter::val($vol->number_of_hours));
+            $this->writeAt($pdf, $c['position'], $y, 372, PdsFormatter::val($vol->position));
             $y += $vCfg['row_h'];
         }
 
@@ -273,12 +424,12 @@ class Cs212PdfGenerator
         $y = $tCfg['y'];
         $c = $tCfg['cols'];
         foreach ($employee->pdsTrainings->take($tCfg['max']) as $train) {
-            $this->writeAt($pdf, $c['title'], $y, 215, $train->title);
-            $this->writeAt($pdf, $c['from'], $y, 35, PdsFormatter::date($train->date_from));
-            $this->writeAt($pdf, $c['to'], $y, 35, PdsFormatter::date($train->date_to));
-            $this->writeAt($pdf, $c['hours'], $y, 35, PdsFormatter::val($train->number_of_hours));
-            $this->writeAt($pdf, $c['type'], $y, 55, PdsFormatter::val($train->type));
-            $this->writeAt($pdf, $c['by'], $y, 175, PdsFormatter::val($train->conducted_by));
+            $this->writeAt($pdf, $c['title'], $y, 84, PdsFormatter::val($train->title));
+            $this->writeAt($pdf, $c['from'], $y, 23, PdsFormatter::date($train->date_from));
+            $this->writeAt($pdf, $c['to'], $y, 23, PdsFormatter::date($train->date_to));
+            $this->writeAt($pdf, $c['hours'], $y, 22, PdsFormatter::val($train->number_of_hours));
+            $this->writeAt($pdf, $c['type'], $y, 26, PdsFormatter::val($train->type));
+            $this->writeAt($pdf, $c['by'], $y, 345, PdsFormatter::val($train->conducted_by));
             $y += $tCfg['row_h'];
         }
 
@@ -286,9 +437,9 @@ class Cs212PdfGenerator
         $distinctions = $employee->pdsOthers->where('type', 'Distinction')->pluck('description')->implode('; ');
         $memberships = $employee->pdsOthers->where('type', 'Membership')->pluck('description')->implode('; ');
         $o = $cfg['page3'];
-        $this->writeMulti($pdf, $o['other_skills']['x'], $o['other_skills']['y'], $o['other_skills']['w'], $skills);
-        $this->writeMulti($pdf, $o['other_distinctions']['x'], $o['other_distinctions']['y'], $o['other_distinctions']['w'], $distinctions);
-        $this->writeMulti($pdf, $o['other_membership']['x'], $o['other_membership']['y'], $o['other_membership']['w'], $memberships);
+        $this->writeMulti($pdf, $o['other_skills']['x'], $o['other_skills']['y'], $o['other_skills']['w'], $skills, $o['other_skills']['h']);
+        $this->writeMulti($pdf, $o['other_distinctions']['x'], $o['other_distinctions']['y'], $o['other_distinctions']['w'], $distinctions, $o['other_distinctions']['h']);
+        $this->writeMulti($pdf, $o['other_membership']['x'], $o['other_membership']['y'], $o['other_membership']['w'], $memberships, $o['other_membership']['h']);
     }
 
     private function fillPage4(Fpdi $pdf, Employee $employee, array $cfg): void
@@ -320,9 +471,9 @@ class Cs212PdfGenerator
         $y = $rCfg['y'];
         $c = $rCfg['cols'];
         foreach ($employee->pdsReferences->take($rCfg['max']) as $ref) {
-            $this->writeAt($pdf, $c['name'], $y, 155, $ref->name);
-            $this->writeAt($pdf, $c['address'], $y, 275, $ref->address);
-            $this->writeAt($pdf, $c['tel'], $y, 125, $ref->telephone_no);
+            $this->writeAt($pdf, $c['name'], $y, 105, PdsFormatter::val($ref->name));
+            $this->writeAt($pdf, $c['address'], $y, 100, PdsFormatter::val($ref->address));
+            $this->writeAt($pdf, $c['tel'], $y, 120, PdsFormatter::val($ref->telephone_no));
             $y += $rCfg['row_h'];
         }
 
@@ -341,14 +492,123 @@ class Cs212PdfGenerator
         }
     }
 
-    private function writeMulti(Fpdi $pdf, float $x, float $y, float $w, string $text): void
+    private function writeMulti(Fpdi $pdf, float $x, float $y, float $w, string $text, ?float $h = null): void
     {
+        $text = trim($text);
         if ($text === '') {
             return;
         }
-        $this->initText($pdf);
+        $lineHeight = 7;
+        $fontSize = $this->fitFontSize($pdf, $text, $w);
+        if ($h !== null) {
+            $fontSize = $this->fitFontSizeForBox($pdf, $text, $w, $h, $lineHeight, $fontSize);
+            $text = $this->fitTextForBox($pdf, $text, $w, $h, $lineHeight);
+        }
+
+        $this->initText($pdf, $fontSize);
         $pdf->SetXY($x, $y);
-        $pdf->MultiCell($w, 10, $text, 0, 'L');
+        $pdf->MultiCell($w, $lineHeight, $text, 0, 'L');
+    }
+
+    private function markCheckbox(Fpdi $pdf, float $x, float $y): void
+    {
+        $this->initText($pdf, 7);
+        $pdf->SetXY($x, $y);
+        $pdf->Cell(8, 8, 'X', 0, 0, 'C');
+    }
+
+    private function markSex(Fpdi $pdf, string $sex): void
+    {
+        $value = strtolower($sex);
+        if (str_contains($value, 'male') && ! str_contains($value, 'female')) {
+            $this->markCheckbox($pdf, 125, 286);
+        } elseif (str_contains($value, 'female')) {
+            $this->markCheckbox($pdf, 179, 286);
+        }
+    }
+
+    private function markCivilStatus(Fpdi $pdf, string $status): void
+    {
+        $value = strtolower($status);
+        if (str_contains($value, 'single')) {
+            $this->markCheckbox($pdf, 125, 307);
+        } elseif (str_contains($value, 'married')) {
+            $this->markCheckbox($pdf, 179, 307);
+        } elseif (str_contains($value, 'widow')) {
+            $this->markCheckbox($pdf, 125, 321);
+        } elseif (str_contains($value, 'separated')) {
+            $this->markCheckbox($pdf, 179, 321);
+        } elseif ($value !== '' && $value !== 'n/a') {
+            $this->markCheckbox($pdf, 125, 335);
+            $this->writeAt($pdf, 160, 335, 65, $status);
+        }
+    }
+
+    private function markCitizenship(Fpdi $pdf, string $citizenship, string $type): void
+    {
+        $citizenshipValue = strtolower($citizenship);
+        $typeValue = strtolower($type);
+
+        if ($citizenshipValue === '' || str_contains($citizenshipValue, 'filipino')) {
+            $this->markCheckbox($pdf, 369, 180);
+        }
+
+        if (str_contains($citizenshipValue, 'dual')) {
+            $this->markCheckbox($pdf, 454, 180);
+        }
+
+        if (str_contains($typeValue, 'birth')) {
+            $this->markCheckbox($pdf, 470, 195);
+        } elseif (str_contains($typeValue, 'natural')) {
+            $this->markCheckbox($pdf, 510, 195);
+        }
+    }
+
+    private function fitFontSize(Fpdi $pdf, string $text, float $width): float
+    {
+        $baseSize = (float) config('cs212.font_size', 7);
+        $minSize = 4.8;
+        $size = $baseSize;
+
+        $pdf->SetFont('helvetica', '', $size);
+        while ($size > $minSize && $pdf->GetStringWidth($text) > ($width - 2)) {
+            $size -= 0.25;
+            $pdf->SetFont('helvetica', '', $size);
+        }
+
+        return max($size, $minSize);
+    }
+
+    private function fitFontSizeForBox(Fpdi $pdf, string $text, float $width, float $height, float $lineHeight, float $startSize): float
+    {
+        $minSize = 4.8;
+        $size = $startSize;
+
+        $pdf->SetFont('helvetica', '', $size);
+        while ($size > $minSize && ($pdf->getNumLines($text, $width) * $lineHeight) > $height) {
+            $size -= 0.25;
+            $pdf->SetFont('helvetica', '', $size);
+        }
+
+        return max($size, $minSize);
+    }
+
+    private function fitTextForBox(Fpdi $pdf, string $text, float $width, float $height, float $lineHeight): string
+    {
+        if (($pdf->getNumLines($text, $width) * $lineHeight) <= $height) {
+            return $text;
+        }
+
+        $words = preg_split('/\s+/', $text) ?: [];
+        while (count($words) > 1) {
+            array_pop($words);
+            $candidate = implode(' ', $words).'...';
+            if (($pdf->getNumLines($candidate, $width) * $lineHeight) <= $height) {
+                return $candidate;
+            }
+        }
+
+        return mb_substr($text, 0, 24).'...';
     }
 
     /** @return array<string, PdsEducation|null> */

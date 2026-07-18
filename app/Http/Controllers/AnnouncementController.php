@@ -11,6 +11,7 @@ use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Illuminate\View\View;
 
 class AnnouncementController extends Controller
@@ -23,10 +24,59 @@ class AnnouncementController extends Controller
         $search = $request->query('search');
         $status = $request->query('status', 'all');
         $category = $request->query('category', 'all');
+        $year = (int) $request->query('year', now()->year);
+        $month = $request->query('month', 'all');
+        $sort = $request->query('sort', 'latest');
+        $month = preg_match('/^\d{2}$/', (string) $month) ? $month : 'all';
         $mine = $request->boolean('mine');
         $categories = ['General', 'Meeting', 'Memo', 'Training', 'Workshop', 'Office Orders', 'Advisory'];
+        $years = Announcement::query()
+            ->latest()
+            ->get(['created_at'])
+            ->map(fn ($announcement) => (int) $announcement->created_at->format('Y'))
+            ->push(now()->year)
+            ->unique()
+            ->sortDesc()
+            ->values();
+        if (! $years->contains($year)) {
+            $year = (int) ($years->first() ?: now()->year);
+        }
+        $months = collect(range(1, 12))->map(fn ($number) => [
+            'value' => str_pad((string) $number, 2, '0', STR_PAD_LEFT),
+            'label' => Carbon::create($year, $number, 1)->format('F'),
+        ]);
 
-        $announcements = Announcement::with('author.employee')
+        $announcements = $this->announcementIndexQuery($search, $status, $category, $year, $month, $mine, $sort)
+            ->paginate(10)
+            ->appends($request->only(['search', 'status', 'category', 'year', 'month', 'mine', 'sort']));
+
+        return view('announcements.index', compact('announcements', 'search', 'status', 'category', 'year', 'years', 'month', 'categories', 'months', 'mine', 'sort'));
+    }
+
+    public function filter(Request $request)
+    {
+        $search = $request->query('search');
+        $status = $request->query('status', 'all');
+        $category = $request->query('category', 'all');
+        $year = (int) $request->query('year', now()->year);
+        $month = $request->query('month', 'all');
+        $sort = $request->query('sort', 'latest');
+        $month = preg_match('/^\d{2}$/', (string) $month) ? $month : 'all';
+        $mine = $request->boolean('mine');
+
+        $announcements = $this->announcementIndexQuery($search, $status, $category, $year, $month, $mine, $sort)
+            ->paginate(10)
+            ->appends($request->only(['search', 'status', 'category', 'year', 'month', 'mine', 'sort']));
+
+        return response()->json([
+            'html' => view('announcements.partials.results', compact('announcements'))->render(),
+            'count' => $announcements->total(),
+        ]);
+    }
+
+    private function announcementIndexQuery(?string $search, string $status, string $category, int $year, string $month, bool $mine, string $sort)
+    {
+        $query = Announcement::with('author.employee')
             ->when($search, function ($query, $search) {
                 $query->where(function ($innerQuery) use ($search) {
                     $innerQuery
@@ -38,25 +88,69 @@ class AnnouncementController extends Controller
             ->when($status === 'published', fn ($query) => $query->where('is_published', true))
             ->when($status === 'draft', fn ($query) => $query->where('is_published', false))
             ->when($category !== 'all', fn ($query) => $query->where('tags', 'like', "%{$category}%"))
+            ->when($month !== 'all', function ($query) use ($year, $month) {
+                $query->whereBetween('created_at', [
+                    Carbon::create($year, (int) $month, 1)->startOfMonth(),
+                    Carbon::create($year, (int) $month, 1)->endOfMonth(),
+                ]);
+            }, fn ($query) => $query->whereYear('created_at', $year))
             ->when($mine, fn ($query) => $query->where('author_id', auth()->id()))
-            ->latest()
-            ->paginate(10)
-            ->appends($request->only(['search', 'status', 'category', 'mine']));
+        ;
 
-        return view('announcements.index', compact('announcements', 'search', 'status', 'category', 'categories', 'mine'));
+        return match ($sort) {
+            'oldest' => $query->oldest(),
+            'title_asc' => $query->orderBy('title'),
+            default => $query->latest(),
+        };
     }
 
     /**
      * Display a public listing of the published announcements.
      */
-    public function userIndex(): View
+    public function userIndex(Request $request)
     {
+        $search = $request->query('search');
+        $month = $request->query('month', 'all');
+        $sort = $request->query('sort', 'latest');
+        $month = preg_match('/^\d{4}-\d{2}$/', $month) ? $month : 'all';
+        $months = Announcement::published()
+            ->latest()
+            ->get(['created_at'])
+            ->map(fn ($announcement) => [
+                'value' => $announcement->created_at->format('Y-m'),
+                'label' => $announcement->created_at->format('F Y'),
+            ])
+            ->unique('value')
+            ->values();
+
         $announcements = Announcement::with('author.employee')
             ->published()
-            ->latest()
-            ->paginate(12);
+            ->when($search, function ($query, $search) {
+                $query->where(function ($innerQuery) use ($search) {
+                    $innerQuery
+                        ->where('title', 'like', "%{$search}%")
+                        ->orWhere('content', 'like', "%{$search}%")
+                        ->orWhere('tags', 'like', "%{$search}%");
+                });
+            })
+            ->when($month !== 'all', function ($query) use ($month) {
+                $query->whereBetween('created_at', [
+                    Carbon::createFromFormat('Y-m', $month)->startOfMonth(),
+                    Carbon::createFromFormat('Y-m', $month)->endOfMonth(),
+                ]);
+            })
+            ->when($sort === 'oldest', fn ($query) => $query->oldest(), fn ($query) => $query->latest())
+            ->paginate(12)
+            ->appends($request->only(['search', 'month', 'sort']));
 
-        return view('announcements.view', compact('announcements'));
+        if ($request->expectsJson()) {
+            return response()->json([
+                'html' => view('announcements.partials.public-results', compact('announcements'))->render(),
+                'count' => $announcements->total(),
+            ]);
+        }
+
+        return view('announcements.view', compact('announcements', 'search', 'month', 'months', 'sort'));
     }
 
     /**
@@ -108,6 +202,17 @@ class AnnouncementController extends Controller
         }
 
         return view('announcements.show', compact('announcement'));
+    }
+
+    public function attachment(Announcement $announcement): BinaryFileResponse
+    {
+        if (!$announcement->attachment_path || !Storage::disk('public')->exists($announcement->attachment_path)) {
+            abort(404);
+        }
+
+        return response()->file(Storage::disk('public')->path($announcement->attachment_path), [
+            'Content-Type' => 'application/pdf',
+        ]);
     }
 
     /**

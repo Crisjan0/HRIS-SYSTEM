@@ -15,6 +15,9 @@ class CtoRequest extends Model
         'hours',
         'purpose',
         'attachment_path',
+        'applicant_signature_path',
+        'cto_balance_before',
+        'cto_balance_after',
         'status',
         'approved_by_chief',
         'chief_status',
@@ -22,6 +25,9 @@ class CtoRequest extends Model
         'approved_by_hrstaff',
         'hrstaff_status',
         'hrstaff_remarks',
+        'approved_by_regionaldirector',
+        'rd_status',
+        'rd_remarks',
     ];
 
     protected function casts(): array
@@ -30,6 +36,8 @@ class CtoRequest extends Model
             'date_start' => 'date',
             'date_end' => 'date',
             'hours' => 'decimal:2',
+            'cto_balance_before' => 'decimal:2',
+            'cto_balance_after' => 'decimal:2',
         ];
     }
 
@@ -46,6 +54,11 @@ class CtoRequest extends Model
     public function hrstaff(): BelongsTo
     {
         return $this->belongsTo(Employee::class, 'approved_by_hrstaff');
+    }
+
+    public function regionalDirector(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class, 'approved_by_regionaldirector');
     }
 
     public function getTypeLabelAttribute(): string

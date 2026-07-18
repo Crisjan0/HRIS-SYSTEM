@@ -4,85 +4,65 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             @include('leaves._manage-tabs')
+            @include('leaves.applications._approval-tracker', ['leaves' => $leaves])
 
-            <div class="space-y-4">
-                @forelse($leaves as $leaf)
-                    <div class="bg-white overflow-hidden shadow-sm rounded-xl border border-gray-100 p-6 flex flex-col md:flex-row md:items-center justify-between hover:shadow-md transition-shadow duration-300 gap-4">
-                        <div class="flex-1">
-                            <div class="flex items-center justify-between md:justify-start md:gap-4 mb-2 md:mb-1">
-                                <h3 class="text-lg font-bold text-gray-900 leading-tight">
-                                    {{ $leaf->employee->firstname }} {{ $leaf->employee->lastname }}
-                                </h3>
-                                <div class="md:hidden">
-                                    @if($leaf->status === 'approved')
-                                        <span class="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border {{ $leaf->is_paid ? 'text-green-600 bg-green-50 border-green-100' : 'text-blue-900 bg-blue-800 border-blue-900' }}">
-                                            {{ $leaf->status_label }}
-                                        </span>
-                                    @elseif($leaf->status === 'rejected')
-                                        <span class="text-[10px] font-black uppercase tracking-widest text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100">REJECTED</span>
-                                    @else
-                                        <span class="text-[10px] font-black uppercase tracking-widest text-orange-500 bg-orange-50 px-2 py-0.5 rounded border border-orange-100">PENDING</span>
-                                    @endif
-                                </div>
-                            </div>
-                            <div class="text-sm text-gray-600">
-                                <span class="font-medium text-indigo-600">{{ $leaf->leaveType->name }}</span>
-                                <span class="mx-1 text-gray-400">from</span>
-                                <span class="font-medium">{{ \Carbon\Carbon::parse($leaf->start_date)->format('M d, Y') }}</span>
-                                <span class="mx-1 text-gray-400">to</span>
-                                <span class="font-medium">{{ \Carbon\Carbon::parse($leaf->end_date)->format('M d, Y') }}</span>
-                            </div>
-                            
-                            @if($leaf->remarks)
-                                <div class="mt-2 p-3 bg-gray-50 rounded-lg text-xs text-gray-500 italic border-l-2 border-gray-200">
-                                    "{{ $leaf->remarks }}"
-                                </div>
-                            @endif
+            <form id="leaveApplicationFilterForm" method="GET" action="{{ route('leave-applications.all') }}" data-filter-url="{{ route('leave-applications.all.filter') }}" class="mb-4 flex min-w-0 flex-col gap-2 rounded-xl border border-gray-100 bg-gray-50/70 p-2 sm:flex-row sm:items-center">
+                <div class="relative min-w-0 sm:flex-1">
+                    <label for="search" class="sr-only">{{ __('Search leave application') }}</label>
+                    <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" d="M21 21l-4.35-4.35M10.75 18.5a7.75 7.75 0 100-15.5 7.75 7.75 0 000 15.5z" />
+                        </svg>
+                    </span>
+                    <input id="search" name="search" type="search" value="{{ $search }}" placeholder="{{ __('Search employee or leave type...') }}" class="block h-9 w-full rounded-lg border-gray-300 pl-10 pr-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                </div>
+                <div class="sm:w-44 sm:shrink-0">
+                    <label for="status" class="sr-only">{{ __('Status') }}</label>
+                    <select id="status" name="status" class="block h-9 w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="">{{ __('All Statuses') }}</option>
+                        @foreach(['pending' => 'Pending', 'approved' => 'Approved', 'rejected' => 'Rejected', 'cancelled' => 'Cancelled'] as $value => $label)
+                            <option value="{{ $value }}" {{ $status === $value ? 'selected' : '' }}>{{ __($label) }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="sm:w-48 sm:shrink-0">
+                    <label for="sort" class="sr-only">{{ __('Sort') }}</label>
+                    <select id="sort" name="sort" class="block h-9 w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="date_filed_desc" {{ $sort === 'date_filed_desc' ? 'selected' : '' }}>{{ __('Newest Filed') }}</option>
+                        <option value="date_filed_asc" {{ $sort === 'date_filed_asc' ? 'selected' : '' }}>{{ __('Oldest Filed') }}</option>
+                        <option value="employee_asc" {{ $sort === 'employee_asc' ? 'selected' : '' }}>{{ __('Name A-Z') }}</option>
+                    </select>
+                </div>
+                <div class="flex items-center gap-2 sm:shrink-0">
+                    <a href="{{ route('leave-applications.all') }}" class="inline-flex h-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-xs font-bold uppercase tracking-wider text-gray-700 transition hover:bg-gray-50">
+                        {{ __('Reset') }}
+                    </a>
+                </div>
+            </form>
 
-                            <div class="mt-3 flex items-center gap-4 text-[10px] text-gray-400 font-medium">
-                                <div class="flex items-center gap-1">
-                                    <svg class="w-3 h-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                    <span>Filed on {{ \Carbon\Carbon::parse($leaf->date_filed)->format('M d, Y h:i A') }}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="hidden md:flex flex-col items-end justify-center gap-3 border-l pl-8 border-gray-50">
-                            <div class="text-right">
-                                <div class="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Status</div>
-                                @if($leaf->status === 'approved')
-                                    <span class="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border {{ $leaf->is_paid ? 'text-green-600 bg-green-50 border-green-100' : 'text-indigo-600 bg-indigo-50 border-indigo-100' }}">
-                                        {{ $leaf->status_label }}
-                                    </span>
-                                @elseif($leaf->status === 'rejected')
-                                    <span class="text-[10px] font-black uppercase tracking-widest text-red-600 bg-red-50 px-3 py-1 rounded-full border border-red-100">REJECTED</span>
-                                @else
-                                    <span class="text-[10px] font-black uppercase tracking-widest text-orange-500 bg-orange-50 px-3 py-1 rounded-full border border-orange-100">PENDING</span>
-                                @endif
-                            </div>
-                            <a href="{{ route('leave-applications.show', $leaf->id) }}" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-md hover:-translate-y-0.5">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                </svg>
-                                {{ __('View') }}
-                            </a>
-                        </div>
-                    </div>
-                @empty
-                    <div class="bg-white rounded-xl border border-dashed border-gray-200 p-12 text-center">
-                        <div class="text-gray-400 mb-2">
-                            <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                        </div>
-                        <p class="text-gray-500 italic font-medium">
-                            {{ __('No leave records found.') }}
-                        </p>
-                    </div>
-                @endforelse
+            <div class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+                <div class="overflow-x-auto">
+                    <table class="w-full table-fixed divide-y divide-gray-100">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="w-[29%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Name</th>
+                                <th scope="col" class="w-[24%] whitespace-nowrap px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Leave Type</th>
+                                <th scope="col" class="w-[18%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Date Filed</th>
+                                <th scope="col" class="w-[15%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Status</th>
+                                <th scope="col" class="w-[14%] px-4 py-3 text-right text-[10px] font-black uppercase tracking-widest text-gray-500">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaveApplicationTableBody" class="divide-y divide-gray-100 bg-white">
+                            @include('leaves.applications._rows', [
+                                'leaves' => $leaves,
+                                'actionMode' => 'view',
+                                'emptyMessage' => __('No leave records found.'),
+                            ])
+                        </tbody>
+                    </table>
+                </div>
             </div>
-
         </div>
     </div>
+    @include('leaves.applications._filter-script')
 </x-app-layout>

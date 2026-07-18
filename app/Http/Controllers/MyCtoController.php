@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Notifications\CtoRequestNotification;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Notification;
 use App\Models\CtoRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class MyCtoController extends Controller
@@ -48,8 +50,11 @@ class MyCtoController extends Controller
             'date_end' => 'required|date|after_or_equal:date_start',
             'hours' => 'required|numeric|min:0.5|max:999',
             'purpose' => 'required|string',
-            'attachment' => 'nullable|file|mimes:pdf,jpg,png,doc,docx|max:5120',
+            'attachment' => 'nullable|file|mimes:pdf|max:5120',
+            'applicant_signature' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
+
+        $this->validateCtoDates($validated['date_start'], $validated['date_end']);
 
         if ($validated['type'] === 'use' && $employee->cto_balance < $validated['hours']) {
             return back()->withInput()->withErrors([
@@ -62,6 +67,16 @@ class MyCtoController extends Controller
             $attachmentPath = $request->file('attachment')->store('cto-attachments', 'public');
         }
 
+        $signaturePath = null;
+        if ($request->hasFile('applicant_signature')) {
+            $signaturePath = $request->file('applicant_signature')->store('cto-signatures', 'public');
+        }
+
+        $ctoBalanceBefore = (float) $employee->cto_balance;
+        $ctoBalanceAfter = $validated['type'] === 'use'
+            ? max(0, $ctoBalanceBefore - (float) $validated['hours'])
+            : $ctoBalanceBefore + (float) $validated['hours'];
+
         $ctoRequest = $employee->ctoRequests()->create([
             'type' => $validated['type'],
             'date_start' => $validated['date_start'],
@@ -69,6 +84,9 @@ class MyCtoController extends Controller
             'hours' => $validated['hours'],
             'purpose' => $validated['purpose'],
             'attachment_path' => $attachmentPath,
+            'applicant_signature_path' => $signaturePath,
+            'cto_balance_before' => $ctoBalanceBefore,
+            'cto_balance_after' => $ctoBalanceAfter,
         ]);
 
         $chiefs = User::whereHas('employee', function ($query) {
@@ -91,12 +109,43 @@ Notification::send($chiefs, new CtoRequestNotification(
         $employee = auth()->user()->employee;
 
         if ($ctoRequest->employee_id !== $employee?->id
-            && ! in_array(auth()->user()->role, ['admin', 'hrstaff', 'chief'])) {
+            && ! in_array(strtolower(auth()->user()->role ?? ''), ['admin', 'hrstaff', 'hr staff', 'chief', 'director', 'regionaldirector', 'regional director'])) {
             abort(403);
         }
 
-        $ctoRequest->load(['employee', 'chief', 'hrstaff']);
+        $ctoRequest->load(['employee', 'chief', 'hrstaff', 'regionalDirector']);
 
         return view('my-cto.show', compact('ctoRequest'));
+    }
+
+    public function print(CtoRequest $ctoRequest): View
+    {
+        $employee = auth()->user()->employee;
+
+        if ($ctoRequest->employee_id !== $employee?->id
+            && ! in_array(strtolower(auth()->user()->role ?? ''), ['admin', 'hrstaff', 'hr staff', 'chief', 'director', 'regionaldirector', 'regional director'])) {
+            abort(403);
+        }
+
+        $ctoRequest->load(['employee.user', 'chief', 'hrstaff', 'regionalDirector']);
+
+        return view('my-cto.print', compact('ctoRequest'));
+    }
+
+    private function validateCtoDates(string $startDate, string $endDate): void
+    {
+        $today = now()->startOfDay();
+        $dates = [
+            'date_start' => Carbon::parse($startDate)->startOfDay(),
+            'date_end' => Carbon::parse($endDate)->startOfDay(),
+        ];
+
+        foreach ($dates as $field => $date) {
+            if ($date->lt($today) || $date->isWeekend()) {
+                throw ValidationException::withMessages([
+                    $field => 'Please select today or a future weekday. Saturdays and Sundays are disabled.',
+                ]);
+            }
+        }
     }
 }

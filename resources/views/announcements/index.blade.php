@@ -44,12 +44,20 @@
                 </div>
             @endif
 
-            <div class="flex justify-end">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <label for="announcementYear" class="sr-only">{{ __('Year') }}</label>
+                    <select form="announcementFilterForm" id="announcementYear" name="year" class="block h-10 rounded-lg border-gray-300 bg-white text-sm font-semibold text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        @foreach($years as $yearOption)
+                            <option value="{{ $yearOption }}" {{ (int) $year === (int) $yearOption ? 'selected' : '' }}>{{ $yearOption }}</option>
+                        @endforeach
+                    </select>
+                </div>
                 @if($canPost)
                     <button
                         type="button"
                         @click="openAnnouncement = true"
-                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-xs font-black uppercase tracking-widest text-white shadow-md shadow-indigo-100 transition hover:bg-indigo-700"
+                        class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-xs font-black uppercase tracking-widest text-white shadow-md shadow-indigo-100 transition hover:bg-indigo-700 sm:w-auto"
                     >
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14m7-7H5" />
@@ -62,13 +70,19 @@
             <div class="border-b border-gray-200">
                 <div class="flex gap-8 overflow-x-auto">
                     <a
-                        href="{{ route('announcements.index', array_filter(['search' => $search, 'category' => $category !== 'all' ? $category : null, 'status' => 'all'])) }}"
+                        href="{{ route('announcements.index', array_filter(['search' => $search, 'category' => $category !== 'all' ? $category : null, 'year' => $year, 'month' => $month !== 'all' ? $month : null, 'sort' => $sort !== 'latest' ? $sort : null, 'status' => 'all'])) }}"
+                        data-announcement-tab
+                        data-status="all"
+                        data-mine="0"
                         class="whitespace-nowrap border-b-2 px-1 pb-3 text-sm font-bold uppercase tracking-[0.14em] transition {{ $status === 'all' && !$mine ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}"
                     >
                         {{ __('All Announcements') }}
                     </a>
                     <a
-                        href="{{ route('announcements.index', array_filter(['search' => $search, 'category' => $category !== 'all' ? $category : null, 'status' => $status, 'mine' => 1])) }}"
+                        href="{{ route('announcements.index', array_filter(['search' => $search, 'category' => $category !== 'all' ? $category : null, 'year' => $year, 'month' => $month !== 'all' ? $month : null, 'sort' => $sort !== 'latest' ? $sort : null, 'status' => $status, 'mine' => 1])) }}"
+                        data-announcement-tab
+                        data-status="{{ $status }}"
+                        data-mine="1"
                         class="whitespace-nowrap border-b-2 px-1 pb-3 text-sm font-bold uppercase tracking-[0.14em] transition {{ $mine ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}"
                     >
                         {{ __('My Announcements') }}
@@ -76,151 +90,57 @@
                 </div>
             </div>
 
-            <form method="GET" action="{{ route('announcements.index') }}" class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-                @if($mine)
-                    <input type="hidden" name="mine" value="1">
-                @endif
-                @if($status !== 'all')
-                    <input type="hidden" name="status" value="{{ $status }}">
-                @endif
+            <form id="announcementFilterForm" method="GET" action="{{ route('announcements.index') }}" data-filter-url="{{ route('announcements.filter') }}" class="mb-4 flex flex-col gap-2 rounded-xl border border-gray-100 bg-gray-50/70 p-2 sm:flex-row sm:items-center">
+                <input type="hidden" id="announcementMine" name="mine" value="{{ $mine ? 1 : 0 }}">
+                <input type="hidden" id="announcementStatus" name="status" value="{{ $status }}">
 
-                <div class="flex flex-col gap-3 md:flex-row md:items-center">
-                    <div class="min-w-0 flex-1">
-                        <div class="relative">
-                            <svg class="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m1.35-5.65a7 7 0 11-14 0 7 7 0 0114 0z" />
+                <div class="contents">
+                    <div class="relative min-w-0 sm:flex-1">
+                        <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" d="M21 21l-4.35-4.35m1.35-5.65a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
-                            <input
-                                id="announcementSearch"
-                                type="search"
-                                name="search"
-                                value="{{ $search }}"
-                                placeholder="{{ __('Search title, content, or type...') }}"
-                                class="w-full rounded-lg border-gray-200 py-3 pl-11 pr-4 text-sm font-semibold text-gray-700 focus:border-indigo-500 focus:ring-indigo-500"
-                            >
-                        </div>
+                        </span>
+                        <input
+                            id="announcementSearch"
+                            type="search"
+                            name="search"
+                            value="{{ $search }}"
+                            placeholder="{{ __('Search title, content, or type...') }}"
+                            class="block h-9 w-full rounded-lg border-gray-300 pl-10 pr-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            data-announcement-autofilter
+                        >
                     </div>
 
-                    <div class="md:w-56">
-                        <select id="announcementCategory" name="category" class="w-full rounded-lg border-gray-200 bg-white py-3 text-sm font-semibold text-gray-700 focus:border-indigo-500 focus:ring-indigo-500">
-                            <option value="all" {{ $category === 'all' ? 'selected' : '' }}>{{ __('All Types') }}</option>
-                            @foreach($categories as $option)
-                                <option value="{{ $option }}" {{ $category === $option ? 'selected' : '' }}>{{ $option }}</option>
+                   
+
+                    <div class="sm:w-48 sm:shrink-0">
+                        <select id="announcementMonth" name="month" class="block h-9 w-full rounded-lg border-gray-300 bg-white text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <option value="all" {{ $month === 'all' ? 'selected' : '' }}>{{ __('All Months') }}</option>
+                            @foreach($months as $option)
+                                <option value="{{ $option['value'] }}" {{ $month === $option['value'] ? 'selected' : '' }}>{{ $option['label'] }}</option>
                             @endforeach
                         </select>
                     </div>
 
+                    <div class="sm:w-40 sm:shrink-0">
+                        <select id="announcementSort" name="sort" class="block h-9 w-full rounded-lg border-gray-300 bg-white text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <option value="latest" {{ $sort === 'latest' ? 'selected' : '' }}>{{ __('Latest') }}</option>
+                            <option value="oldest" {{ $sort === 'oldest' ? 'selected' : '' }}>{{ __('Oldest') }}</option>
+                            <option value="title_asc" {{ $sort === 'title_asc' ? 'selected' : '' }}>{{ __('Title A-Z') }}</option>
+                        </select>
+                    </div>
+
                     <div class="flex shrink-0 gap-2">
-                        <button type="submit" class="rounded-lg bg-indigo-600 px-5 py-3 text-xs font-black uppercase tracking-widest text-white transition hover:bg-indigo-700">
-                            {{ __('Filter') }}
-                        </button>
-                        <a href="{{ route('announcements.index') }}" class="rounded-lg border border-gray-200 px-5 py-3 text-xs font-black uppercase tracking-widest text-gray-600 transition hover:bg-gray-50">
+                        <button type="button" id="announcementFilterReset" class="inline-flex h-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-xs font-black uppercase tracking-widest text-gray-600 transition hover:bg-gray-50">
                             {{ __('Reset') }}
-                        </a>
+                        </button>
                     </div>
                 </div>
             </form>
 
-            <div class="space-y-4">
-                @forelse($announcements as $announcement)
-                    @php
-                        $tags = collect(explode(',', $announcement->tags ?? 'General'))->map(fn ($tag) => trim($tag))->filter();
-                        $primaryTag = $tags->first() ?: 'General';
-                    @endphp
-
-                    <article class="rounded-xl border border-gray-100 bg-white p-6 shadow-sm transition hover:shadow-md">
-                        <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                            <div class="min-w-0 flex-1">
-                                <div class="mb-3 flex flex-wrap items-center gap-2">
-                                    <span class="rounded-full px-3 py-1 text-xs font-bold {{ $categoryColor($primaryTag) }}">
-                                        {{ $primaryTag }}
-                                    </span>
-
-                                    @if($announcement->author_id === auth()->id())
-                                        <span class="rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-700">{{ __('My Announcement') }}</span>
-                                    @endif
-
-                                    <span class="text-xs font-semibold text-gray-400">{{ $announcement->created_at->format('M d, Y') }}</span>
-                                </div>
-
-                                <a href="{{ route('announcements.show', $announcement) }}" class="group">
-                                    <h2 class="text-xl font-black text-gray-900 transition group-hover:text-indigo-600">
-                                        {{ $announcement->title }}
-                                    </h2>
-                                </a>
-
-                                <p class="mt-2 max-w-4xl text-sm leading-6 text-gray-600">
-                                    {{ Str::limit(strip_tags($announcement->content), 220) }}
-                                </p>
-
-                                <div class="mt-4 flex flex-wrap items-center gap-3 text-xs font-semibold text-gray-400">
-                                    <span>
-                                        {{ __('Posted by') }}
-                                        <span class="text-gray-600">
-                                            {{ $announcement->author?->display_name ?: $announcement->author?->name ?: $announcement->author?->email ?: __('HR Office') }}
-                                        </span>
-                                        @if($announcement->author?->role)
-                                            <span class="uppercase tracking-widest text-indigo-500">
-                                                ({{ $announcement->author->role }})
-                                            </span>
-                                        @endif
-                                    </span>
-
-                                    @if($announcement->attachment_path)
-                                        <a href="{{ asset('storage/' . $announcement->attachment_path) }}" target="_blank" class="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-3 py-1 text-indigo-700 transition hover:bg-indigo-100">
-                                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
-                                            </svg>
-                                            {{ __('PDF Attachment') }}
-                                        </a>
-                                    @else
-                                        <span>{{ __('No attachment') }}</span>
-                                    @endif
-                                </div>
-                            </div>
-
-                            <div class="flex shrink-0 items-center gap-2">
-                                <a href="{{ route('announcements.show', $announcement) }}" class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-700 transition hover:bg-indigo-100" title="{{ __('View') }}" aria-label="{{ __('View') }}">
-                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.25 12s3.75-6.75 9.75-6.75S21.75 12 21.75 12 18 18.75 12 18.75 2.25 12 2.25 12z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    </svg>
-                                </a>
-
-                                <a href="{{ route('announcements.edit', $announcement) }}" class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-700 transition hover:bg-blue-100" title="{{ __('Edit') }}" aria-label="{{ __('Edit') }}">
-                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487l1.651-1.651a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.5 7.125L16.875 4.5" />
-                                    </svg>
-                                </a>
-
-                                <form action="{{ route('announcements.destroy', $announcement) }}" method="POST" onsubmit="return confirm('{{ __('Delete this announcement?') }}');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-red-50 text-red-700 transition hover:bg-red-100" title="{{ __('Delete') }}" aria-label="{{ __('Delete') }}">
-                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 7h12m-9 0V5.25A1.25 1.25 0 0110.25 4h3.5A1.25 1.25 0 0115 5.25V7m-7 0l.75 12A2 2 0 0010.75 21h2.5a2 2 0 002-1.875L16 7" />
-                                        </svg>
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </article>
-                @empty
-                    <div class="rounded-xl border border-dashed border-gray-200 bg-white p-12 text-center">
-                        <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-50">
-                            <svg class="h-8 w-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path>
-                            </svg>
-                        </div>
-                        <h3 class="text-lg font-black text-gray-900">{{ __('No announcements found') }}</h3>
-                        <p class="mt-1 text-sm font-medium text-gray-500">{{ __('No announcements match the current search or filter.') }}</p>
-                    </div>
-                @endforelse
-            </div>
-
-            <div>
-                {{ $announcements->links() }}
+            <div id="announcementResults">
+                @include('announcements.partials.results', ['announcements' => $announcements])
             </div>
         </div>
 
@@ -344,4 +264,153 @@
             </div>
         @endif
     </div>
+    <script>
+        const announcementFilterForm = document.getElementById('announcementFilterForm');
+        const announcementSearchInput = document.querySelector('[data-announcement-autofilter]');
+        const announcementCategorySelect = document.getElementById('announcementCategory');
+        const announcementYearSelect = document.getElementById('announcementYear');
+        const announcementMonthSelect = document.getElementById('announcementMonth');
+        const announcementSortSelect = document.getElementById('announcementSort');
+        const announcementResults = document.getElementById('announcementResults');
+        const announcementFilterReset = document.getElementById('announcementFilterReset');
+        const announcementMineInput = document.getElementById('announcementMine');
+        const announcementStatusInput = document.getElementById('announcementStatus');
+        const announcementTabs = document.querySelectorAll('[data-announcement-tab]');
+        let announcementSearchTimer;
+
+        function updateAnnouncementTabs(activeMine) {
+            announcementTabs.forEach((tab) => {
+                const isActive = tab.dataset.mine === activeMine;
+                tab.classList.toggle('border-indigo-600', isActive);
+                tab.classList.toggle('text-indigo-600', isActive);
+                tab.classList.toggle('border-transparent', !isActive);
+                tab.classList.toggle('text-gray-500', !isActive);
+            });
+        }
+
+        async function filterAnnouncements(requestUrl = null, browserUrl = null) {
+            if (!announcementFilterForm || !announcementResults) {
+                return;
+            }
+
+            const filterUrl = announcementFilterForm.dataset.filterUrl;
+            const params = new URLSearchParams(new FormData(announcementFilterForm));
+            const nextRequestUrl = requestUrl || `${filterUrl}?${params.toString()}`;
+            const nextBrowserUrl = browserUrl || `${announcementFilterForm.action}?${params.toString()}`;
+
+            announcementResults.style.opacity = '0.55';
+
+            try {
+                const response = await fetch(nextRequestUrl, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error('Unable to filter announcements.');
+                }
+
+                const data = await response.json();
+                announcementResults.innerHTML = data.html;
+                window.history.replaceState({}, '', nextBrowserUrl);
+            } catch (error) {
+                announcementFilterForm.submit();
+            } finally {
+                announcementResults.style.opacity = '1';
+            }
+        }
+
+        if (announcementFilterForm) {
+            announcementFilterForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                filterAnnouncements();
+            });
+        }
+
+        if (announcementFilterForm && announcementSearchInput) {
+            announcementSearchInput.addEventListener('input', () => {
+                clearTimeout(announcementSearchTimer);
+                announcementSearchTimer = setTimeout(() => {
+                    filterAnnouncements();
+                }, 600);
+            });
+        }
+
+        if (announcementCategorySelect) {
+            announcementCategorySelect.addEventListener('change', () => filterAnnouncements());
+        }
+
+        if (announcementYearSelect) {
+            announcementYearSelect.addEventListener('change', () => filterAnnouncements());
+        }
+
+        if (announcementMonthSelect) {
+            announcementMonthSelect.addEventListener('change', () => filterAnnouncements());
+        }
+
+        if (announcementSortSelect) {
+            announcementSortSelect.addEventListener('change', () => filterAnnouncements());
+        }
+
+        if (announcementFilterReset) {
+            announcementFilterReset.addEventListener('click', () => {
+                if (announcementSearchInput) {
+                    announcementSearchInput.value = '';
+                }
+
+                if (announcementCategorySelect) {
+                    announcementCategorySelect.value = 'all';
+                }
+
+                if (announcementYearSelect) {
+                    announcementYearSelect.value = '{{ now()->year }}';
+                }
+
+                if (announcementMonthSelect) {
+                    announcementMonthSelect.value = 'all';
+                }
+
+                if (announcementSortSelect) {
+                    announcementSortSelect.value = 'latest';
+                }
+
+                filterAnnouncements();
+            });
+        }
+
+        announcementTabs.forEach((tab) => {
+            tab.addEventListener('click', (event) => {
+                event.preventDefault();
+
+                if (announcementMineInput) {
+                    announcementMineInput.value = tab.dataset.mine || '0';
+                }
+
+                if (announcementStatusInput) {
+                    announcementStatusInput.value = tab.dataset.status || 'all';
+                }
+
+                updateAnnouncementTabs(tab.dataset.mine || '0');
+                filterAnnouncements();
+            });
+        });
+
+        if (announcementResults) {
+            announcementResults.addEventListener('click', (event) => {
+                const link = event.target.closest('a');
+
+                if (!link || !link.href || !link.closest('nav')) {
+                    return;
+                }
+
+                event.preventDefault();
+
+                const url = new URL(link.href);
+                const filterUrl = announcementFilterForm.dataset.filterUrl;
+                filterAnnouncements(`${filterUrl}${url.search}`, `${announcementFilterForm.action}${url.search}`);
+            });
+        }
+    </script>
 </x-app-layout>

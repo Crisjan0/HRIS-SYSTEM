@@ -16,6 +16,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \App\Http\Middleware\CheckRole::class,
             'privacy.consent' => \App\Http\Middleware\RequirePrivacyConsent::class,
             'approved' => \App\Http\Middleware\EnsureApproved::class,
+            'account.active' => \App\Http\Middleware\EnsureAccountActive::class,
+            'password.changed' => \App\Http\Middleware\EnsurePasswordChanged::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

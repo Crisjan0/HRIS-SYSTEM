@@ -19,12 +19,7 @@
 
                         <div>
                             <label for="tags" class="block text-sm font-semibold text-gray-700 mb-1">{{ __('Tags (Comma separated)') }}</label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <span class="text-gray-400 font-semibold">#</span>
-                                </div>
-                                <input type="text" name="tags" id="tags" value="{{ old('tags', $announcement->tags) }}" placeholder="HR, Event, Important" class="w-full pl-8 pr-4 py-3 rounded-xl border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm transition-all text-sm @error('tags') border-red-500 @enderror">
-                            </div>
+                            <input type="text" name="tags" id="tags" value="{{ old('tags', $announcement->tags) }}" placeholder="HR, Event, Important" class="w-full px-4 py-3 rounded-xl border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm transition-all text-sm @error('tags') border-red-500 @enderror">
                             @error('tags')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
@@ -84,7 +79,7 @@
                                 </label>
                             </div>
                             @if($announcement->attachment_path)
-                                <a href="{{ asset('storage/' . $announcement->attachment_path) }}" target="_blank" class="mt-3 inline-flex items-center gap-2 rounded-xl bg-indigo-50 px-3 py-2 text-sm font-bold text-indigo-600 hover:bg-indigo-100 hover:text-indigo-800">
+                                <a href="{{ route('announcements.attachment', $announcement) }}" target="_blank" class="mt-3 inline-flex items-center gap-2 rounded-xl bg-indigo-50 px-3 py-2 text-sm font-bold text-indigo-600 hover:bg-indigo-100 hover:text-indigo-800">
                                     <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
                                     </svg>

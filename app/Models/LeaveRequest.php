@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Carbon\CarbonPeriod;
 
 class LeaveRequest extends Model
 {
@@ -87,9 +88,11 @@ class LeaveRequest extends Model
             ->map(fn($date) => $date->format('Y-m-d'))
             ->toArray();
 
-        return (int) $start->diffInDaysFiltered(function (\Carbon\Carbon $date) use ($holidays) {
-            return $date->isWeekday() && !in_array($date->format('Y-m-d'), $holidays);
-        }, $end->addDay()); // addDay because diffInDaysFiltered is exclusive of the end date
+        return collect(CarbonPeriod::create($start, $end))
+            ->filter(function (\Carbon\Carbon $date) use ($holidays) {
+                return $date->isWeekday() && ! in_array($date->format('Y-m-d'), $holidays, true);
+            })
+            ->count();
     }
 
     /**
@@ -103,6 +106,7 @@ class LeaveRequest extends Model
             'start_date' => 'date',
             'end_date' => 'date',
             'date_filed' => 'datetime',
+            'is_paid' => 'boolean',
         ];
     }
 }

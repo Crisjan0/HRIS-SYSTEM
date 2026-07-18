@@ -52,6 +52,8 @@
 
     <!-- Navigation -->
     @php($isApproved = auth()->user()?->is_approved)
+    @php($sidebarRole = strtolower(auth()->user()->role ?? ''))
+    @php($isCtoManagedDetail = request()->routeIs('my-cto.show') && in_array($sidebarRole, ['admin', 'hrstaff', 'hr staff', 'chief', 'director', 'regionaldirector', 'regional director']))
     <nav class="flex-1 px-4 space-y-1.5 overflow-y-auto mt-2">
         <div class="pb-4 mb-4 border-b border-gray-50">
             <h3 x-show="!sidebarCollapsed" x-transition class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
@@ -70,8 +72,9 @@
                 {{ __('Dashboard') }}
             </x-sidebar-link>
 
-            @if($isApproved && auth()->user()->role !== 'hrstaff')
-                <x-sidebar-link :href="route('announcements.view')" :active="request()->routeIs(['announcements.view', 'announcements.show'])">
+            @if($isApproved)
+                @php($canManageAnnouncements = in_array(auth()->user()->role, ['admin', 'hrstaff', 'regionaldirector', 'regional director']))
+                <x-sidebar-link :href="$canManageAnnouncements ? route('announcements.index') : route('announcements.view')" :active="request()->routeIs(['announcements.*'])">
                     <x-slot name="icon">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                             xmlns="http://www.w3.org/2000/svg">
@@ -86,7 +89,7 @@
 
             @if($isApproved)
                 @if(in_array(auth()->user()->role, ['employee', 'admin', 'hrstaff', 'director', 'chief', 'regionaldirector', 'regional director']))
-                    <x-sidebar-dropdown label="{{ __('My Account') }}" :active="request()->routeIs(['pds.*', 'salns.*', 'ildp.*', 'leaves.*', 'my-dtr.*', 'my-cto.*', 'locator-slips.*', 'travel-orders.*'])">
+                    <x-sidebar-dropdown label="{{ __('My Account') }}" :active="request()->routeIs(['pds.*', 'salns.*', 'ildp.*', 'leaves.*', 'my-dtr.*', 'locator-slips.*', 'travel-orders.*']) || (request()->routeIs('my-cto.*') && ! $isCtoManagedDetail)">
                         <x-slot name="icon">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                                 xmlns="http://www.w3.org/2000/svg">
@@ -113,7 +116,7 @@
                         <x-sidebar-link :href="route('travel-orders.index')" :active="request()->routeIs('travel-orders.*')" class="text-xs">
                             {{ __('Travel Order') }}
                         </x-sidebar-link>
-                        <x-sidebar-link :href="route('my-cto.index')" :active="request()->routeIs('my-cto.*')" class="text-xs">
+                        <x-sidebar-link :href="route('my-cto.index')" :active="request()->routeIs('my-cto.*') && ! $isCtoManagedDetail" class="text-xs">
                             {{ __('Compensatory Time-Off') }}
                         </x-sidebar-link>
                     </x-sidebar-dropdown>
@@ -141,7 +144,7 @@
                     </x-sidebar-link>
                 @endif
 
-                <x-sidebar-link :href="route('leave-applications.index')" :active="request()->routeIs(['leave-applications.*', 'leave-calendar', 'leave-types.*', 'holidays.*'])">
+                <x-sidebar-link :href="route('leave-applications.index')" :active="request()->routeIs(['leave-applications.*'])">
                     <x-slot name="icon">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                             xmlns="http://www.w3.org/2000/svg">
@@ -163,8 +166,8 @@
                     {{ __('Manage Travel Order') }}
                 </x-sidebar-link>
 
-                @if(in_array(auth()->user()->role, ['admin', 'hrstaff', 'chief']))
-                <x-sidebar-link :href="route('hr.cto.index')" :active="request()->routeIs('hr.cto.*') || request()->routeIs('cto.update-status')">
+                @if(in_array(auth()->user()->role, ['admin', 'hrstaff', 'chief', 'director', 'regionaldirector', 'regional director']))
+                <x-sidebar-link :href="route('hr.cto.index')" :active="request()->routeIs('hr.cto.*') || request()->routeIs('cto.update-status') || $isCtoManagedDetail">
                     <x-slot name="icon">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                             xmlns="http://www.w3.org/2000/svg">
@@ -176,28 +179,16 @@
                 </x-sidebar-link>
                 @endif
 
-                <x-sidebar-link :href="route('hr.locator-slips.index')" :active="request()->routeIs('hr.locator-slips.*')">
-                    <x-slot name="icon">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 6.253v11.494m-9-5.747h18"></path>
-                        </svg>
-                    </x-slot>
-                    {{ __('Manage Locator Slip') }}
-                </x-sidebar-link>
-
-                @if(auth()->user()->role !== 'chief')
-                    <x-sidebar-link :href="route('announcements.index')" :active="request()->routeIs('announcements.*') && (auth()->user()->role === 'hrstaff' || !request()->routeIs(['announcements.view', 'announcements.show']))">
+                @if(! in_array(auth()->user()->role, ['director', 'regionaldirector', 'regional director']))
+                    <x-sidebar-link :href="route('hr.locator-slips.index')" :active="request()->routeIs('hr.locator-slips.*')">
                         <x-slot name="icon">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                                 xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z">
-                                </path>
+                                    d="M12 6.253v11.494m-9-5.747h18"></path>
                             </svg>
                         </x-slot>
-                        {{ __('Announcement') }}
+                        {{ __('Manage Locator Slip') }}
                     </x-sidebar-link>
                 @endif
 
@@ -250,6 +241,27 @@
                 </x-sidebar-link>
             @endif
 
+            @if($isApproved && in_array(auth()->user()->role, ['admin', 'hrstaff', 'director', 'regionaldirector', 'regional director']))
+                <x-sidebar-dropdown label="{{ __('Utilities') }}" :active="request()->routeIs(['leave-types.*', 'holidays.*'])">
+                    <x-slot name="icon">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                    </x-slot>
+
+                    <x-sidebar-link :href="route('leave-types.index')" :active="request()->routeIs('leave-types.*')" class="text-xs">
+                        {{ __('Leave Types') }}
+                    </x-sidebar-link>
+                    <x-sidebar-link :href="route('holidays.index')" :active="request()->routeIs('holidays.*')" class="text-xs">
+                        {{ __('Holiday') }}
+                    </x-sidebar-link>
+                </x-sidebar-dropdown>
+            @endif
+
             <form method="POST" action="{{ route('logout') }}" class="group mt-auto">
                 @csrf
                 <button type="submit"
@@ -266,16 +278,5 @@
             </form>
         </div>
     </nav>
-
-    <!-- User Section -->
-        <div class="px-4 py-6 border-t border-white/40 bg-white/40 backdrop-blur-sm">
-            <a href="{{ auth()->user()?->employee ? route('personal-information.show') : route('profile.edit') }}" class="flex items-center gap-3 px-3 group rounded-xl hover:bg-white/60 transition-colors duration-200" :class="sidebarCollapsed ? 'justify-center px-2' : ''">
-                <x-profile-avatar :user="auth()->user()" size="md" variant="brand" class="shadow-md shadow-[#0038a8]/20 ring-2 ring-white transition-transform duration-300 group-hover:scale-110" />
-                <div class="overflow-hidden" x-show="!sidebarCollapsed" x-transition>
-                    <p class="text-sm font-bold text-gray-900 truncate">{{ Auth::user()->display_name }}</p>
-                    <p class="text-xs text-gray-600 truncate">{{ Auth::user()->email }}</p>
-                </div>
-            </a>
-        </div>
     </div> <!-- /End relative z-10 container -->
 </div>

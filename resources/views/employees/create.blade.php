@@ -3,6 +3,15 @@
 
     <div class="py-12">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+            <div class="mb-4">
+                <a href="{{ route('employees.index') }}" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    {{ __('Back to Records') }}
+                </a>
+            </div>
+
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-100">
                 <div class="p-8 text-gray-900 border-b border-gray-200">
                     <form action="{{ route('employees.store') }}" method="POST" class="space-y-6">
@@ -35,6 +44,12 @@
                                     <x-input-error class="mt-2" :messages="$errors->get('contact_number')" />
                                 </div>
                                 <div>
+                                    <x-input-label for="notification_email" :value="__('Notification Email')" />
+                                    <x-text-input id="notification_email" name="notification_email" type="email" class="mt-1 block w-full" :value="old('notification_email')" placeholder="employee@gmail.com" />
+                                    <p class="mt-1 text-xs text-gray-500">{{ __('Use an existing email where the employee can receive account details.') }}</p>
+                                    <x-input-error class="mt-2" :messages="$errors->get('notification_email')" />
+                                </div>
+                                <div>
                                     <x-input-label for="rfid_number" :value="__('RFID Number')" />
                                     <x-text-input id="rfid_number" name="rfid_number" type="text" class="mt-1 block w-full" :value="old('rfid_number')" placeholder="e.g., RFID-12345" />
                                     <x-input-error class="mt-2" :messages="$errors->get('rfid_number')" />
@@ -44,27 +59,53 @@
 
                         <div class="pb-6 pt-4 border-b border-gray-100">
                             <div class="mb-5">
-                                <h3 class="text-lg font-medium text-gray-900 mb-1">{{ __('Position') }}</h3>
-                                <p class="text-sm text-gray-500">{{ __('Assign the employee position for this record.') }}</p>
+                                <h3 class="text-lg font-medium text-gray-900 mb-1">{{ __('Employment Details') }}</h3>
+                                <p class="text-sm text-gray-500">{{ __('Set the employee division, job position, system role, and employment status.') }}</p>
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <x-input-label for="position" :value="__('Position')" />
-                                        <select id="position" name="position" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
-                                            <option value="" disabled selected>{{ __('Select a position') }}</option>
-                                            @foreach($positions as $position)
-                                                <option value="{{ $position }}" {{ old('position') == $position ? 'selected' : '' }}>{{ strtoupper($position) }}</option>
+                                    <x-input-label for="division" :value="__('Division')" />
+                                    <select id="division" name="division" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
+                                        <option value="" disabled selected>{{ __('Select division') }}</option>
+                                        @foreach($divisionOptions as $division)
+                                            <option value="{{ $division }}" {{ old('division') == $division ? 'selected' : '' }}>{{ $division }}</option>
                                         @endforeach
                                     </select>
-                                        <x-input-error class="mt-2" :messages="$errors->get('position')" />
+                                    <x-input-error class="mt-2" :messages="$errors->get('division')" />
+                                </div>
+                                <div>
+                                    <x-input-label for="position" :value="__('Job Position / Designation')" />
+                                    <x-text-input id="position" name="position" type="text" class="mt-1 block w-full" :value="old('position')" placeholder="e.g., Secretary, Administrative Aide" required />
+                                    <x-input-error class="mt-2" :messages="$errors->get('position')" />
+                                </div>
+                                <div>
+                                    <x-input-label for="account_role" :value="__('Role')" />
+                                    <select id="account_role" name="account_role" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
+                                        <option value="" disabled selected>{{ __('Select a role') }}</option>
+                                        @foreach($roles as $role)
+                                            <option value="{{ $role }}" {{ old('account_role') == $role ? 'selected' : '' }}>{{ strtoupper($role) }}</option>
+                                        @endforeach
+                                    </select>
+                                    <p class="mt-1 text-xs text-gray-500">{{ __('Assign the employee role for system access.') }}</p>
+                                    <x-input-error class="mt-2" :messages="$errors->get('account_role')" />
+                                </div>
+                                <div>
+                                    <x-input-label for="employment_status" :value="__('Employment Status')" />
+                                    <select id="employment_status" name="employment_status" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                                        <option value="">{{ __('Select employment status') }}</option>
+                                        @foreach($employmentStatuses as $status)
+                                            <option value="{{ $status }}" {{ old('employment_status') == $status ? 'selected' : '' }}>{{ $status }}</option>
+                                        @endforeach
+                                    </select>
+                                    <x-input-error class="mt-2" :messages="$errors->get('employment_status')" />
                                 </div>
                             </div>
                         </div>
 
                         <div class="pt-4">
                             <div class="mb-5">
-                                <h3 class="text-lg font-medium text-gray-900 mb-1">{{ __('Account Linking') }}</h3>
-                                <p class="text-sm text-gray-500">{{ __('Optionally link this record to a registered user account to grant them record access.') }}</p>
+                                <h3 class="text-lg font-medium text-gray-900 mb-1">{{ __('Account Access') }}</h3>
+                                <p class="text-sm text-gray-500">{{ __('Link an existing account, or create a new login account. The system will send the temporary password to the notification email above.') }}</p>
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
@@ -75,15 +116,19 @@
                                             <option value="{{ $user->id }}" {{ old('user_id') == $user->id ? 'selected' : '' }}>{{ $user->name }} ({{ $user->email }})</option>
                                         @endforeach
                                     </select>
+                                    <p class="mt-1 text-xs text-gray-500">{{ __('Use this only if the employee already registered an account.') }}</p>
                                     <x-input-error class="mt-2" :messages="$errors->get('user_id')" />
+                                </div>
+                                <div>
+                                    <x-input-label for="account_email" :value="__('Official Login Email')" />
+                                    <x-text-input id="account_email" name="account_email" type="email" class="mt-1 block w-full" :value="old('account_email')" placeholder="employee@dmw.gov.ph" />
+                                    <p class="mt-1 text-xs text-gray-500">{{ __('The employee will use this email to log in. Use the notification email above to receive the temporary password.') }}</p>
+                                    <x-input-error class="mt-2" :messages="$errors->get('account_email')" />
                                 </div>
                             </div>
                         </div>
 
                         <div class="flex items-center justify-end gap-4 mt-10 pt-6 border-t border-gray-100">
-                            <a href="{{ route('employees.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-25 transition ease-in-out duration-150">
-                                {{ __('Cancel') }}
-                            </a>
                             <x-primary-button>
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>

@@ -1,72 +1,157 @@
 <x-app-layout>
-    <div class="p-4 sm:p-6 lg:p-8">
-        <div class="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-gray-100">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold text-gray-800">Locator Slip Details</h2>
-                <div class="flex space-x-2">
-                    <a href="{{ route('locator-slips.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-400 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-500 active:bg-gray-600 focus:outline-none focus:border-gray-600 focus:ring ring-gray-300 disabled:opacity-25 transition ease-in-out duration-150">
-                        Back to List
+    <x-slot name="title">{{ __('Locator Slip Details') }}</x-slot>
+
+    <div class="py-12">
+        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+            <div class="mb-5 flex items-center justify-between gap-3">
+                <a href="{{ route('locator-slips.index') }}" class="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-bold text-blue-900 shadow-sm transition hover:border-blue-200 hover:text-blue-800">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                    {{ __('Back') }}
+                </a>
+
+                <div class="flex items-center gap-2">
+                    <a href="{{ route('locator-slips.print', $locatorSlip) }}" target="_blank" data-no-transition class="inline-flex h-10 items-center justify-center rounded-xl bg-indigo-600 px-4 text-xs font-black uppercase tracking-widest text-white shadow-sm transition hover:bg-indigo-700">
+                        {{ __('Print') }}
                     </a>
-                    <a href="{{ route('locator-slips.edit', $locatorSlip) }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 focus:outline-none focus:border-blue-900 focus:ring ring-blue-300 disabled:opacity-25 transition ease-in-out duration-150">
-                        Edit
-                    </a>
+                    @if(strtolower($locatorSlip->status) === 'pending')
+                        <a href="{{ route('locator-slips.edit', $locatorSlip) }}" class="inline-flex h-10 items-center justify-center rounded-xl border border-gray-200 bg-white px-4 text-xs font-black uppercase tracking-widest text-gray-700 shadow-sm transition hover:border-indigo-200 hover:text-indigo-700">
+                            {{ __('Edit') }}
+                        </a>
+                    @endif
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="space-y-4">
-                    <div>
-                        <h3 class="font-semibold text-gray-800">Date Covered</h3>
-                        <p class="text-sm text-gray-500">{{ $locatorSlip->date_covered }}</p>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2 space-y-8">
+                    <div class="bg-white overflow-hidden shadow-sm rounded-3xl border border-gray-100 p-8 md:p-10">
+                        <div class="flex items-center gap-4 mb-8 pb-8 border-b border-gray-50">
+                            <x-profile-avatar :employee="$locatorSlip->employee" size="xl" variant="indigo" rounded="2xl" />
+                            <div>
+                                <h1 class="text-2xl font-black text-gray-900">
+                                    {{ $locatorSlip->employee?->firstname }} {{ $locatorSlip->employee?->lastname }}
+                                </h1>
+                                <div class="flex flex-wrap items-center gap-2 text-xs text-gray-400">
+                                    <span>{{ $locatorSlip->employee?->position ?: __('No position') }}</span>
+                                    <span class="text-gray-300">|</span>
+                                    <span>{{ $locatorSlip->employee?->division ?: __('No division') }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-8">
+                            <div class="flex flex-col items-center justify-center py-6 bg-gray-50/50 rounded-2xl border border-gray-100">
+                                <span class="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400 mb-2">{{ __('Locator Type') }}</span>
+                                <h2 class="text-2xl font-black text-gray-800">{{ $locatorSlip->type ?? __('N/A') }}</h2>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                                <div class="space-y-1">
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-gray-400 italic">{{ __('Date Covered') }}</span>
+                                    <div class="text-sm font-bold text-gray-700">
+                                        {{ \Carbon\Carbon::parse($locatorSlip->date_covered)->format('M d, Y') }}
+                                    </div>
+                                </div>
+                                <div class="space-y-1">
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-gray-400 italic">{{ __('Time') }}</span>
+                                    <div class="text-sm font-bold text-gray-700">
+                                        {{ \Carbon\Carbon::parse($locatorSlip->time_from)->format('h:i A') }} - {{ \Carbon\Carbon::parse($locatorSlip->time_to)->format('h:i A') }}
+                                    </div>
+                                </div>
+                                <div class="space-y-1">
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-gray-400 italic">{{ __('Date Filed') }}</span>
+                                    <div class="text-sm font-bold text-gray-700">
+                                        {{ $locatorSlip->created_at?->format('M d, Y h:i A') }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <div class="relative pl-6 border-l-4 border-indigo-100 py-2">
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">{{ __('Destination') }}</span>
+                                    <p class="text-gray-700 font-medium leading-relaxed">{{ $locatorSlip->destination ?? __('N/A') }}</p>
+                                </div>
+                                <div class="relative pl-6 border-l-4 border-indigo-100 py-2">
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">{{ __('Purpose') }}</span>
+                                    <p class="text-gray-700 font-medium leading-relaxed italic">"{{ $locatorSlip->purpose }}"</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <h3 class="font-semibold text-gray-800">Purpose</h3>
-                        <p class="text-sm text-gray-500">{{ $locatorSlip->purpose }}</p>
-                    </div>
-                    <div>
-                        <h3 class="font-semibold text-gray-800">Time</h3>
-                        <p class="text-sm text-gray-500">{{ \Carbon\Carbon::parse($locatorSlip->time_from)->format('h:i A') }} - {{ \Carbon\Carbon::parse($locatorSlip->time_to)->format('h:i A') }}</p>
+
+                    <div class="bg-white overflow-hidden shadow-sm rounded-3xl border border-gray-100 p-8">
+                        <div class="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-6 inline-block border-b-2 border-indigo-100 pb-1">{{ __('Approval Progress') }}</div>
+                        @php
+                            $displayStatus = strtolower($locatorSlip->status) === 'approved by chief' ? 'approved' : strtolower($locatorSlip->status);
+                            $stageClass = match($displayStatus) {
+                                'approved' => 'bg-green-50/30 border-green-100',
+                                'rejected' => 'bg-red-50/30 border-red-100',
+                                default => 'bg-gray-50/50 border-gray-100',
+                            };
+                            $iconClass = match($displayStatus) {
+                                'approved' => 'bg-green-500',
+                                'rejected' => 'bg-red-500',
+                                default => 'bg-gray-300',
+                            };
+                        @endphp
+                        <div class="flex items-start gap-4 p-5 rounded-2xl border {{ $stageClass }}">
+                            <div class="mt-1">
+                                <div class="{{ $iconClass }} p-1.5 rounded-full text-white">
+                                    @if($displayStatus === 'approved')
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                    @elseif($displayStatus === 'rejected')
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    @else
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 12h.01M12 12h.01M19 12h.01"></path></svg>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between mb-1">
+                                    <div class="text-[10px] font-black uppercase tracking-wider text-gray-900">{{ __('Division Chief') }}</div>
+                                    <span class="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded {{ $displayStatus === 'approved' ? 'text-green-600 bg-green-50' : ($displayStatus === 'rejected' ? 'text-red-600 bg-red-50' : 'text-gray-400 bg-gray-100') }}">
+                                        {{ ucfirst($displayStatus) }}
+                                    </span>
+                                </div>
+                                @if($locatorSlip->approved_by_chief_name)
+                                    <div class="text-xs font-bold text-gray-700">
+                                        {{ $locatorSlip->approved_by_chief_name }}
+                                        @if($locatorSlip->chief_approval_date)
+                                            <span class="font-medium text-gray-400">on {{ \Carbon\Carbon::parse($locatorSlip->chief_approval_date)->format('M d, Y h:i A') }}</span>
+                                        @endif
+                                    </div>
+                                @else
+                                    <div class="text-xs font-medium text-gray-400">{{ __('Awaiting review') }}</div>
+                                @endif
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="space-y-4">
-                    <div>
-                        <h3 class="font-semibold text-gray-800">Status</h3>
-                                                    <p class="text-gray-700">
-                                @if ($locatorSlip->status == 'approved')
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                        Approved
-                                    </span>
-                                @elseif ($locatorSlip->status == 'approved by chief')
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                        Approved by Chief
-                                    </span>
-                                @elseif ($locatorSlip->status == 'pending')
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                        Pending
-                                    </span>
-                                @elseif ($locatorSlip->status == 'rejected')
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                                        Rejected
-                                    </span>
-                                @else
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                                        {{ ucfirst($locatorSlip->status) }}
-                                    </span>
-                                @endif
-                            </p>
+
+                <div class="space-y-8">
+                    @php
+                        $statusClass = match($displayStatus) {
+                            'approved' => 'text-green-500',
+                            'rejected' => 'text-red-500',
+                            default => 'text-orange-500',
+                        };
+                    @endphp
+                    <div class="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+                        <div class="flex items-center gap-2 mb-4">
+                            <div class="w-2 h-2 rounded-full {{ $displayStatus === 'approved' ? 'bg-green-400' : ($displayStatus === 'rejected' ? 'bg-red-400' : 'bg-orange-400 animate-pulse') }}"></div>
+                            <span class="text-[10px] font-black uppercase {{ $statusClass }} tracking-widest">{{ ucfirst($displayStatus) }}</span>
+                        </div>
+                        <p class="text-[10px] text-gray-500 leading-relaxed font-medium">
+                            @if($displayStatus === 'approved')
+                                {{ __('This locator slip has been approved by the Division Chief.') }}
+                            @elseif($displayStatus === 'rejected')
+                                {{ __('This locator slip has been rejected.') }}
+                            @else
+                                {{ __('This locator slip is awaiting review from the Division Chief.') }}
+                            @endif
+                        </p>
                     </div>
-                    @if($locatorSlip->approved_by_chief_name)
-                    <div>
-                        <h3 class="font-semibold text-gray-800">Approved by Chief</h3>
-                        <p class="text-sm text-gray-500">{{ $locatorSlip->approved_by_chief_name }} on {{ $locatorSlip->chief_approval_date }}</p>
-                    </div>
-                    @endif
-                    @if($locatorSlip->approved_by_regional_director_name)
-                    <div>
-                        <h3 class="font-semibold text-gray-800">Approved by Regional Director</h3>
-                        <p class="text-sm text-gray-500">{{ $locatorSlip->approved_by_regional_director_name }} on {{ $locatorSlip->regional_director_approval_date }}</p>
-                    </div>
-                    @endif
                 </div>
             </div>
         </div>

@@ -18,12 +18,7 @@
 
                         <div>
                             <label for="tags" class="block text-sm font-semibold text-gray-700 mb-1">{{ __('Tags (Comma separated)') }}</label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <span class="text-gray-400 font-semibold">#</span>
-                                </div>
-                                <input type="text" name="tags" id="tags" value="{{ old('tags') }}" placeholder="HR, Event, Important" class="w-full pl-8 pr-4 py-3 rounded-xl border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm transition-all text-sm @error('tags') border-red-500 @enderror">
-                            </div>
+                            <input type="text" name="tags" id="tags" value="{{ old('tags') }}" placeholder="HR, Event, Important" class="w-full px-4 py-3 rounded-xl border-gray-200 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm transition-all text-sm @error('tags') border-red-500 @enderror">
                             @error('tags')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror

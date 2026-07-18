@@ -3,6 +3,17 @@
 
     <div class="py-12">
         <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
+            <div class="mb-5 flex items-center justify-between gap-3">
+                <a href="{{ route('leaves.index') }}" class="inline-flex items-center rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-bold text-gray-600 shadow-sm transition hover:bg-gray-50 hover:text-indigo-600">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12"></path>
+                    </svg>
+                    {{ __('Back') }}
+                </a>
+                <a href="{{ route('leaves.print', $leaf) }}" target="_blank" data-no-transition class="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700">
+                    {{ __('Print Leave Form') }}
+                </a>
+            </div>
             <div class="bg-white overflow-hidden shadow-sm rounded-3xl border border-gray-100 p-8 md:p-12">
                 <!-- Status Header -->
                 <div class="flex flex-col items-center mb-10">
@@ -36,7 +47,7 @@
                     </div>
                 @endif
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
                     <!-- Dates Card -->
                     <div class="bg-gray-50/50 rounded-2xl p-6 border border-gray-100">
                         <div class="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-4 inline-block border-b-2 border-indigo-100 pb-1">{{ __('Schedule') }}</div>
@@ -70,11 +81,20 @@
                             <span class="text-sm font-bold text-gray-400">{{ Str::plural('Day', $duration) }}</span>
                         </div>
                     </div>
+
+                    <div class="bg-gray-50/50 rounded-2xl p-6 border border-gray-100 flex flex-col justify-center items-center">
+                        <div class="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-4 inline-block border-b-2 border-indigo-100 pb-1">{{ __('Credits Left') }}</div>
+                        <div class="flex items-baseline gap-1">
+                            <span class="text-5xl font-black text-gray-900">{{ number_format($leaveCredit?->balance ?? 0, 1) }}</span>
+                            <span class="text-sm font-bold text-gray-400">{{ Str::plural('Day', $leaveCredit?->balance ?? 0) }}</span>
+                        </div>
+                        <p class="mt-2 text-center text-[10px] font-black uppercase tracking-widest text-gray-400">{{ $leaf->leaveType->name }}</p>
+                    </div>
                 </div>
 
                 <!-- Approval Stages -->
                 <div class="space-y-6">
-                    <div class="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-4 inline-block border-b-2 border-indigo-100 pb-1">{{ __('Approval Progress') }}</div>
+                    <div class="text-xs font-black text-indigo-500 uppercase tracking-widest mb-5 inline-block border-b-2 border-indigo-100 pb-1">{{ __('Approval Progress') }}</div>
                     
                     <div class="grid grid-cols-1 gap-4">
                         @php
@@ -86,36 +106,36 @@
                         @endphp
 
                         @foreach($stages as $stage)
-                            <div class="flex items-start gap-4 p-5 rounded-2xl border {{ $stage['status'] === 'approved' ? 'bg-green-50/30 border-green-100' : ($stage['status'] === 'rejected' ? 'bg-red-50/30 border-red-100' : 'bg-gray-50/50 border-gray-100') }}">
+                            <div class="flex items-start gap-5 p-6 rounded-2xl border {{ $stage['status'] === 'approved' ? 'bg-green-50/30 border-green-100' : ($stage['status'] === 'rejected' ? 'bg-red-50/30 border-red-100' : 'bg-gray-50/50 border-gray-100') }}">
                                 <div class="mt-1">
                                     @if($stage['status'] === 'approved')
-                                        <div class="bg-green-500 p-1.5 rounded-full text-white">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                        <div class="bg-green-500 p-2 rounded-full text-white">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
                                         </div>
                                     @elseif($stage['status'] === 'rejected')
-                                        <div class="bg-red-500 p-1.5 rounded-full text-white">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                        <div class="bg-red-500 p-2 rounded-full text-white">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
                                         </div>
                                     @else
-                                        <div class="bg-gray-300 p-1.5 rounded-full text-white animate-pulse">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"></path></svg>
+                                        <div class="bg-gray-300 p-2 rounded-full text-white animate-pulse">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"></path></svg>
                                         </div>
                                     @endif
                                 </div>
                                 <div class="flex-1">
                                     <div class="flex items-center justify-between mb-1">
-                                        <div class="text-[11px] font-black uppercase tracking-wider text-gray-900">{{ $stage['label'] }}</div>
-                                        <span class="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded {{ $stage['status'] === 'approved' ? 'text-green-600' : ($stage['status'] === 'rejected' ? 'text-red-600' : 'text-gray-400') }}">
+                                            <div class="text-sm font-black uppercase tracking-wider text-gray-900">{{ $stage['label'] }}</div>
+                                        <span class="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded {{ $stage['status'] === 'approved' ? 'text-green-600' : ($stage['status'] === 'rejected' ? 'text-red-600' : 'text-gray-400') }}">
                                             {{ __($stage['status']) }}
                                         </span>
                                     </div>
                                     
                                     @if($stage['approver'])
-                                        <div class="text-xs font-bold text-gray-700">{{ $stage['approver']->firstname }} {{ $stage['approver']->lastname }}</div>
+                                        <div class="text-sm font-bold text-gray-700">{{ $stage['approver']->firstname }} {{ $stage['approver']->lastname }}</div>
                                     @endif
 
                                     @if($stage['remarks'])
-                                        <div class="mt-2 text-xs text-gray-500 italic bg-white/50 p-2 rounded-lg border border-current/10">
+                                        <div class="mt-3 text-sm text-gray-500 italic bg-white/50 p-3 rounded-lg border border-current/10">
                                             "{{ $stage['remarks'] }}"
                                         </div>
                                     @endif
@@ -148,3 +168,4 @@
         </div>
     </div>
 </x-app-layout>
+

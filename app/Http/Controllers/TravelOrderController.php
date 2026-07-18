@@ -6,10 +6,12 @@ use App\Models\Employee;
 use App\Models\TravelOrder;
 use App\Models\User;
 use App\Notifications\TravelOrderNotification;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class TravelOrderController extends Controller
@@ -24,8 +26,9 @@ class TravelOrderController extends Controller
             abort(404, 'Employee record not found.');
         }
 
-        $travelOrders = $employee->travelOrders()
-            ->with('companions')
+        $travelOrders = TravelOrder::with(['employee', 'companions'])
+            ->where('employee_id', $employee->id)
+            ->orWhereHas('companions', fn ($query) => $query->where('employees.id', $employee->id))
             ->latest()
             ->get();
 
@@ -55,15 +58,17 @@ class TravelOrderController extends Controller
         }
 
         $validated = $request->validate([
-            'travel_type' => 'required|string|in:local,foreign,official_business',
+            'travel_type' => 'required|string|in:local,foreign',
             'travel_date_start' => 'required|date',
             'travel_date_end' => 'required|date|after_or_equal:travel_date_start',
             'places_of_travel' => 'required|string|max:500',
             'purpose' => 'required|string',
             'companions' => 'nullable|array',
             'companions.*' => 'exists:employees,id',
-            'attachment' => 'nullable|file|mimes:pdf,jpg,png,doc,docx|max:5120',
+            'attachment' => 'nullable|file|mimes:pdf|max:5120',
         ]);
+
+        $this->validateTravelDates($validated['travel_date_start'], $validated['travel_date_end']);
 
         $attachmentPath = null;
         if ($request->hasFile('attachment')) {
@@ -105,13 +110,18 @@ class TravelOrderController extends Controller
     {
         $employee = auth()->user()->employee;
 
-        // Allow the owner and admin roles to view
+        $isTaggedCompanion = $employee
+            ? $travelOrder->companions()->where('employees.id', $employee->id)->exists()
+            : false;
+
+        // Allow the owner, tagged companions, and admin roles to view
         if ($travelOrder->employee_id !== $employee?->id
+            && ! $isTaggedCompanion
             && ! in_array(auth()->user()->role, ['admin', 'hrstaff', 'director', 'chief', 'regionaldirector', 'regional director'])) {
             abort(403);
         }
 
-        $travelOrder->load(['employee', 'companions', 'chief', 'regionalDirector']);
+        $travelOrder->load(['employee', 'companions', 'chief', 'hrstaff', 'regionalDirector']);
 
         return view('travel-orders.show', compact('travelOrder'));
     }
@@ -121,14 +131,22 @@ class TravelOrderController extends Controller
      */
     public function adminIndex(Request $request): View
     {
-        $allTravelOrders = TravelOrder::with(['employee', 'companions'])
-            ->whereIn('status', ['approved', 'rejected'])
-            ->latest()
+        $search = trim((string) $request->query('search', ''));
+        $travelType = $request->query('travel_type', '');
+        $sort = $request->query('sort', 'latest');
+
+        $allTravelOrders = $this->sortTravelOrders($this->filterTravelOrders(
+            TravelOrder::with(['employee', 'companions'])->whereIn('status', ['approved', 'rejected']),
+            $search,
+            $travelType
+        ), $sort)
             ->get();
 
-        $pendingTravelOrders = TravelOrder::with(['employee', 'companions'])
-            ->where('status', 'pending')
-            ->latest()
+        $pendingTravelOrders = $this->sortTravelOrders($this->filterTravelOrders(
+            TravelOrder::with(['employee', 'companions'])->where('status', 'pending'),
+            $search,
+            $travelType
+        ), $sort)
             ->get();
 
         $tab = $request->query('tab', 'pending');
@@ -136,7 +154,62 @@ class TravelOrderController extends Controller
             $tab = 'pending';
         }
 
-        return view('travel-orders.admin-index', compact('allTravelOrders', 'pendingTravelOrders', 'tab'));
+        $travelTypes = [
+            'local' => 'Local',
+            'foreign' => 'Foreign',
+        ];
+
+        return view('travel-orders.admin-index', compact('allTravelOrders', 'pendingTravelOrders', 'tab', 'sort', 'search', 'travelType', 'travelTypes'));
+    }
+
+    private function filterTravelOrders($query, string $search, string $travelType)
+    {
+        return $query
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($query) use ($search) {
+                    $query
+                        ->where('places_of_travel', 'like', "%{$search}%")
+                        ->orWhere('purpose', 'like', "%{$search}%")
+                        ->orWhereHas('employee', function ($employeeQuery) use ($search) {
+                            $employeeQuery
+                                ->where('firstname', 'like', "%{$search}%")
+                                ->orWhere('middlename', 'like', "%{$search}%")
+                                ->orWhere('lastname', 'like', "%{$search}%")
+                                ->orWhere('division', 'like', "%{$search}%");
+                        });
+                });
+            })
+            ->when(in_array($travelType, ['local', 'foreign'], true), fn ($query) => $query->where('travel_type', $travelType));
+    }
+
+    private function sortTravelOrders($query, string $sort)
+    {
+        return match ($sort) {
+            'oldest' => $query->oldest(),
+            'travel_date_asc' => $query->orderBy('travel_date_start')->orderBy('created_at'),
+            'travel_date_desc' => $query->orderByDesc('travel_date_start')->orderByDesc('created_at'),
+            'employee_asc' => $query
+                ->orderBy(Employee::select('lastname')->whereColumn('employees.id', 'travel_orders.employee_id'))
+                ->orderBy(Employee::select('firstname')->whereColumn('employees.id', 'travel_orders.employee_id')),
+            default => $query->latest(),
+        };
+    }
+
+    private function validateTravelDates(string $startDate, string $endDate): void
+    {
+        $today = now()->startOfDay();
+        $dates = [
+            'travel_date_start' => Carbon::parse($startDate)->startOfDay(),
+            'travel_date_end' => Carbon::parse($endDate)->startOfDay(),
+        ];
+
+        foreach ($dates as $field => $date) {
+            if ($date->lt($today) || $date->isWeekend()) {
+                throw ValidationException::withMessages([
+                    $field => 'Please select today or a future weekday. Saturdays and Sundays are disabled.',
+                ]);
+            }
+        }
     }
 
     /**
@@ -160,6 +233,10 @@ class TravelOrderController extends Controller
                     $travelOrder->chief_status = 'rejected';
                     $travelOrder->approved_by_chief = $employeeId;
                     $travelOrder->chief_remarks = $validated['remarks'];
+                } elseif (in_array($role, ['hrstaff', 'admin'])) {
+                    $travelOrder->hrstaff_status = 'rejected';
+                    $travelOrder->approved_by_hrstaff = $employeeId;
+                    $travelOrder->hrstaff_remarks = $validated['remarks'];
                 } elseif (in_array($role, ['regional director', 'regionaldirector', 'director'])) {
                     $travelOrder->rd_status = 'rejected';
                     $travelOrder->approved_by_regionaldirector = $employeeId;
@@ -179,7 +256,22 @@ class TravelOrderController extends Controller
                     $travelOrder->approved_by_chief = $employeeId;
                     $travelOrder->chief_remarks = $validated['remarks'];
 
-                    // Notify Regional Director (Level 2)
+                    // Notify HR/Admin (Level 2)
+                    $hrUsers = User::whereHas('employee', function ($query) {
+                        $query->whereIn('account_role', ['hrstaff', 'admin']);
+                    })->get();
+
+                    Notification::send($hrUsers, new TravelOrderNotification(
+                        $travelOrder,
+                        'Travel Order Pending HR Approval',
+                        "A travel order to {$travelOrder->places_of_travel} by {$travelOrder->employee->firstname} {$travelOrder->employee->lastname} has been approved by the Chief and awaits HR approval."
+                    ));
+                } elseif (in_array($role, ['hrstaff', 'admin'])) {
+                    $travelOrder->hrstaff_status = 'approved';
+                    $travelOrder->approved_by_hrstaff = $employeeId;
+                    $travelOrder->hrstaff_remarks = $validated['remarks'];
+
+                    // Notify Regional Director (Level 3)
                     $directors = User::whereHas('employee', function ($query) {
                         $query->whereIn('account_role', ['regionaldirector', 'regional director', 'director']);
                     })->get();
@@ -187,7 +279,7 @@ class TravelOrderController extends Controller
                     Notification::send($directors, new TravelOrderNotification(
                         $travelOrder,
                         'Travel Order Pending Approval',
-                        "A travel order to {$travelOrder->places_of_travel} by {$travelOrder->employee->firstname} {$travelOrder->employee->lastname} has been approved by the Chief and awaits your final approval."
+                        "A travel order to {$travelOrder->places_of_travel} by {$travelOrder->employee->firstname} {$travelOrder->employee->lastname} has been approved by HR and awaits your final approval."
                     ));
                 } elseif (in_array($role, ['regional director', 'regionaldirector', 'director'])) {
                     $travelOrder->rd_status = 'approved';

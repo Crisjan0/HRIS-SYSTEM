@@ -3,16 +3,12 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="grid grid-cols-1 items-start gap-8 lg:grid-cols-3">
                 <!-- Welcome Section -->
                 <div class="lg:col-span-2 space-y-8">
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-3xl border border-gray-100 p-8">
-                        <div class="flex items-center gap-6">
-                            <x-profile-avatar :user="auth()->user()" size="2xl" rounded="2xl" variant="indigo" class="shadow-lg shadow-indigo-200" />
-                            <div>
-                                <h3 class="text-2xl font-black text-gray-900 tracking-tight uppercase">{{ __('Welcome back,') }} {{ Auth::user()->display_name }}!</h3>
-                                <p class="text-gray-500 font-medium whitespace-nowrap">{{ __("You are officially logged in to the HRIS ecosystem.") }}</p>
-                            </div>
+                        <div>
+                            <h3 class="text-2xl font-black text-gray-900 tracking-tight uppercase">{{ __('Welcome back,') }} {{ Auth::user()->display_name }}!</h3>
                         </div>
                     </div>
 
@@ -37,42 +33,50 @@
                             </a>
                         </div>
                     </div>
+
+                    @if($employee)
+                        <div id="dashboardLeaveCalendar" data-calendar-container>
+                            @include('dashboard._leave-calendar')
+                        </div>
+                    @endif
                 </div>
 
                 <!-- Latest Announcement Sidebar -->
-                <div class="lg:col-span-1">
+                <div class="lg:col-span-1 lg:self-start">
                     @if(in_array(auth()->user()->role, ['admin', 'hrstaff', 'regionaldirector', 'regional director']))
-                        <a href="{{ route('announcements.index', ['openCreate' => 1]) }}" class="mb-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-xs font-black uppercase tracking-widest text-white shadow-md shadow-indigo-100 hover:bg-indigo-700 transition">
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14m7-7H5" />
-                            </svg>
-                            {{ __('New Announcement') }}
-                        </a>
+                        <div class="mb-3 flex justify-end">
+                            <a href="{{ route('announcements.index', ['openCreate' => 1]) }}" class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-xs font-black uppercase tracking-widest text-white shadow-md shadow-indigo-100 transition hover:bg-indigo-700">
+                                <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14m7-7H5" />
+                                </svg>
+                                {{ __('New Announcement') }}
+                            </a>
+                        </div>
                     @endif
 
                     @if($latestAnnouncement)
-                        <div class="bg-white rounded-[2.5rem] p-8 shadow-2xl shadow-indigo-50 border border-indigo-50/50 flex flex-col h-full relative group overflow-hidden">
+                        <div class="bg-white rounded-[2.5rem] p-6 shadow-2xl shadow-indigo-50 border border-indigo-50/50 flex flex-col relative group overflow-hidden">
                             <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-50/50 rounded-full blur-3xl -mr-16 -mt-16"></div>
                             
-                            <div class="flex items-center justify-between mb-8 relative z-10">
-                                <span class="px-4 py-1.5 bg-indigo-50 text-indigo-600 text-[10px] font-black rounded-full uppercase tracking-widest border border-indigo-100">
-                                    {{ __('Breaking News') }}
+                            <div class="flex items-center justify-between mb-4 relative z-10">
+                                <span class="inline-flex w-full items-center justify-center rounded-xl border border-indigo-100 bg-indigo-50 px-5 py-3 text-xs font-black uppercase tracking-widest text-indigo-600">
+                                    {{ __('Latest Updates') }}
                                 </span>
                                 <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]"></span>
                             </div>
 
-                            <div class="relative z-10 flex-1">
+                            <div class="relative z-10">
                                 <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">{{ $latestAnnouncement->published_at->diffForHumans() }}</p>
-                                <h3 class="text-2xl font-black text-gray-900 mb-4 tracking-tight leading-7 line-clamp-3 uppercase tracking-tighter">
+                                <h3 class="text-xl font-black text-gray-900 mb-3 tracking-tight leading-6 line-clamp-2 uppercase tracking-tighter">
                                     {{ $latestAnnouncement->title }}
                                 </h3>
-                                <div class="text-sm text-gray-600 font-medium leading-relaxed line-clamp-6 mb-8">
-                                    {{ Str::limit(strip_tags($latestAnnouncement->content), 250) }}
+                                <div class="text-sm text-gray-600 font-medium leading-relaxed line-clamp-3 mb-4">
+                                    {{ Str::limit(strip_tags($latestAnnouncement->content), 160) }}
                                 </div>
                             </div>
 
-                            <div class="relative z-10 mt-auto">
-                                <a href="{{ route('announcements.show', $latestAnnouncement) }}" class="flex items-center justify-center w-full px-6 py-4 bg-gray-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-600 hover:-translate-y-1 transition-all duration-300 shadow-xl shadow-gray-200">
+                            <div class="relative z-10">
+                                <a href="{{ route('announcements.show', $latestAnnouncement) }}" class="flex items-center justify-center w-full px-5 py-3 bg-gray-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-600 hover:-translate-y-1 transition-all duration-300 shadow-xl shadow-gray-200">
                                     {{ __('Read Full Article') }}
                                     <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
@@ -97,4 +101,36 @@
             </div>
         </div>
     </div>
+    <script>
+        document.addEventListener('click', async (event) => {
+            const link = event.target.closest('[data-calendar-link]');
+            const container = document.querySelector('[data-calendar-container]');
+
+            if (!link || !container) {
+                return;
+            }
+
+            event.preventDefault();
+
+            try {
+                const response = await fetch(link.dataset.calendarUrl, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    },
+                });
+
+                if (!response.ok) {
+                    window.location.href = link.href;
+                    return;
+                }
+
+                const payload = await response.json();
+                container.innerHTML = payload.html;
+                window.history.replaceState({}, '', link.href);
+            } catch (error) {
+                window.location.href = link.href;
+            }
+        });
+    </script>
 </x-app-layout>

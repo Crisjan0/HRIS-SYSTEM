@@ -27,6 +27,8 @@ class User extends Authenticatable
         'otp_expires_at',
         'privacy_consent',
         'is_approved',
+        'must_change_password',
+        'account_status',
     ];
 
     /**
@@ -52,6 +54,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'privacy_consent' => 'boolean',
             'is_approved' => 'boolean',
+            'must_change_password' => 'boolean',
         ];
     }
 

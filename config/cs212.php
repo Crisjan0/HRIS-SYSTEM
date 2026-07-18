@@ -13,89 +13,89 @@ return [
 
     'page1' => [
         // Field 2 — name (left panel, three columns)
-        'surname' => ['x' => 72, 'y' => 104, 'w' => 72],
-        'first_name' => ['x' => 147, 'y' => 104, 'w' => 72],
-        'name_extension' => ['x' => 222, 'y' => 104, 'w' => 72],
-        'middle_name' => ['x' => 72, 'y' => 122, 'w' => 222],
+        'surname' => ['x' => 124, 'y' => 122, 'w' => 462],
+        'first_name' => ['x' => 124, 'y' => 141, 'w' => 375],
+        'name_extension' => ['x' => 503, 'y' => 141, 'w' => 83],
+        'middle_name' => ['x' => 124, 'y' => 160, 'w' => 462],
 
         // Field 3–4
-        'date_of_birth' => ['x' => 72, 'y' => 158, 'w' => 95],
-        'place_of_birth' => ['x' => 172, 'y' => 158, 'w' => 122],
+        'date_of_birth' => ['x' => 124, 'y' => 184, 'w' => 105],
+        'place_of_birth' => ['x' => 124, 'y' => 251, 'w' => 105],
 
         // Field 5–6 (sex / civil status — text beside checkboxes)
-        'sex' => ['x' => 72, 'y' => 198, 'w' => 55],
-        'civil_status' => ['x' => 132, 'y' => 198, 'w' => 160],
+        'sex' => ['x' => 124, 'y' => 290, 'w' => 105],
+        'civil_status' => ['x' => 124, 'y' => 310, 'w' => 105],
 
         // Field 7–9
-        'height' => ['x' => 72, 'y' => 258, 'w' => 48],
-        'weight' => ['x' => 125, 'y' => 258, 'w' => 48],
-        'blood_type' => ['x' => 178, 'y' => 258, 'w' => 48],
+        'height' => ['x' => 124, 'y' => 348, 'w' => 105],
+        'weight' => ['x' => 124, 'y' => 369, 'w' => 105],
+        'blood_type' => ['x' => 124, 'y' => 390, 'w' => 105],
 
         // Field 10–15 (government IDs — left panel, 3 columns × 2 rows)
-        'gsis' => ['x' => 72, 'y' => 288, 'w' => 70],
-        'pagibig' => ['x' => 147, 'y' => 288, 'w' => 70],
-        'philhealth' => ['x' => 222, 'y' => 288, 'w' => 70],
-        'sss' => ['x' => 72, 'y' => 306, 'w' => 70],
-        'tin' => ['x' => 147, 'y' => 306, 'w' => 70],
-        'agency_employee' => ['x' => 222, 'y' => 306, 'w' => 70],
+        'gsis' => ['x' => 124, 'y' => 407, 'w' => 105],
+        'pagibig' => ['x' => 124, 'y' => 424, 'w' => 105],
+        'philhealth' => ['x' => 124, 'y' => 441, 'w' => 105],
+        'sss' => ['x' => 124, 'y' => 458, 'w' => 105],
+        'tin' => ['x' => 124, 'y' => 473, 'w' => 105],
+        'agency_employee' => ['x' => 124, 'y' => 491, 'w' => 105],
 
         // Field 16 — citizenship (right panel)
-        'citizenship' => ['x' => 308, 'y' => 288, 'w' => 272],
+        'citizenship' => ['x' => 368, 'y' => 184, 'w' => 205],
 
         // Field 17 — residential address (right panel, 4 columns × 2 rows)
-        'res_house' => ['x' => 308, 'y' => 328, 'w' => 65],
-        'res_street' => ['x' => 376, 'y' => 328, 'w' => 65],
-        'res_subd' => ['x' => 444, 'y' => 328, 'w' => 65],
-        'res_brgy' => ['x' => 512, 'y' => 328, 'w' => 68],
-        'res_city' => ['x' => 308, 'y' => 346, 'w' => 65],
-        'res_province' => ['x' => 376, 'y' => 346, 'w' => 65],
-        'res_zip' => ['x' => 512, 'y' => 346, 'w' => 68],
+        'res_house' => ['x' => 330, 'y' => 259, 'w' => 125],
+        'res_street' => ['x' => 459, 'y' => 259, 'w' => 125],
+        'res_subd' => ['x' => 330, 'y' => 280, 'w' => 125],
+        'res_brgy' => ['x' => 459, 'y' => 280, 'w' => 125],
+        'res_city' => ['x' => 330, 'y' => 301, 'w' => 125],
+        'res_province' => ['x' => 459, 'y' => 301, 'w' => 125],
+        'res_zip' => ['x' => 264, 'y' => 301, 'w' => 50],
 
         // Field 18 — permanent address
-        'perm_house' => ['x' => 308, 'y' => 386, 'w' => 65],
-        'perm_street' => ['x' => 376, 'y' => 386, 'w' => 65],
-        'perm_subd' => ['x' => 444, 'y' => 386, 'w' => 65],
-        'perm_brgy' => ['x' => 512, 'y' => 386, 'w' => 68],
-        'perm_city' => ['x' => 308, 'y' => 404, 'w' => 65],
-        'perm_province' => ['x' => 376, 'y' => 404, 'w' => 65],
-        'perm_zip' => ['x' => 512, 'y' => 404, 'w' => 68],
+        'perm_house' => ['x' => 330, 'y' => 344, 'w' => 125],
+        'perm_street' => ['x' => 459, 'y' => 344, 'w' => 125],
+        'perm_subd' => ['x' => 330, 'y' => 365, 'w' => 125],
+        'perm_brgy' => ['x' => 459, 'y' => 365, 'w' => 125],
+        'perm_city' => ['x' => 330, 'y' => 386, 'w' => 125],
+        'perm_province' => ['x' => 459, 'y' => 386, 'w' => 125],
+        'perm_zip' => ['x' => 264, 'y' => 386, 'w' => 50],
 
         // Field 19–21
-        'telephone' => ['x' => 72, 'y' => 444, 'w' => 70],
-        'mobile' => ['x' => 147, 'y' => 444, 'w' => 70],
-        'email' => ['x' => 308, 'y' => 444, 'w' => 272],
+        'telephone' => ['x' => 330, 'y' => 410, 'w' => 254],
+        'mobile' => ['x' => 330, 'y' => 426, 'w' => 254],
+        'email' => ['x' => 330, 'y' => 443, 'w' => 254],
 
         // Section II — family (left panel)
-        'spouse_surname' => ['x' => 72, 'y' => 472, 'w' => 222],
-        'spouse_first' => ['x' => 72, 'y' => 490, 'w' => 105],
-        'spouse_middle' => ['x' => 182, 'y' => 490, 'w' => 112],
-        'spouse_occupation' => ['x' => 72, 'y' => 508, 'w' => 105],
-        'spouse_employer' => ['x' => 182, 'y' => 508, 'w' => 112],
-        'spouse_tel' => ['x' => 72, 'y' => 526, 'w' => 222],
+        'spouse_surname' => ['x' => 124, 'y' => 523, 'w' => 200],
+        'spouse_first' => ['x' => 124, 'y' => 541, 'w' => 105],
+        'spouse_middle' => ['x' => 124, 'y' => 559, 'w' => 200],
+        'spouse_occupation' => ['x' => 124, 'y' => 576, 'w' => 200],
+        'spouse_employer' => ['x' => 124, 'y' => 593, 'w' => 200],
+        'spouse_tel' => ['x' => 124, 'y' => 628, 'w' => 200],
 
-        'father_surname' => ['x' => 72, 'y' => 554, 'w' => 70],
-        'father_first' => ['x' => 147, 'y' => 554, 'w' => 70],
-        'father_middle' => ['x' => 222, 'y' => 554, 'w' => 70],
-        'mother_surname' => ['x' => 72, 'y' => 572, 'w' => 70],
-        'mother_first' => ['x' => 147, 'y' => 572, 'w' => 70],
-        'mother_middle' => ['x' => 222, 'y' => 572, 'w' => 70],
+        'father_surname' => ['x' => 124, 'y' => 646, 'w' => 105],
+        'father_first' => ['x' => 124, 'y' => 663, 'w' => 105],
+        'father_middle' => ['x' => 124, 'y' => 681, 'w' => 200],
+        'mother_surname' => ['x' => 124, 'y' => 716, 'w' => 200],
+        'mother_first' => ['x' => 124, 'y' => 734, 'w' => 200],
+        'mother_middle' => ['x' => 124, 'y' => 747, 'w' => 200],
 
         // Children table (right panel)
-        'children' => ['x' => 308, 'y' => 472, 'w' => 272, 'row_h' => 18, 'max' => 8],
+        'children' => ['x' => 330, 'y' => 523, 'w' => 254, 'row_h' => 18, 'max' => 8],
 
         // Section III — education (do not write level labels; pre-printed on form)
         'education' => [
-            'y' => 738,
-            'row_h' => 19,
+            'y' => 850,
+            'row_h' => 18,
             'max' => 5,
             'cols' => [
-                'school' => 125,
-                'course' => 190,
-                'from' => 218,
-                'to' => 238,
-                'units' => 259,
-                'year' => 281,
-                'honors' => 308,
+                'school' => 122,
+                'course' => 236,
+                'from' => 368,
+                'to' => 422,
+                'units' => 462,
+                'year' => 503,
+                'honors' => 550,
             ],
         ],
     ],

@@ -77,6 +77,14 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        if ($user instanceof User && $user->account_status === 'disabled') {
+            Auth::logout();
+
+            throw ValidationException::withMessages([
+                'email' => 'Your account has been disabled. Please contact HR if you need access restored.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 

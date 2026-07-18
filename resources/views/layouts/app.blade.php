@@ -116,8 +116,8 @@
                     </div>
                 </header>
 
-                <main class="flex-1 relative overflow-y-auto focus:outline-none py-6">
-                    <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+                <main class="flex-1 relative overflow-y-auto overflow-x-hidden focus:outline-none py-6">
+                    <div class="mx-auto w-full max-w-7xl min-w-0 px-4 sm:px-6 md:px-8">
                         <!-- Page Heading -->
                         @isset($header)
                             <div class="mb-8">
@@ -126,7 +126,7 @@
                         @endisset
 
                         <!-- Page Content -->
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100/10 transition-all duration-300">
+                        <div class="w-full max-w-full min-w-0 overflow-hidden bg-white rounded-2xl shadow-sm border border-gray-100/10 transition-all duration-300">
                              {{ $slot }}
                         </div>
                     </div>
@@ -134,5 +134,25 @@
             </div>
         </div>
         @livewireScripts
+        <script>
+            (() => {
+                const activeClasses = ['bg-sky-50'];
+
+                const highlightApprovalRow = (id) => {
+                    if (!id) return;
+
+                    document.querySelectorAll('[data-approval-row]').forEach((row) => {
+                        row.classList.remove(...activeClasses);
+                    });
+
+                    const row = document.querySelector(`[data-approval-row="${CSS.escape(String(id))}"]`);
+                    if (row) row.classList.add(...activeClasses);
+                };
+
+                ['leave-selected', 'travel-selected', 'cto-selected'].forEach((eventName) => {
+                    window.addEventListener(eventName, (event) => highlightApprovalRow(event.detail?.id));
+                });
+            })();
+        </script>
     </body>
 </html>

@@ -32,18 +32,17 @@
               <img src="{{ asset('images/logo-DMW.png') }}" alt="HRIS Logo" class="h-24 w-auto object-contain">
             </div>  
 
-            <form method="POST" action="{{ route('login') }}">
+            <form method="POST" action="{{ route('login') }}" id="loginForm" novalidate>
                 @csrf
                 
                 <div class="mb-4">
-                    <input type="email" name="email" value="{{ old('email') }}" 
+                    <input type="email" name="email" id="email" value="{{ old('email') }}" 
                            placeholder="name@dmw.gov.ph"
                            pattern="^[^@\s]+@dmw\.gov\.ph$"
-                           title="Please use your official dmw.gov.ph email address."
-                           oninvalid="this.setCustomValidity('Invalid email. Please use your official dmw.gov.ph email address.')"
-                           oninput="this.setCustomValidity('')"
+                           title="Invalid email. Please use your official dmw.gov.ph email address."
                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-800 transition duration-200 @error('email') border-red-500 @enderror"
                            required autofocus>
+                    <span id="emailError" class="hidden text-red-500 text-xs mt-1">Invalid email. Please use your official dmw.gov.ph email address.</span>
                     @error('email')
                         <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
                     @enderror
@@ -101,6 +100,33 @@
     </div>
 
   <script>
+    const loginForm = document.getElementById('loginForm');
+    const emailInput = document.getElementById('email');
+    const emailError = document.getElementById('emailError');
+    const officialEmailPattern = /^[^@\s]+@dmw\.gov\.ph$/;
+
+    function validateEmailField(showWhenEmpty = false) {
+        const value = emailInput.value.trim();
+        const isValid = officialEmailPattern.test(value);
+        const shouldShowError = value !== '' ? !isValid : showWhenEmpty;
+
+        emailInput.classList.toggle('border-red-500', shouldShowError);
+        emailInput.classList.toggle('focus:ring-red-500', shouldShowError);
+        emailInput.classList.toggle('focus:ring-blue-800', !shouldShowError);
+        emailError.classList.toggle('hidden', !shouldShowError);
+
+        return isValid;
+    }
+
+    emailInput.addEventListener('input', () => validateEmailField(false));
+    emailInput.addEventListener('blur', () => validateEmailField(false));
+    loginForm.addEventListener('submit', (event) => {
+        if (!validateEmailField(true)) {
+            event.preventDefault();
+            emailInput.focus();
+        }
+    });
+
     function togglePassword(inputId, iconId) {
         const password = document.getElementById(inputId);
         const icon = document.getElementById(iconId);

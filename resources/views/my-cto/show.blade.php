@@ -3,6 +3,23 @@
 
     <div class="py-12">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+            @php
+                $role = strtolower(auth()->user()->role ?? '');
+                $isApprover = in_array($role, ['admin', 'hrstaff', 'hr staff', 'chief', 'director', 'regionaldirector', 'regional director']);
+            @endphp
+
+            <div class="mb-5 flex items-center justify-between gap-3">
+                <a href="{{ $isApprover ? route('hr.cto.index') : route('my-cto.index') }}" class="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-bold text-blue-900 shadow-sm transition hover:border-blue-200 hover:text-blue-800">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                    {{ __('Back') }}
+                </a>
+                <a href="{{ route('my-cto.print', $ctoRequest) }}" target="_blank" data-no-transition class="inline-flex items-center rounded-xl bg-indigo-600 px-4 py-2 text-xs font-black uppercase tracking-widest text-white shadow-sm transition hover:bg-indigo-700">
+                    {{ __('Print CTO') }}
+                </a>
+            </div>
+
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div class="lg:col-span-2 space-y-8">
                     <div class="bg-white overflow-hidden shadow-sm rounded-3xl border border-gray-100 p-8 md:p-10">
@@ -39,7 +56,7 @@
                                     <span class="text-[10px] font-black uppercase tracking-widest text-gray-400 italic">
                                         {{ $ctoRequest->type === 'earn' ? 'Work Period' : 'CTO Period' }}
                                     </span>
-                                    <div class="text-sm font-bold text-gray-700">
+                                    <div class="text-xl font-bold text-gray-700">
                                         {{ $ctoRequest->date_start->format('M d, Y') }} - {{ $ctoRequest->date_end->format('M d, Y') }}
                                     </div>
                                     @php $days = $ctoRequest->date_start->diffInDays($ctoRequest->date_end) + 1; @endphp
@@ -47,7 +64,7 @@
                                 </div>
                                 <div class="space-y-1">
                                     <span class="text-[10px] font-black uppercase tracking-widest text-gray-400 italic">Date Filed</span>
-                                    <div class="text-sm font-bold text-gray-700">
+                                    <div class="text-xl font-bold text-gray-700">
                                         {{ $ctoRequest->created_at->format('M d, Y h:i A') }}
                                     </div>
                                 </div>
@@ -81,48 +98,58 @@
                                     </div>
                                 </div>
                             @endif
+
+                            @if($ctoRequest->applicant_signature_path)
+                                <div>
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-3">Applicant Signature</span>
+                                    <div class="flex items-center justify-center rounded-xl border border-gray-100 bg-gray-50/50 p-4">
+                                        <img src="{{ asset('storage/' . $ctoRequest->applicant_signature_path) }}" alt="Applicant signature" class="max-h-20 object-contain">
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                     </div>
 
                     <div class="bg-white overflow-hidden shadow-sm rounded-3xl border border-gray-100 p-8">
-                        <div class="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-6 inline-block border-b-2 border-indigo-100 pb-1">Approval Progress</div>
-                        <div class="space-y-4">
+                        <div class="text-xs font-black text-indigo-500 uppercase tracking-widest mb-6 inline-block border-b-2 border-indigo-100 pb-1">Approval Progress</div>
+                        <div class="space-y-5">
                             @php
                                 $stages = [
                                     ['label' => 'Division Chief', 'status' => $ctoRequest->chief_status, 'approver' => $ctoRequest->chief, 'remarks' => $ctoRequest->chief_remarks],
                                     ['label' => 'HR Staff', 'status' => $ctoRequest->hrstaff_status, 'approver' => $ctoRequest->hrstaff, 'remarks' => $ctoRequest->hrstaff_remarks],
+                                    ['label' => 'Regional Director', 'status' => $ctoRequest->rd_status, 'approver' => $ctoRequest->regionalDirector, 'remarks' => $ctoRequest->rd_remarks],
                                 ];
                             @endphp
 
                             @foreach($stages as $stage)
-                                <div class="flex items-start gap-4 p-5 rounded-2xl border {{ $stage['status'] === 'approved' ? 'bg-green-50/30 border-green-100' : ($stage['status'] === 'rejected' ? 'bg-red-50/30 border-red-100' : 'bg-gray-50/50 border-gray-100') }}">
+                                <div class="flex items-start gap-5 p-6 rounded-2xl border {{ $stage['status'] === 'approved' ? 'bg-green-50/30 border-green-100' : ($stage['status'] === 'rejected' ? 'bg-red-50/30 border-red-100' : 'bg-gray-50/50 border-gray-100') }}">
                                     <div class="mt-1">
                                         @if($stage['status'] === 'approved')
-                                            <div class="bg-green-500 p-1.5 rounded-full text-white">
-                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                            <div class="bg-green-500 p-2 rounded-full text-white">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
                                             </div>
                                         @elseif($stage['status'] === 'rejected')
-                                            <div class="bg-red-500 p-1.5 rounded-full text-white">
-                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                            <div class="bg-red-500 p-2 rounded-full text-white">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
                                             </div>
                                         @else
-                                            <div class="bg-gray-300 p-1.5 rounded-full text-white">
-                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"></path></svg>
+                                            <div class="bg-gray-300 p-2 rounded-full text-white">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"></path></svg>
                                             </div>
                                         @endif
                                     </div>
                                     <div class="flex-1">
                                         <div class="flex items-center justify-between mb-1">
-                                            <div class="text-[10px] font-black uppercase tracking-wider text-gray-900">{{ $stage['label'] }}</div>
-                                            <span class="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded {{ $stage['status'] === 'approved' ? 'text-green-600 bg-green-50' : ($stage['status'] === 'rejected' ? 'text-red-600 bg-red-50' : 'text-gray-400 bg-gray-100') }}">
+                                            <div class="text-sm font-black uppercase tracking-wider text-gray-900">{{ $stage['label'] }}</div>
+                                            <span class="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded {{ $stage['status'] === 'approved' ? 'text-green-600 bg-green-50' : ($stage['status'] === 'rejected' ? 'text-red-600 bg-red-50' : 'text-gray-400 bg-gray-100') }}">
                                                 {{ __($stage['status']) }}
                                             </span>
                                         </div>
                                         @if($stage['approver'])
-                                            <div class="text-xs font-bold text-gray-700">{{ $stage['approver']->firstname }} {{ $stage['approver']->lastname }}</div>
+                                            <div class="text-sm font-bold text-gray-700">{{ $stage['approver']->firstname }} {{ $stage['approver']->lastname }}</div>
                                         @endif
                                         @if($stage['remarks'])
-                                            <div class="mt-2 text-xs text-gray-500 italic">"{{ $stage['remarks'] }}"</div>
+                                            <div class="mt-3 text-sm text-gray-500 italic">"{{ $stage['remarks'] }}"</div>
                                         @endif
                                     </div>
                                 </div>
@@ -132,10 +159,9 @@
                 </div>
 
                 @php
-                    $role = strtolower(auth()->user()->role ?? '');
                     $isChief = $role === 'chief';
-                    $isHR = in_array($role, ['hrstaff', 'admin']);
-                    $isApprover = in_array($role, ['admin', 'hrstaff', 'chief']);
+                    $isHR = in_array($role, ['hrstaff', 'hr staff', 'admin']);
+                    $isRegionalDirector = in_array($role, ['director', 'regionaldirector', 'regional director']);
 
                     $isMyTurn = false;
                     $waitingMessage = '';
@@ -148,6 +174,12 @@
                                 $isMyTurn = true;
                             } else {
                                 $waitingMessage = 'Waiting for Division Chief approval.';
+                            }
+                        } elseif ($isRegionalDirector && $ctoRequest->rd_status === 'pending') {
+                            if ($ctoRequest->hrstaff_status === 'approved') {
+                                $isMyTurn = true;
+                            } else {
+                                $waitingMessage = 'Waiting for HR Staff approval.';
                             }
                         }
                     }
@@ -201,7 +233,7 @@
                                 <div class="w-2 h-2 bg-orange-400 rounded-full animate-ping"></div>
                                 <span class="text-[10px] font-black uppercase text-gray-400 tracking-widest">Your Review Needed</span>
                             @elseif($waitingMessage)
-                                <div class="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
+                                <div class="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div>
                                 <span class="text-[10px] font-black uppercase text-yellow-600 tracking-widest">In Progress</span>
                             @elseif($ctoRequest->status === 'approved')
                                 <div class="w-2 h-2 bg-green-400 rounded-full"></div>
@@ -224,19 +256,13 @@
                             @elseif($ctoRequest->status === 'rejected')
                                 This CTO request has been rejected.
                             @else
-                                This CTO request is awaiting review from the Division Chief.
+                                This CTO request is awaiting the next reviewer.
                             @endif
                         </p>
-                    </div>
-
-                    <div class="text-center">
-                        <a href="{{ $isApprover ? route('hr.cto.index') : route('my-cto.index') }}" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 transition-colors inline-flex items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                            {{ __('Back') }}
-                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </x-app-layout>
+

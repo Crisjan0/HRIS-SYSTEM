@@ -28,14 +28,10 @@
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             
             <!-- Breadcrumb / Header Actions -->
-            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-                <div>
-                    <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Statement of Assets, Liabilities and Networth</h1>
-                    <p class="text-sm text-slate-500 mt-1">2025 SALN Form — CSC Resolution No. 2500632</p>
-                </div>
+            <div class="mb-6">
                 <a href="{{ route('salns.index') }}" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg shadow-sm hover:bg-slate-50 transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-                    Back to Records
+                    Back
                 </a>
             </div>
 
@@ -556,7 +552,7 @@
                 <!-- SUBMIT ACTIONS FOOTER -->
                 <div class="bg-slate-50 px-6 py-5 border-t border-slate-200 flex flex-col sm:flex-row justify-end gap-3">
                     <a href="{{ route('salns.index') }}" class="inline-flex justify-center items-center px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition-colors">Cancel</a>
-                    <button type="submit" class="inline-flex justify-center items-center px-7 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-semibold shadow-sm hover:bg-slate-800 focus:ring-4 focus:ring-slate-900/10 transition-colors">Submit SALN Declaration</button>
+                    <button type="submit" class="inline-flex justify-center items-center px-7 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-semibold shadow-sm hover:bg-slate-800 focus:ring-4 focus:ring-slate-900/10 transition-colors">Submit</button>
                 </div>
             </form>
         </div>

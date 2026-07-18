@@ -4,12 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Models\LeaveRequest;
 use App\Models\LeaveType;
+use App\Models\Holiday;
 use App\Models\User;
 use App\Notifications\LeaveRequestNotification;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Validation\Validator;
 use Illuminate\View\View;
 
 class MyLeaveController extends Controller
@@ -25,7 +28,7 @@ class MyLeaveController extends Controller
         }
 
         $employee->ensureLeaveCredits(now()->year);
-        $leaves = $employee->leaveRequests()->with('leaveType')->latest()->get();
+        $leaves = $employee->leaveRequests()->with(['leaveType', 'employee'])->latest()->get();
         $credits = $employee->leaveCredits()->with('leaveType')->get();
 
         return view('leaves.index', compact('leaves', 'credits'));
@@ -39,10 +42,13 @@ class MyLeaveController extends Controller
         $employee = auth()->user()->employee;
         $employee?->ensureLeaveCredits(now()->year);
 
-        $leaveTypes = LeaveType::where('is_active', true)->get();
-        $credits = $employee?->leaveCredits->keyBy('leave_type_id');
+        $employee?->loadMissing(['pdsPersonal', 'pdsQuestionnaire', 'pdsChildren']);
+        $leaveTypes = $this->eligibleLeaveTypes($employee);
+        $credits = $employee?->leaveCredits->keyBy('leave_type_id') ?? collect();
+        $leaveTypePicker = $this->leaveTypePickerData($leaveTypes, $credits);
+        $holidayDates = $this->holidayDates();
 
-        return view('leaves.create', compact('leaveTypes', 'credits'));
+        return view('leaves.create', compact('leaveTypes', 'credits', 'leaveTypePicker', 'holidayDates'));
     }
 
     /**
@@ -57,11 +63,15 @@ class MyLeaveController extends Controller
 
         $validated = $request->validate([
             'leave_type_id' => 'required|exists:leave_types,id',
-            'start_date' => 'required|date|after_or_equal:today',
+            'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'reason' => 'required|string',
-            'attachment' => 'nullable|file|mimes:pdf,jpg,png,doc,docx|max:5120', // Max 5MB
-            ]);
+            'is_paid' => 'required|boolean',
+            'attachment' => 'nullable|file|mimes:pdf|max:5120', // Max 5MB
+        ]);
+
+        $leaveType = LeaveType::findOrFail($validated['leave_type_id']);
+        $this->validateLeaveEligibilityAndDates($request, $employee, $leaveType);
 
             if ($request->hasFile('attachment')) {
                 $path = $request->file('attachment')->store('leave-attachments', 'public');
@@ -90,6 +100,7 @@ class MyLeaveController extends Controller
         // Deduction only happens on Approval. We allow filing even if credits are insufficient.
         $leaveRequest = $employee->leaveRequests()->create([
             ...$validated,
+            'is_paid' => (bool) $validated['is_paid'],
             'date_filed' => now(),
         ]);
 
@@ -119,8 +130,26 @@ class MyLeaveController extends Controller
         }
 
         $leaf->load(['leaveType', 'chief', 'hrstaff', 'regionalDirector']);
+        $employee->ensureLeaveCredits(Carbon::parse($leaf->start_date)->year);
+        $leaveCredit = $employee->leaveCredits()
+            ->where('leave_type_id', $leaf->leave_type_id)
+            ->where('year', Carbon::parse($leaf->start_date)->year)
+            ->first();
 
-        return view('leaves.show', compact('leaf'));
+        return view('leaves.show', compact('leaf', 'leaveCredit'));
+    }
+
+    public function print(LeaveRequest $leaf): View
+    {
+        $employee = auth()->user()->employee;
+        if ($leaf->employee_id !== $employee?->id) {
+            abort(403);
+        }
+
+        $leaf->load(['employee.user', 'employee.leaveCredits.leaveType', 'employee.pdsGovId', 'leaveType', 'chief', 'hrstaff', 'regionalDirector']);
+        $leaf->employee?->ensureLeaveCredits(Carbon::parse($leaf->start_date)->year);
+
+        return view('leaves.print', ['leaveRequest' => $leaf]);
     }
 
     /**
@@ -137,10 +166,13 @@ class MyLeaveController extends Controller
             return redirect()->route('leaves.index')->with('error', 'Only pending requests can be edited.');
         }
 
-        $leaveTypes = LeaveType::where('is_active', true)->get();
+        $employee->loadMissing(['pdsPersonal', 'pdsQuestionnaire', 'pdsChildren']);
+        $leaveTypes = $this->eligibleLeaveTypes($employee);
         $credits = $employee->leaveCredits->keyBy('leave_type_id');
+        $leaveTypePicker = $this->leaveTypePickerData($leaveTypes, $credits);
+        $holidayDates = $this->holidayDates();
 
-        return view('leaves.edit', compact('leaf', 'leaveTypes', 'credits'));
+        return view('leaves.edit', compact('leaf', 'leaveTypes', 'credits', 'leaveTypePicker', 'holidayDates'));
     }
 
     /**
@@ -155,12 +187,19 @@ class MyLeaveController extends Controller
 
         $validated = $request->validate([
             'leave_type_id' => 'required|exists:leave_types,id',
-            'start_date' => 'required|date|after_or_equal:today',
+            'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'reason' => 'required|string',
+            'is_paid' => 'required|boolean',
         ]);
 
-        $leaf->update($validated);
+        $leaveType = LeaveType::findOrFail($validated['leave_type_id']);
+        $this->validateLeaveEligibilityAndDates($request, $employee, $leaveType);
+
+        $leaf->update([
+            ...$validated,
+            'is_paid' => (bool) $validated['is_paid'],
+        ]);
 
         return redirect()->route('leaves.index')->with('success', 'Leave request updated successfully.');
     }
@@ -183,5 +222,132 @@ class MyLeaveController extends Controller
         $leaf->delete();
 
         return redirect()->route('leaves.index')->with('success', 'Leave request cancelled successfully.');
+    }
+
+    private function validateLeaveEligibilityAndDates(Request $request, $employee, LeaveType $leaveType): void
+    {
+        validator($request->only(['leave_type_id', 'start_date', 'end_date']), [])->after(function (Validator $validator) use ($request, $employee, $leaveType) {
+            if (! $this->isLeaveTypeEligibleForEmployee($leaveType, $employee)) {
+                $validator->errors()->add('leave_type_id', 'This leave type is not available for your employee profile.');
+            }
+
+            foreach (['start_date' => 'Start date', 'end_date' => 'End date'] as $field => $label) {
+                $value = $request->input($field);
+
+                if ($value && Carbon::parse($value)->isWeekend()) {
+                    $validator->errors()->add($field, "{$label} must be a weekday.");
+                }
+
+                if ($value && Holiday::whereDate('date', Carbon::parse($value)->toDateString())->exists()) {
+                    $validator->errors()->add($field, "{$label} cannot fall on a holiday.");
+                }
+            }
+
+            $policy = $this->datePolicyForLeaveType($leaveType);
+            foreach (['start_date' => 'Start date', 'end_date' => 'End date'] as $field => $label) {
+                $value = $request->input($field);
+                if (! $value) {
+                    continue;
+                }
+
+                $date = Carbon::parse($value)->startOfDay();
+                $today = today();
+
+                if ($policy === 'past_or_today' && $date->gt($today)) {
+                    $validator->errors()->add($field, "{$label} cannot be a future date for {$leaveType->name}.");
+                }
+
+                if ($policy === 'today_or_future' && $date->lt($today)) {
+                    $validator->errors()->add($field, "{$label} cannot be a past date for {$leaveType->name}.");
+                }
+            }
+        })->validate();
+    }
+
+    private function eligibleLeaveTypes($employee): Collection
+    {
+        $types = LeaveType::where('is_active', true)->get();
+
+        if (! $employee) {
+            return $types->filter(fn (LeaveType $type) => $this->isGeneralLeaveType($type))->values();
+        }
+
+        return $types->filter(fn (LeaveType $type) => $this->isLeaveTypeEligibleForEmployee($type, $employee))->values();
+    }
+
+    private function isLeaveTypeEligibleForEmployee(LeaveType $type, $employee): bool
+    {
+        $name = $type->name;
+        $sex = strtolower((string) ($employee?->pdsPersonal?->sex ?? ''));
+        $civilStatus = strtolower((string) ($employee?->pdsPersonal?->civil_status ?? ''));
+        $soloParentAnswer = $employee?->pdsQuestionnaire?->q40_c ?? false;
+        $isMarkedSoloParent = in_array($soloParentAnswer, [true, 1, '1', 'yes', 'Yes'], true);
+        $hasChildren = $employee?->relationLoaded('pdsChildren')
+            ? $employee->pdsChildren->isNotEmpty()
+            : (bool) $employee?->pdsChildren()->exists();
+        $isSoloParent = $isMarkedSoloParent
+            || ($hasChildren && in_array($civilStatus, ['single', 'separated', 'widowed', 'widow'], true));
+
+        if (in_array($name, ['Maternity Leave', 'VAWC Leave', 'Special Leave Benefits for Women'], true)) {
+            return $sex === 'female';
+        }
+
+        if ($name === 'Paternity Leave') {
+            return $sex === 'male';
+        }
+
+        if ($name === 'Solo Parent Leave') {
+            return $isSoloParent;
+        }
+
+        return true;
+    }
+
+    private function isGeneralLeaveType(LeaveType $type): bool
+    {
+        return ! in_array($type->name, [
+            'Maternity Leave',
+            'Paternity Leave',
+            'Solo Parent Leave',
+            'Adoption Leave',
+            'VAWC Leave',
+            'Special Leave Benefits for Women',
+        ], true);
+    }
+
+    private function leaveTypePickerData(Collection $leaveTypes, $credits)
+    {
+        return $leaveTypes->keyBy('id')->map(function (LeaveType $type) use ($credits) {
+            return [
+                'name' => $type->name,
+                'description' => $type->description,
+                'legal_basis' => $type->legal_basis,
+                'balance' => (float) ($credits[$type->id]->balance ?? 0),
+                'date_policy' => $this->datePolicyForLeaveType($type),
+                'date_help' => '',
+            ];
+        });
+    }
+
+    private function datePolicyForLeaveType(LeaveType $type): string
+    {
+        if (in_array($type->name, ['Sick Leave', 'Rehabilitation Leave', 'Special Emergency (Calamity) Leave'], true)) {
+            return 'past_or_today';
+        }
+
+        if (in_array($type->name, ['Maternity Leave', 'Paternity Leave', 'VAWC Leave', 'Special Leave Benefits for Women', 'Adoption Leave'], true)) {
+            return 'any_weekday';
+        }
+
+        return 'today_or_future';
+    }
+
+    private function holidayDates(): array
+    {
+        return Holiday::orderBy('date')
+            ->get()
+            ->map(fn (Holiday $holiday) => $holiday->date->format('Y-m-d'))
+            ->values()
+            ->all();
     }
 }

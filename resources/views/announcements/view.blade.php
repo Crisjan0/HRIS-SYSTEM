@@ -14,85 +14,127 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                @forelse($announcements as $announcement)
-                    <div class="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 flex flex-col group h-full">
-                        <div class="p-8 flex-1">
-                            <div class="flex items-center justify-between mb-6">
-                                <div class="flex items-center">
-                                    <div class="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 shadow-sm group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-300">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path>
-                                        </svg>
-                                    </div>
-                                    <div class="ml-3">
-                                        <p class="text-[10px] font-black text-indigo-500 uppercase tracking-widest">{{ $announcement->published_at ? $announcement->published_at->format('M d, Y') : $announcement->created_at->format('M d, Y') }}</p>
-                                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">{{ $announcement->created_at->diffForHumans() }}</p>
-                                    </div>
-                                </div>
-                            </div>
+            <form id="publicAnnouncementFilterForm" method="GET" action="{{ route('announcements.view') }}" class="mb-8 flex flex-col gap-2 rounded-xl border border-gray-100 bg-gray-50/70 p-2 sm:flex-row sm:items-center">
+                <div class="relative min-w-0 sm:flex-1">
+                    <label for="publicAnnouncementSearch" class="sr-only">{{ __('Search announcements') }}</label>
+                    <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" d="M21 21l-4.35-4.35m1.35-5.65a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </span>
+                    <input id="publicAnnouncementSearch" type="search" name="search" value="{{ $search }}" placeholder="{{ __('Search announcements...') }}" class="block h-9 w-full rounded-lg border-gray-300 pl-10 pr-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" data-public-announcement-autofilter>
+                </div>
 
-                            <a href="{{ route('announcements.show', $announcement) }}" class="block group/title">
-                                <h3 class="text-xl font-black text-gray-900 mb-3 group-hover/title:text-indigo-600 transition-colors line-clamp-2 leading-tight tracking-tight">
-                                    {{ $announcement->title }}
-                                </h3>
-                            </a>
+                <div class="sm:w-52 sm:shrink-0">
+                    <label for="publicAnnouncementMonth" class="sr-only">{{ __('Month') }}</label>
+                    <select id="publicAnnouncementMonth" name="month" class="block h-9 w-full rounded-lg border-gray-300 bg-white text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option value="all" {{ $month === 'all' ? 'selected' : '' }}>{{ __('All Months') }}</option>
+                        @foreach($months as $option)
+                            <option value="{{ $option['value'] }}" {{ $month === $option['value'] ? 'selected' : '' }}>{{ $option['label'] }}</option>
+                        @endforeach
+                    </select>
+                </div>
 
-                            <div class="text-sm text-gray-600 line-clamp-4 leading-relaxed font-medium mb-6">
-                                {{ Str::limit(strip_tags($announcement->content), 180) }}
-                            </div>
+                <div class="flex shrink-0 gap-2">
+                    <button type="button" id="publicAnnouncementFilterReset" class="inline-flex h-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-xs font-black uppercase tracking-widest text-gray-600 transition hover:bg-gray-50">
+                        {{ __('Reset') }}
+                    </button>
+                </div>
+            </form>
 
-                            @if($announcement->tags)
-                                <div class="flex flex-wrap gap-2 mb-2">
-                                    @foreach(explode(',', $announcement->tags) as $tag)
-                                        <span class="inline-flex items-center px-3 py-1 rounded-xl text-[10px] font-black bg-gray-50 text-gray-500 hover:bg-indigo-50 hover:text-indigo-600 transition-colors border border-gray-100 uppercase tracking-wider">
-                                            #{{ trim($tag) }}
-                                        </span>
-                                    @endforeach
-                                </div>
-                            @endif
-                        </div>
-
-                        <div class="px-8 py-6 bg-gray-50/50 border-t border-gray-50 flex items-center justify-between group-hover:bg-white transition-colors duration-300">
-                            <div class="flex items-center">
-                                <div class="relative">
-                                    <x-profile-avatar :user="$announcement->author" size="sm" class="ring-2 ring-white shadow-md" />
-                                    <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white rounded-full shadow-sm"></div>
-                                </div>
-                                <div class="ml-3 font-bold">
-                                    <p class="text-xs text-gray-900 leading-none mb-0.5">{{ $announcement->author->display_name }}</p>
-                                    <p class="text-[9px] text-indigo-500 uppercase tracking-widest">{{ $announcement->author->role ?? __('Staff') }}</p>
-                                </div>
-                            </div>
-                            
-                            <a href="{{ route('announcements.show', $announcement) }}" class="inline-flex items-center text-xs font-black text-indigo-600 hover:text-indigo-700 uppercase tracking-widest gap-1 group/btn">
-                                {{ __('Read More') }}
-                                <svg class="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
-                                </svg>
-                            </a>
-                        </div>
-                    </div>
-                @empty
-                    <div class="col-span-full bg-white rounded-[2.5rem] shadow-special border border-gray-100 p-20 text-center">
-                        <div class="flex flex-col items-center max-w-sm mx-auto">
-                            <div class="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center mb-6 animate-bounce">
-                                <svg class="w-12 h-12 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path>
-                                </svg>
-                            </div>
-                            <h3 class="text-2xl font-black text-gray-900 mb-2 italic uppercase tracking-tight">{{ __('All caught up!') }}</h3>
-                            <p class="text-gray-500 font-medium leading-relaxed">{{ __('There are no official announcements at the moment. Check back later for updates.') }}</p>
-                        </div>
-                    </div>
-                @endforelse
-            </div>
-
-            <div class="mt-12">
-                {{ $announcements->links() }}
+            <div id="publicAnnouncementResults">
+                @include('announcements.partials.public-results', ['announcements' => $announcements])
             </div>
         </div>
     </div>
+
+    <script>
+        const publicAnnouncementFilterForm = document.getElementById('publicAnnouncementFilterForm');
+        const publicAnnouncementSearchInput = document.querySelector('[data-public-announcement-autofilter]');
+        const publicAnnouncementMonthSelect = document.getElementById('publicAnnouncementMonth');
+        const publicAnnouncementResults = document.getElementById('publicAnnouncementResults');
+        const publicAnnouncementFilterReset = document.getElementById('publicAnnouncementFilterReset');
+        let publicAnnouncementSearchTimer;
+
+        async function filterPublicAnnouncements(requestUrl = null, browserUrl = null) {
+            if (!publicAnnouncementFilterForm || !publicAnnouncementResults) {
+                return;
+            }
+
+            const params = new URLSearchParams(new FormData(publicAnnouncementFilterForm));
+            const nextRequestUrl = requestUrl || `${publicAnnouncementFilterForm.action}?${params.toString()}`;
+            const nextBrowserUrl = browserUrl || `${publicAnnouncementFilterForm.action}?${params.toString()}`;
+
+            publicAnnouncementResults.style.opacity = '0.55';
+
+            try {
+                const response = await fetch(nextRequestUrl, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error('Unable to filter announcements.');
+                }
+
+                const data = await response.json();
+                publicAnnouncementResults.innerHTML = data.html;
+                window.history.replaceState({}, '', nextBrowserUrl);
+            } catch (error) {
+                publicAnnouncementFilterForm.submit();
+            } finally {
+                publicAnnouncementResults.style.opacity = '1';
+            }
+        }
+
+        if (publicAnnouncementFilterForm) {
+            publicAnnouncementFilterForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                filterPublicAnnouncements();
+            });
+        }
+
+        if (publicAnnouncementSearchInput) {
+            publicAnnouncementSearchInput.addEventListener('input', () => {
+                clearTimeout(publicAnnouncementSearchTimer);
+                publicAnnouncementSearchTimer = setTimeout(() => filterPublicAnnouncements(), 600);
+            });
+        }
+
+        if (publicAnnouncementMonthSelect) {
+            publicAnnouncementMonthSelect.addEventListener('change', () => filterPublicAnnouncements());
+        }
+
+        if (publicAnnouncementFilterReset) {
+            publicAnnouncementFilterReset.addEventListener('click', () => {
+                if (publicAnnouncementSearchInput) {
+                    publicAnnouncementSearchInput.value = '';
+                }
+
+                if (publicAnnouncementMonthSelect) {
+                    publicAnnouncementMonthSelect.value = 'all';
+                }
+
+                filterPublicAnnouncements();
+            });
+        }
+
+        if (publicAnnouncementResults) {
+            publicAnnouncementResults.addEventListener('click', (event) => {
+                const link = event.target.closest('a');
+
+                if (!link || !link.href || !link.closest('nav')) {
+                    return;
+                }
+
+                event.preventDefault();
+                const url = new URL(link.href);
+                filterPublicAnnouncements(`${publicAnnouncementFilterForm.action}${url.search}`, `${publicAnnouncementFilterForm.action}${url.search}`);
+            });
+        }
+    </script>
 
     <style>
         .shadow-special {

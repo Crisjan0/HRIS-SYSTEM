@@ -13,13 +13,9 @@
                             <p class="text-sm text-gray-500 font-medium italic">Civil Service Records Management Dashboard.</p>
                         </div>
                         <div class="flex gap-4">
-                            <a href="{{ route('pds.download') }}" data-no-transition
-                                class="inline-flex items-center px-6 py-2.5 bg-emerald-600 border-2 border-emerald-700 rounded-xl font-bold text-sm text-white shadow-lg shadow-emerald-100 hover:bg-emerald-700 active:scale-95 transition-all duration-300">
-                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                </svg>
-                                Download PDS (PDF)
+                            <a href="{{ route('pds.print-clean') }}" target="_blank" data-no-transition
+                                class="inline-flex items-center px-6 py-2.5 bg-white border-2 border-indigo-100 rounded-xl font-bold text-sm text-indigo-700 shadow-sm hover:bg-indigo-50 active:scale-95 transition-all duration-300">
+                                Clean
                             </a>
                             <a href="{{ route('pds.edit') }}"
                                 class="inline-flex items-center px-6 py-2.5 bg-blue-800 border-2 border-blue-900 rounded-xl font-bold text-sm text-white shadow-lg shadow-blue-200 hover:bg-blue-800 active:scale-95 transition-all duration-300">
@@ -47,6 +43,85 @@
                         </div>
                     @endif
 
+                    @php
+                        $sections = [
+                            [
+                                'label' => 'Personal Information',
+                                'display' => 'I. Personal Information',
+                                'tab' => 'personal',
+                                'filled' => $employee->pdsPersonal && (
+                                    filled($employee->pdsPersonal->surname) ||
+                                    filled($employee->pdsPersonal->firstname) ||
+                                    filled($employee->pdsPersonal->date_of_birth) ||
+                                    filled($employee->pdsPersonal->email_address)
+                                ),
+                            ],
+                            [
+                                'label' => 'Family Background',
+                                'display' => 'II. Family Background',
+                                'tab' => 'family',
+                                'filled' => ($employee->pdsFamily && (
+                                    filled($employee->pdsFamily->father_surname) ||
+                                    filled($employee->pdsFamily->mother_maiden_surname) ||
+                                    filled($employee->pdsFamily->spouse_surname)
+                                )) || $employee->pdsChildren->count() > 0,
+                            ],
+                            [
+                                'label' => 'Educational Background',
+                                'display' => 'III. Educational Background',
+                                'tab' => 'education',
+                                'filled' => $employee->pdsEducation->count() > 0,
+                            ],
+                            [
+                                'label' => 'Civil Service Eligibility',
+                                'display' => 'IV. Civil Service Eligibility',
+                                'tab' => 'eligibility',
+                                'filled' => $employee->pdsEligibilities->count() > 0,
+                            ],
+                            [
+                                'label' => 'Work Experience',
+                                'display' => 'V. Work Experience',
+                                'tab' => 'work',
+                                'filled' => $employee->pdsWorkExperiences->count() > 0,
+                            ],
+                            [
+                                'label' => 'Voluntary Work or Involvement in Civic / Non-Government / People / Voluntary Organization/s',
+                                'display' => 'VI. Voluntary Work',
+                                'tab' => 'voluntary',
+                                'filled' => $employee->pdsVoluntaryWorks->count() > 0,
+                                'review_names' => ['Voluntary Work or Involvement in Civic / Non-Government / People / Voluntary Organization/s', 'Voluntary Work'],
+                            ],
+                            [
+                                'label' => 'Learning and Development (L&D) Interventions/Training Programs Attended',
+                                'display' => 'VII. Learning and Development',
+                                'tab' => 'training',
+                                'filled' => $employee->pdsTrainings->count() > 0,
+                                'review_names' => ['Learning and Development (L&D) Interventions/Training Programs Attended', 'Training', 'Learning and Development'],
+                            ],
+                            [
+                                'label' => 'Other Information',
+                                'display' => 'VIII. Other Information',
+                                'tab' => 'otherinfo',
+                                'filled' => $employee->pdsOthers->count() > 0 || $employee->pdsReferences->count() >= 3 || $employee->pdsQuestionnaire || $employee->pdsGovId,
+                                'review_names' => ['Other Information', 'References', 'Questionnaire'],
+                            ],
+                        ];
+                        $sectionReview = function ($section) use ($employee) {
+                            $names = $section['review_names'] ?? [$section['label']];
+
+                            return $employee->pdsSectionReviews->first(function ($review) use ($names) {
+                                return in_array($review->section_name, $names, true);
+                            });
+                        };
+                        $completedCount = collect($sections)->where('filled', true)->count();
+                        $totalSections = count($sections);
+                        $percentage = $totalSections > 0 ? round(($completedCount / $totalSections) * 100) : 0;
+                        $approvedCount = collect($sections)->filter(function ($section) use ($sectionReview) {
+                            return optional($sectionReview($section))->status === 'approved';
+                        })->count();
+                        $isAllApproved = $approvedCount === $totalSections;
+                    @endphp
+
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
                         <!-- Left Column: Profile Summary Card -->
                         <div class="lg:col-span-4">
@@ -63,18 +138,6 @@
                                             </p>
                                         </div>
                                         
-                                        @php
-                                            $requiredSections = ['Personal Information', 'Family Background', 'Educational Background', 'Civil Service Eligibility', 'Work Experience', 'References'];
-                                            $approvedCount = 0;
-                                            foreach($requiredSections as $reqSec) {
-                                                $review = $employee->pdsSectionReviews->where('section_name', $reqSec)->first();
-                                                if($review && $review->status === 'approved') {
-                                                    $approvedCount++;
-                                                }
-                                            }
-                                            $isAllApproved = $approvedCount === count($requiredSections);
-                                        @endphp
-
                                         <div class="mt-3">
                                             @if($isAllApproved)
                                                 <span class="inline-flex items-center px-3 py-1 bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase tracking-widest rounded-full border border-emerald-200">
@@ -117,25 +180,13 @@
                         <!-- Right Column: Status & Progress -->
                         <div class="lg:col-span-8 space-y-8">
                             <div class="bg-gray-50/50 border-2 border-gray-100 p-6 rounded-2xl shadow-sm">
-                                @php
-                                    $sections = [
-                                        ['label' => 'Personal Information', 'filled' => $employee->pdsPersonal && !empty($employee->pdsPersonal->surname), 'icon' => 'user'],
-                                        ['label' => 'Family Background', 'filled' => $employee->pdsFamily && (!empty($employee->pdsFamily->father_surname) || !empty($employee->pdsFamily->mother_maiden_surname) || !empty($employee->pdsFamily->spouse_surname)), 'icon' => 'users'],
-                                        ['label' => 'Educational Background', 'filled' => $employee->pdsEducation->count() > 0, 'icon' => 'academic-cap'],
-                                        ['label' => 'Civil Service Eligibility', 'filled' => $employee->pdsEligibilities->count() > 0, 'icon' => 'badge-check'],
-                                        ['label' => 'Work Experience', 'filled' => $employee->pdsWorkExperiences->count() > 0, 'icon' => 'briefcase'],
-                                        ['label' => 'Questionnaire', 'filled' => $employee->pdsQuestionnaire && $employee->pdsQuestionnaire->updated_at > $employee->pdsQuestionnaire->created_at, 'icon' => 'question-mark-circle'],
-                                        ['label' => 'References', 'filled' => $employee->pdsReferences->count() >= 3, 'icon' => 'identification'],
-                                    ];
-                                    $completedCount = collect($sections)->where('filled', true)->count();
-                                    $totalSections = count($sections);
-                                    $percentage = $totalSections > 0 ? round(($completedCount / $totalSections) * 100) : 0;
-                                @endphp
-
                                 <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-2">
                                     <div>
                                         <h4 class="text-lg font-black text-gray-900">Completion Status</h4>
-                                        <p class="text-sm text-gray-500 font-medium italic">Civil Service record sections compliance.</p>
+                                        <p class="text-sm text-gray-500 font-medium italic">Official CS Form 212 sections saved in your PDS.</p>
+                                        <p class="mt-1 text-xs text-gray-400 font-semibold">
+                                            {{ $completedCount }} of {{ $totalSections }} sections saved. HR review status is shown separately on each section.
+                                        </p>
                                     </div>
                                     <div class="bg-blue-900 text-white px-5 py-2 rounded-xl shadow-md border-b-2 border-blue-900 leading-none">
                                         <span class="text-2xl font-black">{{ $percentage }}%</span>
@@ -153,10 +204,10 @@
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     @foreach($sections as $section)
                                         @php
-                                            $review = $employee->pdsSectionReviews->where('section_name', $section['label'])->first();
+                                            $review = $sectionReview($section);
                                             $reviewStatus = $review ? $review->status : 'pending';
                                         @endphp
-                                        <a href="{{ route('pds.edit') }}" class="group flex items-center p-4 bg-white rounded-xl border border-gray-100 shadow-sm transition-all duration-200 hover:border-blue-300 hover:shadow-md cursor-pointer relative overflow-hidden">
+                                        <a href="{{ route('pds.edit', ['tab' => $section['tab']]) }}" class="group flex items-center p-4 bg-white rounded-xl border border-gray-100 shadow-sm transition-all duration-200 hover:border-blue-300 hover:shadow-md cursor-pointer relative overflow-hidden">
                                             <!-- Hover indicator bar -->
                                             <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                             
@@ -172,7 +223,7 @@
                                                 @endif
                                             </div>
                                             <div class="overflow-hidden flex-1">
-                                                <span class="block text-sm font-black truncate tracking-tight transition-colors {{ $section['filled'] ? 'text-gray-900 group-hover:text-emerald-700' : 'text-gray-400 group-hover:text-blue-600' }}">{{ $section['label'] }}</span>
+                                                <span title="{{ $section['label'] }}" class="block text-sm font-black truncate tracking-tight transition-colors {{ $section['filled'] ? 'text-gray-900 group-hover:text-emerald-700' : 'text-gray-400 group-hover:text-blue-600' }}">{{ $section['display'] }}</span>
                                                 <div class="flex items-center justify-between mt-0.5">
                                                     <div class="flex items-center gap-1.5 leading-none flex-wrap">
                                                         <div class="w-1.5 h-1.5 rounded-full {{ $section['filled'] ? 'bg-emerald-500' : 'bg-gray-300 group-hover:bg-blue-400' }}"></div>

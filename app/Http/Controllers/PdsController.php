@@ -37,7 +37,7 @@ class PdsController extends Controller
     /**
      * Download PDS as PDF (CS Form No. 212 Revised 2017 format).
      */
-    public function download(PdsPdfExporter $exporter): Response|RedirectResponse
+    public function download(Request $request, PdsPdfExporter $exporter): Response|RedirectResponse
     {
         $employee = Auth::user()->employee;
 
@@ -46,12 +46,47 @@ class PdsController extends Controller
         }
 
         try {
-            return $exporter->download($employee);
+            return $exporter->download($employee, $request->boolean('print') ? 'inline' : 'attachment');
         } catch (\Throwable $e) {
             return redirect()
                 ->route('pds.index')
-                ->with('error', 'Could not generate PDF. Run: composer require barryvdh/laravel-dompdf — '.$e->getMessage());
+                ->with('error', 'Could not generate PDF. Run: composer require barryvdh/laravel-dompdf â€” '.$e->getMessage());
         }
+    }
+
+    public function print(Request $request): View|RedirectResponse
+    {
+        $employee = Auth::user()->employee;
+
+        if (! $employee) {
+            abort(404);
+        }
+
+        $employee->load([
+            'user',
+            'pdsPersonal', 'pdsFamily', 'pdsChildren', 'pdsEducation',
+            'pdsEligibilities', 'pdsWorkExperiences', 'pdsVoluntaryWorks',
+            'pdsTrainings', 'pdsOthers', 'pdsQuestionnaire', 'pdsReferences', 'pdsGovId',
+        ]);
+
+        return view('pds.print-2025', compact('employee'));
+    }
+    public function printClean(Request $request): View|RedirectResponse
+    {
+        $employee = Auth::user()->employee;
+
+        if (! $employee) {
+            abort(404);
+        }
+
+        $employee->load([
+            'user',
+            'pdsPersonal', 'pdsFamily', 'pdsChildren', 'pdsEducation',
+            'pdsEligibilities', 'pdsWorkExperiences', 'pdsVoluntaryWorks',
+            'pdsTrainings', 'pdsOthers', 'pdsQuestionnaire', 'pdsReferences', 'pdsGovId',
+        ]);
+
+        return view('pds.print-clean-2025', compact('employee'));
     }
 
     /**
@@ -151,7 +186,7 @@ class PdsController extends Controller
             'work_experience.*.company' => 'nullable|string',
 
             'training.*.title' => 'nullable|string',
-            'training.*.attachment' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120',
+            'training.*.attachment' => 'nullable|file|mimes:pdf|max:5120',
 
             'others.*.type' => 'nullable|in:Skill,Distinction,Membership',
             'others.*.description' => 'nullable|string',
@@ -163,6 +198,9 @@ class PdsController extends Controller
             'questionnaire' => 'nullable|array',
             'gov_id.id_type' => 'nullable|string',
             'gov_id.id_no' => 'nullable|string',
+            'gov_id.date_place_issuance' => 'nullable|string',
+            'pds_photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'pds_signature' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
         DB::transaction(function () use ($employee, $request) {
@@ -184,10 +222,32 @@ class PdsController extends Controller
                 $request->input('questionnaire', [])
             );
 
-            // Update Gov ID
+            // Update official PDS photo without changing the printed photo-box dimensions.
+            if ($request->hasFile('pds_photo')) {
+                if ($employee->profile_picture) {
+                    Storage::disk('public_uploads')->delete($employee->profile_picture);
+                    Storage::disk('public')->delete($employee->profile_picture);
+                }
+
+                $employee->update([
+                    'profile_picture' => $request->file('pds_photo')->store('profile_pictures', 'public_uploads'),
+                ]);
+            }
+
+            // Update Gov ID and signature asset used by the printable CS Form 212 page 4.
+            $govIdData = $request->input('gov_id', []);
+            if ($request->hasFile('pds_signature')) {
+                $existingSignature = $employee->pdsGovId?->signature_path;
+                if ($existingSignature) {
+                    Storage::disk('public')->delete($existingSignature);
+                }
+
+                $govIdData['signature_path'] = $request->file('pds_signature')->store('pds-signatures', 'public');
+            }
+
             $employee->pdsGovId()->updateOrCreate(
                 ['employee_id' => $employee->id],
-                $request->input('gov_id', [])
+                $govIdData
             );
 
             // Handle Children (Sync)
@@ -287,3 +347,4 @@ class PdsController extends Controller
         return redirect()->route('pds.index')->with('success', 'Personal Data Sheet successfully updated.');
     }
 }
+

@@ -3,10 +3,31 @@
 
     <div class="py-12">
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
+            <div class="mb-5">
+                <a href="{{ route('travel-orders.index') }}" class="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-bold text-gray-700 shadow-sm transition hover:border-indigo-200 hover:text-indigo-700">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                    {{ __('Back') }}
+                </a>
+            </div>
+
             <div class="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg p-8 border border-gray-100">
                 <h2 class="text-2xl font-black text-gray-900 mb-8">{{ __('Create Travel Order') }}</h2>
 
-                <form action="{{ route('travel-orders.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+                <form
+                    action="{{ route('travel-orders.store') }}"
+                    method="POST"
+                    enctype="multipart/form-data"
+                    class="space-y-6"
+                    x-data="travelOrderForm(@js($employees->map(fn ($emp) => [
+                        'id' => $emp->id,
+                        'name' => trim($emp->lastname . ', ' . $emp->firstname . ' ' . $emp->middlename),
+                        'position' => $emp->position,
+                        'division' => $emp->division,
+                    ])->values()), @js(collect(old('companions', []))->map(fn ($id) => (int) $id)->values()), '{{ old('travel_date_start') }}', '{{ old('travel_date_end') }}', '{{ now()->toDateString() }}')"
+                    x-init="init()"
+                >
                     @csrf
 
                     {{-- Travel Type --}}
@@ -16,48 +37,70 @@
                             <option value="">-- Select Travel Type --</option>
                             <option value="local" {{ old('travel_type') === 'local' ? 'selected' : '' }}>Local</option>
                             <option value="foreign" {{ old('travel_type') === 'foreign' ? 'selected' : '' }}>Foreign</option>
-                            <option value="official_business" {{ old('travel_type') === 'official_business' ? 'selected' : '' }}>Official Business</option>
                         </select>
                         @error('travel_type') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                     </div>
 
                     {{-- Travel Dates --}}
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label for="travel_date_start" class="block text-sm font-bold text-gray-700 mb-1">{{ __('Travel Date From') }} <span class="text-red-500">*</span></label>
-                            <input type="date" id="travel_date_start" name="travel_date_start" value="{{ old('travel_date_start') }}" class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" required>
-                            @error('travel_date_start') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                        </div>
-                        <div>
-                            <label for="travel_date_end" class="block text-sm font-bold text-gray-700 mb-1">{{ __('Travel Date To') }} <span class="text-red-500">*</span></label>
-                            <input type="date" id="travel_date_end" name="travel_date_end" value="{{ old('travel_date_end') }}" class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" required>
-                            @error('travel_date_end') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                        </div>
+                        <x-weekday-date-picker field="travel_date_start" :label="__('Travel Date From')" model="travelDateStart" />
+                        <x-weekday-date-picker field="travel_date_end" :label="__('Travel Date To')" model="travelDateEnd" />
                     </div>
 
                     {{-- Employee(s) (Optional) --}}
                     <div>
-                        <label for="companions" class="block text-sm font-bold text-gray-700 mb-1">
+                        <label for="employee_search" class="block text-sm font-bold text-gray-700 mb-1">
                             {{ __('Employee(s)') }}
-                            <span class="text-gray-400 font-normal text-xs">— Optional</span>
+                            <span class="text-gray-400 font-normal text-xs">- Optional</span>
                         </label>
-                        <p class="text-xs text-gray-400 mb-2">{{ __('Select employees who will travel with you.') }}</p>
-                        <div class="max-h-48 overflow-y-auto border border-gray-200 rounded-xl p-3 space-y-2 bg-gray-50/50">
-                            @foreach($employees as $emp)
-                                <label class="flex items-center gap-3 p-2 rounded-lg hover:bg-white transition-colors cursor-pointer">
-                                    <input type="checkbox" name="companions[]" value="{{ $emp->id }}"
-                                        class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                                        {{ in_array($emp->id, old('companions', [])) ? 'checked' : '' }}>
-                                    <span class="text-sm text-gray-700 font-medium">{{ $emp->lastname }}, {{ $emp->firstname }} {{ $emp->middlename }}</span>
-                                    @if($emp->position)
-                                        <span class="text-[10px] text-gray-400 uppercase tracking-widest">{{ $emp->position }}</span>
-                                    @endif
-                                </label>
-                            @endforeach
+                        <div class="relative" @click.outside="employeePickerOpen = false">
+                            <template x-for="id in selectedCompanions" :key="id">
+                                <input type="hidden" name="companions[]" :value="id">
+                            </template>
 
-                            @if($employees->isEmpty())
-                                <p class="text-xs text-gray-400 italic p-2">No other employees found.</p>
-                            @endif
+                            <div class="rounded-xl border border-gray-200 bg-gray-50/50 p-3">
+                                <div class="mb-3 flex flex-wrap gap-2" x-show="selectedCompanions.length">
+                                    <template x-for="employee in selectedEmployees" :key="employee.id">
+                                        <span class="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700">
+                                            <span x-text="employee.name"></span>
+                                            <button type="button" @click="removeCompanion(employee.id)" class="text-indigo-400 transition hover:text-red-600" :aria-label="`Remove ${employee.name}`">
+                                                x
+                                            </button>
+                                        </span>
+                                    </template>
+                                </div>
+
+                                <div class="relative">
+                                    <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" d="M21 21l-4.35-4.35M10.75 18.5a7.75 7.75 0 100-15.5 7.75 7.75 0 000 15.5z" />
+                                        </svg>
+                                    </span>
+                                    <input
+                                        id="employee_search"
+                                        type="search"
+                                        x-model="employeeSearch"
+                                        @focus="employeePickerOpen = true"
+                                        placeholder="{{ __('Search and select employees...') }}"
+                                        class="block h-10 w-full rounded-lg border-gray-300 bg-white pl-10 pr-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                    >
+                                </div>
+
+                                <div x-show="employeePickerOpen" x-transition class="mt-2 max-h-56 overflow-y-auto rounded-xl border border-gray-100 bg-white shadow-lg" x-cloak>
+                                    <template x-for="employee in filteredEmployees" :key="employee.id">
+                                        <button type="button" @click="addCompanion(employee.id)" class="flex w-full items-center justify-between gap-3 border-b border-gray-50 px-4 py-3 text-left transition hover:bg-indigo-50">
+                                            <span class="min-w-0">
+                                                <span class="block truncate text-sm font-bold text-gray-800" x-text="employee.name"></span>
+                                                <span class="block truncate text-[10px] font-bold uppercase tracking-widest text-gray-400" x-text="[employee.position, employee.division].filter(Boolean).join(' | ') || 'Employee'"></span>
+                                            </span>
+                                            <span class="text-xs font-black text-indigo-600">ADD</span>
+                                        </button>
+                                    </template>
+                                    <p x-show="filteredEmployees.length === 0" class="px-4 py-4 text-sm font-medium italic text-gray-400">
+                                        {{ __('No employees found.') }}
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                         @error('companions') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                         @error('companions.*') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
@@ -81,7 +124,7 @@
                     <div x-data="{ fileName: '' }">
                         <label for="attachment" class="block text-sm font-bold text-gray-700 mb-1">
                             {{ __('Attach File') }}
-                            <span class="text-gray-400 font-normal text-xs">— Optional</span>
+                            <span class="text-gray-400 font-normal text-xs">- Optional</span>
                         </label>
                         <div class="relative group">
                             <input type="file"
@@ -90,7 +133,7 @@
                                 x-ref="attachment"
                                 class="hidden"
                                 @change="fileName = $event.target.files[0]?.name || ''"
-                                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+                                accept=".pdf,application/pdf">
 
                             <label for="attachment"
                                 class="flex items-center justify-between w-full border-2 border-dashed border-gray-200 group-hover:border-indigo-400 rounded-xl p-4 bg-gray-50/50 cursor-pointer transition-all duration-300">
@@ -101,9 +144,9 @@
                                         </svg>
                                     </div>
                                     <div>
-                                        <span x-show="!fileName" class="text-sm font-bold text-gray-500">{{ __('Attach Document / File') }}</span>
+                                        <span x-show="!fileName" class="text-sm font-bold text-gray-500">{{ __('Attach PDF File') }}</span>
                                         <span x-show="fileName" x-text="fileName" class="text-sm font-bold text-indigo-700 truncate max-w-xs"></span>
-                                        <p class="text-xs text-gray-400">{{ __('PDF, JPG, PNG or DOC (Max 5MB)') }}</p>
+                                        <p class="text-xs text-gray-400">{{ __('PDF file only (Max 5MB)') }}</p>
                                     </div>
                                 </div>
 
@@ -131,4 +174,138 @@
             </div>
         </div>
     </div>
+
+    <script>
+        function travelOrderForm(employees, selectedCompanions, oldStart, oldEnd, minDate) {
+            return {
+                employees,
+                selectedCompanions,
+                employeeSearch: '',
+                employeePickerOpen: false,
+                travelDateStart: oldStart || '',
+                travelDateEnd: oldEnd || '',
+                minDate,
+                activePicker: null,
+                currentMonth: null,
+                init() {
+                    this.currentMonth = this.toDate(this.travelDateStart || this.minDate);
+                },
+                get selectedEmployees() {
+                    return this.selectedCompanions
+                        .map((id) => this.employees.find((employee) => employee.id === id))
+                        .filter(Boolean);
+                },
+                get filteredEmployees() {
+                    const search = this.employeeSearch.trim().toLowerCase();
+
+                    return this.employees.filter((employee) => {
+                        if (this.selectedCompanions.includes(employee.id)) return false;
+
+                        const text = [employee.name, employee.position, employee.division]
+                            .filter(Boolean)
+                            .join(' ')
+                            .toLowerCase();
+
+                        return !search || text.includes(search);
+                    });
+                },
+                addCompanion(id) {
+                    if (!this.selectedCompanions.includes(id)) {
+                        this.selectedCompanions.push(id);
+                    }
+
+                    this.employeeSearch = '';
+                    this.employeePickerOpen = false;
+                },
+                removeCompanion(id) {
+                    this.selectedCompanions = this.selectedCompanions.filter((selectedId) => selectedId !== id);
+                },
+                openPicker(field) {
+                    this.activePicker = field;
+                    const selected = field === 'travel_date_start' ? this.travelDateStart : this.travelDateEnd;
+                    this.currentMonth = this.toDate(selected || this.travelDateStart || this.minDate);
+                },
+                selectDate(field, value) {
+                    if (this.isDisabled(value, field)) return;
+
+                    if (field === 'travel_date_start') {
+                        this.travelDateStart = value;
+
+                        if (!this.travelDateEnd || this.toDate(this.travelDateEnd) < this.toDate(value)) {
+                            this.travelDateEnd = value;
+                        }
+                    } else {
+                        this.travelDateEnd = value;
+                    }
+
+                    this.activePicker = null;
+                },
+                calendarDays(field) {
+                    const year = this.currentMonth.getFullYear();
+                    const month = this.currentMonth.getMonth();
+                    const firstDay = new Date(year, month, 1);
+                    const lastDay = new Date(year, month + 1, 0);
+                    const days = [];
+
+                    for (let i = 0; i < firstDay.getDay(); i++) {
+                        days.push({ key: `blank-${field}-${i}`, blank: true });
+                    }
+
+                    for (let day = 1; day <= lastDay.getDate(); day++) {
+                        const date = new Date(year, month, day);
+                        const value = this.toDateString(date);
+                        const selected = field === 'travel_date_start'
+                            ? value === this.travelDateStart
+                            : value === this.travelDateEnd;
+
+                        days.push({
+                            key: `${field}-${value}`,
+                            blank: false,
+                            day,
+                            value,
+                            selected,
+                            disabled: this.isDisabled(value, field),
+                        });
+                    }
+
+                    return days;
+                },
+                isDisabled(value, field) {
+                    const date = this.toDate(value);
+                    const day = date.getDay();
+
+                    if (value < this.minDate || day === 0 || day === 6) return true;
+
+                    return field === 'travel_date_end'
+                        && this.travelDateStart
+                        && date < this.toDate(this.travelDateStart);
+                },
+                moveMonth(direction) {
+                    this.currentMonth = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() + direction, 1);
+                },
+                get monthLabel() {
+                    return this.currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                },
+                formatDate(value) {
+                    if (!value) return '';
+
+                    return this.toDate(value).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                    });
+                },
+                toDate(value) {
+                    return new Date(`${value}T00:00:00`);
+                },
+                toDateString(date) {
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+
+                    return `${year}-${month}-${day}`;
+                },
+            };
+        }
+    </script>
 </x-app-layout>

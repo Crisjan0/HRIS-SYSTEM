@@ -1,11 +1,23 @@
 <x-app-layout>
     <x-slot name="title">{{ __('Employee Details') }} - {{ $employee->firstname }} {{ $employee->lastname }}</x-slot>
 
-    <div class="py-8 bg-gray-50 min-h-screen" x-data="{ tab: 'pds', reviewModalOpen: false, currentSection: '', sectionData: null, reviewStatus: 'pending', reviewRemarks: '', salnModalOpen: false, selectedSaln: null }">
+    <div class="py-8" x-data="{ tab: 'pds', reviewModalOpen: false, currentSection: '', sectionData: null, reviewStatus: 'pending', reviewRemarks: '', salnModalOpen: false, selectedSaln: null }">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <a href="{{ route('employees.index') }}" class="inline-flex w-fit items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    {{ __('Back to Records') }}
+                </a>
+                <a href="{{ route('employees.edit', $employee) }}" class="inline-flex w-fit items-center justify-center rounded-xl bg-indigo-600 px-5 py-2.5 text-xs font-black uppercase tracking-widest text-white shadow-md shadow-indigo-100 transition hover:bg-indigo-700">
+                    {{ __('Edit Record') }}
+                </a>
+            </div>
+
             <!-- Header Card -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
-                <div class="p-6 sm:p-8 flex flex-col md:flex-row items-center gap-6">
+                <div class="p-6 sm:p-8 flex flex-col md:flex-row md:items-center gap-6">
                     <div class="relative group">
                         <x-profile-avatar :employee="$employee" size="3xl" variant="indigo" rounded="2xl" class="shadow-xl" />
                         @if(in_array(auth()->user()->role, ['admin', 'hrstaff', 'director', 'chief', 'regionaldirector', 'regional director']) || auth()->user()->employee?->id === $employee->id)
@@ -18,31 +30,17 @@
                             </form>
                         @endif
                     </div>
-                    <div class="flex-1 text-center md:text-left">
-                        <h1 class="text-3xl font-black text-gray-900 tracking-tight">
+                    <div class="min-w-0 flex-1 text-center md:text-left">
+                        <h1 class="text-2xl font-black tracking-tight text-gray-900 sm:text-3xl">
                             {{ $employee->lastname }}, {{ $employee->firstname }} {{ $employee->middlename }}
                         </h1>
-                        <div class="flex flex-wrap justify-center md:justify-start gap-3 mt-2">
-                            <span class="px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-black uppercase tracking-widest rounded-full">
-                                {{ $employee->position }}
-                            </span>
-                            <span class="px-3 py-1 bg-gray-100 text-gray-700 text-xs font-black tracking-widest rounded-full flex items-center gap-1">
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                                {{ $employee->pdsPersonal?->email_address ?? ($employee->user?->email ?? 'N/A') }}
-                            </span>
-                            <span class="px-3 py-1 bg-gray-100 text-gray-700 text-xs font-black tracking-widest rounded-full flex items-center gap-1">
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                                {{ $employee->contact_number ?? ($employee->pdsPersonal?->mobile_no ?? 'N/A') }}
-                            </span>
+                        <div class="mt-2 flex min-w-0 items-center justify-center gap-3 text-sm font-normal text-gray-500 md:justify-start">
+                            <span class="truncate">{{ $employee->user?->email ?? __('No linked login account') }}</span>
+                            <span class="shrink-0">|</span>
+                            <span class="truncate">{{ $employee->position ?: __('No position') }}</span>
+                            <span class="shrink-0">|</span>
+                            <span class="truncate">{{ $employee->division ?: __('No division') }}</span>
                         </div>
-                    </div>
-                    <div class="flex gap-3">
-                        <a href="{{ route('employees.index') }}" class="px-5 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl font-bold text-sm hover:bg-gray-50 transition-all active:scale-95">
-                            {{ __('Back to List') }}
-                        </a>
-                        <a href="{{ route('employees.edit', $employee) }}" class="px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 active:scale-95">
-                            {{ __('Edit Record') }}
-                        </a>
                     </div>
                 </div>
 
@@ -50,6 +48,9 @@
                 <div class="flex border-t border-gray-100 px-6 sm:px-8 overflow-x-auto whitespace-nowrap scrollbar-hide">
                     <button @click="tab = 'pds'" :class="tab === 'pds' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'" class="px-6 py-4 border-b-2 font-bold text-sm transition-all focus:outline-none">
                         {{ __('Personal Data Sheet (PDS)') }}
+                    </button>
+                    <button @click="tab = 'leave-credits'" :class="tab === 'leave-credits' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'" class="px-6 py-4 border-b-2 font-bold text-sm transition-all focus:outline-none">
+                        {{ __('Leave Credits') }}
                     </button>
                     <button @click="tab = 'saln'" :class="tab === 'saln' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'" class="px-6 py-4 border-b-2 font-bold text-sm transition-all focus:outline-none">
                         {{ __('SALN') }}
@@ -73,14 +74,14 @@
                                             <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                                         </div>
                                         <div class="overflow-hidden">
-                                            <p class="text-xs font-bold text-gray-400 uppercase tracking-tighter">{{ __('Email Address') }}</p>
-                                            <p class="text-sm font-black text-gray-900 truncate">{{ $employee->pdsPersonal?->email_address ?? ($employee->user?->email ?? '---') }}</p>
+                                            <p class="text-xs font-bold text-gray-400 uppercase tracking-tighter">{{ __('Personal Email ') }}</p>
+                                            <p class="text-sm font-black text-gray-900 truncate">{{ $employee->notification_email ?? ($employee->pdsPersonal?->email_address ?? '---') }}</p>
                                         </div>
                                     </div>
 
                                     <div class="flex items-start gap-4">
                                         <div class="w-10 h-10 bg-indigo-50 rounded-lg flex items-center justify-center shrink-0">
-                                            <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 002-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                            <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h2.1a1 1 0 01.95.68l1.05 3.16a1 1 0 01-.45 1.17l-1.7.98a12 12 0 005.06 5.06l.98-1.7a1 1 0 011.17-.45l3.16 1.05a1 1 0 01.68.95V19a2 2 0 01-2 2h-1C8.37 21 3 15.63 3 9V5z"/></svg>
                                         </div>
                                         <div>
                                             <p class="text-xs font-bold text-gray-400 uppercase tracking-tighter">{{ __('Mobile Number') }}</p>
@@ -195,6 +196,66 @@
                                     </a>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Leave Credits Tab -->
+                <div x-show="tab === 'leave-credits'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" style="display: none;">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
+                        <div class="mb-6 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                            <div>
+                                <h3 class="text-xl font-black text-gray-900 tracking-tight">{{ __('Leave Credits') }}</h3>
+                                <p class="text-sm font-medium text-gray-500">{{ __('Current year balances for this employee.') }}</p>
+                            </div>
+                            <span class="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                                {{ now()->year }}
+                            </span>
+                        </div>
+
+                        <div class="overflow-x-auto rounded-xl border border-gray-100">
+                            <table class="min-w-full divide-y divide-gray-100">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">{{ __('Leave Type') }}</th>
+                                        <th scope="col" class="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">{{ __('Entitlement') }}</th>
+                                        <th scope="col" class="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">{{ __('Available Balance') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100 bg-white">
+                                    @forelse($employee->leaveCredits->sortBy(fn($credit) => $credit->leaveType?->name ?? '') as $credit)
+                                        @php
+                                            $entitlement = $credit->leaveType?->days_per_year ?? 0;
+                                            $percentage = $entitlement > 0 ? min(100, ($credit->balance / $entitlement) * 100) : 0;
+                                        @endphp
+                                        <tr class="hover:bg-gray-50/70 transition-colors">
+                                            <td class="px-6 py-4 align-middle">
+                                                <div class="text-sm font-bold text-gray-900">{{ $credit->leaveType?->name ?? __('Leave Type') }}</div>
+                                                @if($credit->leaveType?->legal_basis)
+                                                    <div class="mt-1 max-w-xl truncate text-xs italic text-gray-400">{{ $credit->leaveType->legal_basis }}</div>
+                                                @endif
+                                            </td>
+                                            <td class="px-6 py-4 align-middle text-sm font-medium text-gray-600">
+                                                {{ number_format($entitlement, 1) }} {{ Str::plural('day', $entitlement) }}
+                                            </td>
+                                            <td class="px-6 py-4 align-middle">
+                                                <div class="flex items-center gap-4">
+                                                    <div class="w-36 overflow-hidden rounded-full bg-gray-100 h-2">
+                                                        <div class="h-full rounded-full bg-indigo-600" style="width: {{ $percentage }}%"></div>
+                                                    </div>
+                                                    <span class="text-sm font-black text-gray-900">{{ number_format($credit->balance, 1) }} {{ Str::plural('day', $credit->balance) }}</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="3" class="px-6 py-10 text-center text-sm font-medium text-gray-400">
+                                                {{ __('No leave credits found for this employee.') }}
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>

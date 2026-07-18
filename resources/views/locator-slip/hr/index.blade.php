@@ -28,13 +28,13 @@
                                     <span class="px-4 py-1 inline-flex text-xs leading-5 font-semibold rounded-full shadow-sm 
                                         @if($slip->status == 'approved') bg-[#00c950] text-white @endif
                                         @if($slip->status == 'rejected') bg-red-500 text-white @endif
-                                        @if(Str::contains($slip->status, 'pending')) bg-yellow-400 text-white @endif
+                                        @if(Str::contains($slip->status, 'pending')) border border-orange-100 bg-orange-50 text-orange-700 @endif
                                         @if($slip->status == 'approved by chief') bg-blue-500 text-white @endif
                                     ">
                                         {{ ucfirst($slip->status) }}
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium" onclick="event.stopPropagation()">
                                     <a href="{{ route('hr.locator-slips.show', $slip->id) }}" class="text-indigo-600 hover:text-indigo-900 font-bold uppercase tracking-wider text-xs"> 
                                    
                                     <i class="fa-solid fa-eye"></i></a>

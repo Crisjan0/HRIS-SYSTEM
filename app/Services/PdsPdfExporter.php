@@ -14,7 +14,7 @@ class PdsPdfExporter
         private readonly Cs212PdfGenerator $generator
     ) {}
 
-    public function download(Employee $employee): Response
+    public function download(Employee $employee, string $disposition = 'attachment'): Response
     {
         if (! class_exists(Fpdi::class)) {
             throw new RuntimeException(
@@ -31,6 +31,6 @@ class PdsPdfExporter
             );
         }
 
-        return $this->generator->download($employee);
+        return $this->generator->download($employee, $disposition);
     }
 }
