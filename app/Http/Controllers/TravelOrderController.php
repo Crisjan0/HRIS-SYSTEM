@@ -6,9 +6,11 @@ use App\Models\Employee;
 use App\Models\TravelOrder;
 use App\Models\User;
 use App\Notifications\TravelOrderNotification;
+use App\Services\TravelAuthorityPdfExporter;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
@@ -17,7 +19,7 @@ use Illuminate\View\View;
 class TravelOrderController extends Controller
 {
     /**
-     * Display a listing of the employee's travel orders.
+     * Display a listing of the employee's travel authorities.
      */
     public function index(): View
     {
@@ -36,7 +38,7 @@ class TravelOrderController extends Controller
     }
 
     /**
-     * Show the form for creating a new travel order.
+     * Show the form for creating a new travel authority.
      */
     public function create(): View
     {
@@ -48,7 +50,7 @@ class TravelOrderController extends Controller
     }
 
     /**
-     * Store a newly created travel order.
+     * Store a newly created travel authority.
      */
     public function store(Request $request): RedirectResponse
     {
@@ -63,6 +65,9 @@ class TravelOrderController extends Controller
             'travel_date_end' => 'required|date|after_or_equal:travel_date_start',
             'places_of_travel' => 'required|string|max:500',
             'purpose' => 'required|string',
+            'notes_remarks' => 'nullable|string|max:1000',
+            'driver_name' => 'nullable|string|max:255',
+            'vehicle_plate_no' => 'nullable|string|max:255',
             'companions' => 'nullable|array',
             'companions.*' => 'exists:employees,id',
             'attachment' => 'nullable|file|mimes:pdf|max:5120',
@@ -81,6 +86,12 @@ class TravelOrderController extends Controller
             'travel_date_end' => $validated['travel_date_end'],
             'places_of_travel' => $validated['places_of_travel'],
             'purpose' => $validated['purpose'],
+            'requesting_office' => 'Regional Office XI',
+            'notes_remarks' => $validated['notes_remarks'] ?? null,
+            'driver_name' => $validated['driver_name'] ?? null,
+            'vehicle_plate_no' => $validated['vehicle_plate_no'] ?? null,
+            'chief_status' => 'approved',
+            'hrstaff_status' => 'approved',
             'attachment_path' => $attachmentPath,
         ]);
 
@@ -88,23 +99,23 @@ class TravelOrderController extends Controller
             $travelOrder->companions()->attach($validated['companions']);
         }
 
-        // Notify Chief (Level 1)
-        $chiefs = User::whereHas('employee', function ($query) {
-            $query->where('account_role', 'chief');
+        // Travel Authority requires Regional Director approval only.
+        $regionalDirectors = User::whereHas('employee', function ($query) {
+            $query->where('account_role', 'regionaldirector');
         })->get();
 
         $employeeName = $employee->firstname.' '.$employee->lastname;
-        Notification::send($chiefs, new TravelOrderNotification(
+        Notification::send($regionalDirectors, new TravelOrderNotification(
             $travelOrder,
-            'New Travel Order',
-            "{$employeeName} submitted a travel order to {$travelOrder->places_of_travel}."
+            'New Travel Authority',
+            "{$employeeName} submitted a travel authority to {$travelOrder->places_of_travel} for your approval."
         ));
 
-        return redirect()->route('travel-orders.index')->with('success', 'Travel order created successfully.');
+        return redirect()->route('travel-orders.index')->with('success', 'Travel authority created successfully.');
     }
 
     /**
-     * Display the specified travel order.
+     * Display the specified travel authority.
      */
     public function show(TravelOrder $travelOrder): View
     {
@@ -117,7 +128,7 @@ class TravelOrderController extends Controller
         // Allow the owner, tagged companions, and admin roles to view
         if ($travelOrder->employee_id !== $employee?->id
             && ! $isTaggedCompanion
-            && ! in_array(auth()->user()->role, ['admin', 'hrstaff', 'director', 'chief', 'regionaldirector', 'regional director'])) {
+            && ! in_array(auth()->user()->role, ['admin', 'hrstaff', 'chief', 'regionaldirector'])) {
             abort(403);
         }
 
@@ -126,8 +137,25 @@ class TravelOrderController extends Controller
         return view('travel-orders.show', compact('travelOrder'));
     }
 
+    public function print(TravelOrder $travelOrder, TravelAuthorityPdfExporter $exporter): Response
+    {
+        $employee = auth()->user()->employee;
+
+        $isTaggedCompanion = $employee
+            ? $travelOrder->companions()->where('employees.id', $employee->id)->exists()
+            : false;
+
+        if ($travelOrder->employee_id !== $employee?->id
+            && ! $isTaggedCompanion
+            && ! in_array(auth()->user()->role, ['admin', 'hrstaff', 'chief', 'regionaldirector'])) {
+            abort(403);
+        }
+
+        return $exporter->stream($travelOrder);
+    }
+
     /**
-     * Display all travel orders for admin/HR management.
+     * Display all travel authorities for admin/HR management.
      */
     public function adminIndex(Request $request): View
     {
@@ -213,7 +241,7 @@ class TravelOrderController extends Controller
     }
 
     /**
-     * Approve or reject a travel order.
+     * Approve or reject a travel authority.
      */
     public function updateStatus(Request $request, TravelOrder $travelOrder): RedirectResponse
     {
@@ -229,15 +257,7 @@ class TravelOrderController extends Controller
             if ($validated['status'] === 'rejected') {
                 $travelOrder->status = 'rejected';
 
-                if ($role === 'chief') {
-                    $travelOrder->chief_status = 'rejected';
-                    $travelOrder->approved_by_chief = $employeeId;
-                    $travelOrder->chief_remarks = $validated['remarks'];
-                } elseif (in_array($role, ['hrstaff', 'admin'])) {
-                    $travelOrder->hrstaff_status = 'rejected';
-                    $travelOrder->approved_by_hrstaff = $employeeId;
-                    $travelOrder->hrstaff_remarks = $validated['remarks'];
-                } elseif (in_array($role, ['regional director', 'regionaldirector', 'director'])) {
+                if ($role === 'regionaldirector') {
                     $travelOrder->rd_status = 'rejected';
                     $travelOrder->approved_by_regionaldirector = $employeeId;
                     $travelOrder->rd_remarks = $validated['remarks'];
@@ -246,45 +266,17 @@ class TravelOrderController extends Controller
                 // Notify the employee
                 $travelOrder->employee->user->notify(new TravelOrderNotification(
                     $travelOrder,
-                    'Travel Order Rejected',
-                    "Your travel order to {$travelOrder->places_of_travel} has been rejected."
+                    'Travel Authority Rejected',
+                    "Your travel authority to {$travelOrder->places_of_travel} has been rejected."
                 ));
             } else {
                 // Approved
-                if ($role === 'chief') {
-                    $travelOrder->chief_status = 'approved';
-                    $travelOrder->approved_by_chief = $employeeId;
-                    $travelOrder->chief_remarks = $validated['remarks'];
-
-                    // Notify HR/Admin (Level 2)
-                    $hrUsers = User::whereHas('employee', function ($query) {
-                        $query->whereIn('account_role', ['hrstaff', 'admin']);
-                    })->get();
-
-                    Notification::send($hrUsers, new TravelOrderNotification(
-                        $travelOrder,
-                        'Travel Order Pending HR Approval',
-                        "A travel order to {$travelOrder->places_of_travel} by {$travelOrder->employee->firstname} {$travelOrder->employee->lastname} has been approved by the Chief and awaits HR approval."
-                    ));
-                } elseif (in_array($role, ['hrstaff', 'admin'])) {
-                    $travelOrder->hrstaff_status = 'approved';
-                    $travelOrder->approved_by_hrstaff = $employeeId;
-                    $travelOrder->hrstaff_remarks = $validated['remarks'];
-
-                    // Notify Regional Director (Level 3)
-                    $directors = User::whereHas('employee', function ($query) {
-                        $query->whereIn('account_role', ['regionaldirector', 'regional director', 'director']);
-                    })->get();
-
-                    Notification::send($directors, new TravelOrderNotification(
-                        $travelOrder,
-                        'Travel Order Pending Approval',
-                        "A travel order to {$travelOrder->places_of_travel} by {$travelOrder->employee->firstname} {$travelOrder->employee->lastname} has been approved by HR and awaits your final approval."
-                    ));
-                } elseif (in_array($role, ['regional director', 'regionaldirector', 'director'])) {
+                if ($role === 'regionaldirector') {
                     $travelOrder->rd_status = 'approved';
                     $travelOrder->approved_by_regionaldirector = $employeeId;
                     $travelOrder->rd_remarks = $validated['remarks'];
+                    $travelOrder->chief_status = 'approved';
+                    $travelOrder->hrstaff_status = 'approved';
 
                     // Final approval
                     $travelOrder->status = 'approved';
@@ -292,8 +284,8 @@ class TravelOrderController extends Controller
                     // Notify the employee
                     $travelOrder->employee->user->notify(new TravelOrderNotification(
                         $travelOrder,
-                        'Travel Order Approved',
-                        "Your travel order to {$travelOrder->places_of_travel} has been fully approved."
+                        'Travel Authority Approved',
+                        "Your travel authority to {$travelOrder->places_of_travel} has been fully approved."
                     ));
                 }
             }
@@ -301,7 +293,7 @@ class TravelOrderController extends Controller
             $travelOrder->save();
         });
 
-        $msg = $validated['status'] === 'approved' ? 'Travel order approved successfully.' : 'Travel order rejected.';
+        $msg = $validated['status'] === 'approved' ? 'Travel authority approved successfully.' : 'Travel authority rejected.';
 
         return redirect()->route('hr.travel-orders.index', ['tab' => 'pending'])->with('success', $msg);
     }

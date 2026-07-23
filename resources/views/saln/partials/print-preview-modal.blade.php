@@ -15,44 +15,20 @@
         </div>
 
         <div class="p-6 space-y-6">
-            <div class="rounded-xl border border-gray-100 bg-gray-50 p-5">
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-                    <div>
-                        <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">{{ __('Declarant') }}</p>
-                        <p class="font-black text-gray-900">{{ auth()->user()->employee?->firstname }} {{ auth()->user()->employee?->lastname }}</p>
-                    </div>
-                    <div>
-                        <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">{{ __('Filing Type') }}</p>
-                        <p class="font-black text-gray-900">{{ __('Annual Filing') }}</p>
-                    </div>
-                    <div>
-                        <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">{{ __('As Of') }}</p>
-                        <p class="font-black text-gray-900">{{ __('December 31, 2026') }}</p>
-                    </div>
+            @isset($saln)
+                <div class="saln-official saln-preview rounded-xl border border-gray-200 bg-white p-6">
+                    @include('saln.partials.content')
                 </div>
-            </div>
 
-            <div class="rounded-2xl border border-gray-100 overflow-hidden">
-                <table class="w-full text-left text-sm">
-                    <thead class="bg-gray-50 text-[10px] font-black uppercase tracking-widest text-gray-400">
-                        <tr>
-                            <th class="px-5 py-3">{{ __('Section') }}</th>
-                            <th class="px-5 py-3">{{ __('Sample Value') }}</th>
-                            <th class="px-5 py-3">{{ __('Status') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        <tr><td class="px-5 py-4 font-bold">Real Properties</td><td class="px-5 py-4 font-bold">2 declared</td><td class="px-5 py-4 font-bold text-emerald-600">Ready</td></tr>
-                        <tr><td class="px-5 py-4 font-bold">Personal Properties</td><td class="px-5 py-4 font-bold">5 declared</td><td class="px-5 py-4 font-bold text-emerald-600">Ready</td></tr>
-                        <tr><td class="px-5 py-4 font-bold">Liabilities</td><td class="px-5 py-4 font-bold">1 declared</td><td class="px-5 py-4 font-bold text-emerald-600">Ready</td></tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="flex justify-end gap-3">
-                <button type="button" disabled class="rounded-lg bg-gray-100 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-gray-400 cursor-not-allowed">{{ __('Download') }}</button>
-                <button type="button" disabled class="rounded-lg bg-gray-100 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-gray-400 cursor-not-allowed">{{ __('Print') }}</button>
-            </div>
+                <div class="flex justify-end gap-3">
+                    <a href="{{ route('salns.download', $saln) }}" data-no-transition class="rounded-lg bg-gray-800 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-white hover:bg-gray-700">{{ __('Download') }}</a>
+                    <button type="button" @click="window.print()" class="rounded-lg bg-[#0038a8] px-4 py-2 text-[10px] font-black uppercase tracking-widest text-white hover:bg-[#002f8f]">{{ __('Print') }}</button>
+                </div>
+            @else
+                <div class="rounded-xl border border-dashed border-gray-200 bg-gray-50 p-6 text-center text-sm font-semibold text-gray-500">
+                    {{ __('Open a saved SALN record to preview the printable official copy.') }}
+                </div>
+            @endisset
         </div>
     </div>
 </div>

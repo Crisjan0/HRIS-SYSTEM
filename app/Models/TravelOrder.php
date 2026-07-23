@@ -15,6 +15,10 @@ class TravelOrder extends Model
         'travel_date_end',
         'places_of_travel',
         'purpose',
+        'requesting_office',
+        'notes_remarks',
+        'driver_name',
+        'vehicle_plate_no',
         'attachment_path',
         'status',
         'approved_by_chief',
@@ -42,7 +46,7 @@ class TravelOrder extends Model
     }
 
     /**
-     * Get the employee who created this travel order.
+     * Get the employee who created this travel authority.
      */
     public function employee(): BelongsTo
     {
@@ -50,7 +54,7 @@ class TravelOrder extends Model
     }
 
     /**
-     * Get the chief who approved/rejected this travel order.
+     * Get the chief who approved/rejected this travel authority.
      */
     public function chief(): BelongsTo
     {
@@ -58,7 +62,7 @@ class TravelOrder extends Model
     }
 
     /**
-     * Get the regional director who approved/rejected this travel order.
+     * Get the regional director who approved/rejected this travel authority.
      */
     public function regionalDirector(): BelongsTo
     {
@@ -71,7 +75,7 @@ class TravelOrder extends Model
     }
 
     /**
-     * Get the companion employees for this travel order.
+     * Get the companion employees for this travel authority.
      */
     public function companions(): BelongsToMany
     {

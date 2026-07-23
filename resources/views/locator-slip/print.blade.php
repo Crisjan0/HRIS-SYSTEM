@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Official Business Form</title>
+    <title>Locator Slip Form</title>
     <style>
         @page {
             size: A4 portrait;
@@ -197,6 +197,14 @@
             display: none;
         }
 
+        .locator-signature-img {
+            display: block;
+            max-width: 44mm;
+            max-height: 9mm;
+            margin: 0 auto;
+            object-fit: contain;
+        }
+
         .signature-caption {
             font-weight: 700;
             text-transform: uppercase;
@@ -246,6 +254,193 @@
             line-height: 4mm;
         }
 
+        .pass-slip-table {
+            height: 121mm;
+            border: .35mm solid #000;
+            font-size: 8.2pt;
+            line-height: 1.15;
+        }
+
+        .pass-slip-table td {
+            border: 0;
+        }
+
+        .pass-header-cell {
+            height: 21mm;
+            padding: 2.2mm 4.5mm 0 !important;
+        }
+
+        .pass-header {
+            display: grid;
+            grid-template-columns: 20mm 1fr 20mm;
+            align-items: start;
+            column-gap: 2mm;
+        }
+
+        .pass-logo {
+            width: 9.5mm;
+            max-height: 9.5mm;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .pass-logo.right {
+            width: 10.5mm;
+        }
+
+        .pass-title {
+            padding-top: 1.2mm;
+            text-align: center;
+            font-size: 12pt;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .02em;
+        }
+
+        .pass-date-row {
+            display: flex;
+            justify-content: flex-end;
+            align-items: flex-end;
+            gap: 1.6mm;
+            margin-top: 2mm;
+            font-size: 8.2pt;
+            font-weight: 400;
+        }
+
+        .pass-body-cell {
+            padding: 0 4.5mm 1.1mm !important;
+            vertical-align: top;
+        }
+
+        .pass-line-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 1.8mm;
+            min-height: 4.7mm;
+            font-size: 8.2pt;
+            font-weight: 400;
+        }
+
+        .pass-line-row.compact {
+            min-height: 4.25mm;
+        }
+
+        .pass-label {
+            flex: 0 0 auto;
+            white-space: nowrap;
+        }
+
+        .pass-line {
+            display: block;
+            flex: 1 1 auto;
+            min-height: 3.7mm;
+            border-bottom: .22mm solid #000;
+            text-align: center;
+            font-size: 7pt;
+            font-weight: 400;
+            line-height: 3.5mm;
+            overflow: hidden;
+            white-space: nowrap;
+            text-transform: uppercase;
+        }
+
+        .pass-line.strong {
+            font-weight: 700;
+        }
+
+        .pass-instruction {
+            margin: .8mm 0 .3mm;
+            font-size: 8.2pt;
+            font-weight: 700;
+            font-style: italic;
+            line-height: 1.25;
+        }
+
+        .pass-reason-line {
+            margin-top: .4mm;
+        }
+
+        .pass-signature {
+            width: 42mm;
+            margin: 7.5mm auto .7mm;
+            border-bottom: .22mm solid #000;
+            min-height: 3mm;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .pass-signature img {
+            max-width: 40mm;
+            max-height: 9mm;
+            object-fit: contain;
+            display: block;
+        }
+
+        .pass-signature-caption {
+            text-align: center;
+            font-size: 8pt;
+            font-weight: 400;
+        }
+
+        .pass-approval {
+            width: 100%;
+            height: 22mm;
+            margin-top: .8mm;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .pass-approval td {
+            width: 50%;
+            border: .22mm solid #000;
+            padding: .9mm 2mm .8mm !important;
+            vertical-align: bottom;
+        }
+
+        .pass-approval-label {
+            height: 5mm;
+            font-size: 5.8pt;
+            font-weight: 400;
+            text-transform: uppercase;
+            vertical-align: top;
+        }
+
+        .pass-approval-line {
+            width: 32mm;
+            min-height: 3mm;
+            margin: 9mm auto .4mm;
+            border-bottom: .22mm solid #000;
+        }
+
+        .pass-approval-role {
+            text-align: center;
+            font-size: 8pt;
+            font-weight: 400;
+        }
+
+        .pass-security-note {
+            text-align: center;
+            font-size: 8pt;
+            font-weight: 400;
+            margin: .8mm 0 .2mm;
+        }
+
+        .pass-guard-line {
+            width: 58mm;
+            min-height: 3mm;
+            margin: 5.8mm auto .4mm;
+            border-bottom: .22mm solid #000;
+        }
+
+        .pass-copy-label {
+            height: 4mm;
+            line-height: 4mm;
+            font-size: 7pt;
+            color: transparent;
+        }
+
         @media print {
             .sheet {
                 width: 194mm;
@@ -271,24 +466,108 @@
         $dateCovered = \Carbon\Carbon::parse($locatorSlip->date_covered)->format('F d, Y');
         $timeFrom = \Carbon\Carbon::parse($locatorSlip->time_from)->format('h:i A');
         $timeTo = \Carbon\Carbon::parse($locatorSlip->time_to)->format('h:i A');
+        $formType = ($locatorSlip->type ?? '') === 'Personal' ? 'Pass Slip' : ($locatorSlip->type ?: 'Official Business');
+        $formTitle = $formType === 'Pass Slip' ? 'Pass Slip Form' : 'Official Business Form';
         $copyLabels = ['EMPLOYEE FILE', 'HR/FAD FILE', 'EMPLOYEE FILE', 'HR/FAD FILE'];
+        $signatureUrl = $employee?->effective_signature_url;
     @endphp
 
     <main class="sheet">
-        <table class="copies-layout" aria-label="Official Business Form copies">
+        <table class="copies-layout" aria-label="{{ $formTitle }} copies">
             <tbody>
                 @foreach(array_chunk($copyLabels, 2) as $copyRow)
                     <tr>
                         @foreach($copyRow as $copyLabel)
                             <td>
                                 <div class="copy-wrap">
-                                <table class="copy-table" aria-label="{{ $copyLabel }} Official Business Form">
+                                <table class="copy-table{{ $formType === 'Pass Slip' ? ' pass-slip-table' : '' }}" aria-label="{{ $copyLabel }} {{ $formTitle }}">
                                     <colgroup>
                                         <col style="width: 25%">
                                         <col style="width: 25%">
                                         <col style="width: 25%">
                                         <col style="width: 25%">
                                     </colgroup>
+                                    @if($formType === 'Pass Slip')
+                                    <tr>
+                                        <td colspan="4" class="pass-header-cell">
+                                            <div class="pass-header">
+                                                <img class="pass-logo" src="{{ asset('images/dmw.png') }}" alt="">
+                                                <div>
+                                                    <div class="pass-title">PASS SLIP</div>
+                                                    <div class="pass-date-row">
+                                                        <span>Date :</span>
+                                                        <span class="pass-line" style="max-width: 29mm;">{{ $dateCovered }}</span>
+                                                    </div>
+                                                </div>
+                                                <img class="pass-logo right" src="{{ asset('images/bagong-pilipinas-logo.png') }}" alt="">
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="4" class="pass-body-cell">
+                                            <div class="pass-line-row compact">
+                                                <span class="pass-label">Name :</span>
+                                                <span class="pass-line strong">{{ $employeeName ?: 'N/A' }}</span>
+                                            </div>
+                                            <div class="pass-line-row compact">
+                                                <span class="pass-label">Division :</span>
+                                                <span class="pass-line strong">{{ $division }}</span>
+                                            </div>
+
+                                            <div class="pass-instruction">
+                                                Permission is requested to leave the office during<br>
+                                                office hours for personal purposes.
+                                            </div>
+
+                                            <div class="pass-line-row compact">
+                                                <span class="pass-label">State Reason(s) :</span>
+                                                <span class="pass-line">{{ $locatorSlip->purpose ?: '' }}</span>
+                                            </div>
+                                            <span class="pass-line pass-reason-line"></span>
+
+                                            <div class="pass-line-row compact">
+                                                <span class="pass-label">Time of Departure :</span>
+                                                <span class="pass-line">{{ $timeFrom }}</span>
+                                            </div>
+                                            <div class="pass-line-row compact">
+                                                <span class="pass-label">Est. Time of Return :</span>
+                                                <span class="pass-line">{{ $timeTo }}</span>
+                                            </div>
+
+                                            <div class="pass-signature">
+                                                @if($signatureUrl)
+                                                    <img src="{{ $signatureUrl }}" alt="Employee signature">
+                                                @endif
+                                            </div>
+                                            <div class="pass-signature-caption">Signature of Employee</div>
+
+                                            <table class="pass-approval">
+                                                <tr>
+                                                    <td>
+                                                        <div class="pass-approval-label">RECOMMENDING APPROVAL:</div>
+                                                        <div class="pass-approval-line"></div>
+                                                        <div class="pass-approval-role">Division Chief</div>
+                                                    </td>
+                                                    <td>
+                                                        <div class="pass-approval-label" style="text-align:center;">APPROVED BY:</div>
+                                                        <div class="pass-approval-line"></div>
+                                                        <div class="pass-approval-role">Director/Head, B/S/O</div>
+                                                    </td>
+                                                </tr>
+                                            </table>
+
+                                            <div class="pass-security-note">(To be filled up by the Security Guard)</div>
+
+                                            <div class="pass-line-row">
+                                                <span class="pass-label">Time of Return :</span>
+                                                <span class="pass-line"></span>
+                                            </div>
+
+                                            <div class="pass-guard-line"></div>
+                                            <div class="pass-signature-caption">Signature of Security Guard</div>
+                                        </td>
+                                    </tr>
+                                    @else
                                     <tr>
                                         <td colspan="4" class="header-cell">
                                             <div class="form-header">
@@ -298,7 +577,7 @@
                                                 <div class="agency-block">
                                                     <div class="agency-name">Department of Migrant Workers</div>
                                                     <div>Regional Office XI</div>
-                                                    <div class="form-title">Official Business Form</div>
+                                                    <div class="form-title">{{ $formTitle }}</div>
                                                 </div>
                                                 <div class="logo-slot">
                                                     <img class="form-logo right" src="{{ asset('images/bagong-pilipinas-logo.png') }}" alt="">
@@ -347,6 +626,9 @@
                                     <tr>
                                         <td class="signature-space" colspan="4">
                                             <span class="signature-caption">Signature:</span>
+                                            @if($signatureUrl)
+                                                <img src="{{ $signatureUrl }}" alt="Employee signature" class="locator-signature-img">
+                                            @endif
                                             <div class="signature-name">{{ $employeeName ?: '' }}</div>
                                         </td>
                                     </tr>
@@ -362,8 +644,9 @@
                                             <div class="approval-position">Regional Director</div>
                                         </td>
                                     </tr>
+                                    @endif
                                 </table>
-                                <div class="copy-label">{{ $copyLabel }}</div>
+                                <div class="{{ $formType === 'Pass Slip' ? 'pass-copy-label' : 'copy-label' }}">{{ $copyLabel }}</div>
                                 </div>
                             </td>
                         @endforeach

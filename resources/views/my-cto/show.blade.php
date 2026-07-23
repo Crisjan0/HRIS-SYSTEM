@@ -5,7 +5,7 @@
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
             @php
                 $role = strtolower(auth()->user()->role ?? '');
-                $isApprover = in_array($role, ['admin', 'hrstaff', 'hr staff', 'chief', 'director', 'regionaldirector', 'regional director']);
+                $isApprover = in_array($role, ['admin', 'hrstaff', 'hr staff', 'chief', 'regionaldirector']);
             @endphp
 
             <div class="mb-5 flex items-center justify-between gap-3">
@@ -19,6 +19,22 @@
                     {{ __('Print CTO') }}
                 </a>
             </div>
+
+            @php
+                $trackedEmployee = trim(($ctoRequest->employee?->firstname ?? '') . ' ' . ($ctoRequest->employee?->lastname ?? ''));
+                $trackedCtoPayload = [
+                    'id' => (string) $ctoRequest->id,
+                    'title' => $isApprover ? $trackedEmployee : (string) $ctoRequest->type_label,
+                    'employee' => $trackedEmployee,
+                    'type' => (string) $ctoRequest->type_label,
+                    'stages' => [
+                        ['label' => 'HR', 'status' => $ctoRequest->hrstaff_status ?: 'pending'],
+                        ['label' => 'Chief', 'status' => $ctoRequest->chief_status ?: 'pending'],
+                        ['label' => 'Regional Director', 'status' => $ctoRequest->rd_status ?: 'pending'],
+                    ],
+                ];
+            @endphp
+            <x-approval-tracker :payload="$trackedCtoPayload" event="cto-selected" empty="No CTO request to track yet." />
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div class="lg:col-span-2 space-y-8">
@@ -99,87 +115,46 @@
                                 </div>
                             @endif
 
-                            @if($ctoRequest->applicant_signature_path)
+                            @php
+                                $displaySignatureUrl = $ctoRequest->applicant_signature_path
+                                    ? asset('storage/' . $ctoRequest->applicant_signature_path)
+                                    : ($ctoRequest->employee?->effective_signature_url ?? null);
+                            @endphp
+                            @if($displaySignatureUrl)
                                 <div>
                                     <span class="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-3">Applicant Signature</span>
                                     <div class="flex items-center justify-center rounded-xl border border-gray-100 bg-gray-50/50 p-4">
-                                        <img src="{{ asset('storage/' . $ctoRequest->applicant_signature_path) }}" alt="Applicant signature" class="max-h-20 object-contain">
+                                        <img src="{{ $displaySignatureUrl }}" alt="Applicant signature" class="max-h-20 object-contain">
                                     </div>
                                 </div>
                             @endif
                         </div>
                     </div>
 
-                    <div class="bg-white overflow-hidden shadow-sm rounded-3xl border border-gray-100 p-8">
-                        <div class="text-xs font-black text-indigo-500 uppercase tracking-widest mb-6 inline-block border-b-2 border-indigo-100 pb-1">Approval Progress</div>
-                        <div class="space-y-5">
-                            @php
-                                $stages = [
-                                    ['label' => 'Division Chief', 'status' => $ctoRequest->chief_status, 'approver' => $ctoRequest->chief, 'remarks' => $ctoRequest->chief_remarks],
-                                    ['label' => 'HR Staff', 'status' => $ctoRequest->hrstaff_status, 'approver' => $ctoRequest->hrstaff, 'remarks' => $ctoRequest->hrstaff_remarks],
-                                    ['label' => 'Regional Director', 'status' => $ctoRequest->rd_status, 'approver' => $ctoRequest->regionalDirector, 'remarks' => $ctoRequest->rd_remarks],
-                                ];
-                            @endphp
-
-                            @foreach($stages as $stage)
-                                <div class="flex items-start gap-5 p-6 rounded-2xl border {{ $stage['status'] === 'approved' ? 'bg-green-50/30 border-green-100' : ($stage['status'] === 'rejected' ? 'bg-red-50/30 border-red-100' : 'bg-gray-50/50 border-gray-100') }}">
-                                    <div class="mt-1">
-                                        @if($stage['status'] === 'approved')
-                                            <div class="bg-green-500 p-2 rounded-full text-white">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                                            </div>
-                                        @elseif($stage['status'] === 'rejected')
-                                            <div class="bg-red-500 p-2 rounded-full text-white">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                            </div>
-                                        @else
-                                            <div class="bg-gray-300 p-2 rounded-full text-white">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"></path></svg>
-                                            </div>
-                                        @endif
-                                    </div>
-                                    <div class="flex-1">
-                                        <div class="flex items-center justify-between mb-1">
-                                            <div class="text-sm font-black uppercase tracking-wider text-gray-900">{{ $stage['label'] }}</div>
-                                            <span class="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded {{ $stage['status'] === 'approved' ? 'text-green-600 bg-green-50' : ($stage['status'] === 'rejected' ? 'text-red-600 bg-red-50' : 'text-gray-400 bg-gray-100') }}">
-                                                {{ __($stage['status']) }}
-                                            </span>
-                                        </div>
-                                        @if($stage['approver'])
-                                            <div class="text-sm font-bold text-gray-700">{{ $stage['approver']->firstname }} {{ $stage['approver']->lastname }}</div>
-                                        @endif
-                                        @if($stage['remarks'])
-                                            <div class="mt-3 text-sm text-gray-500 italic">"{{ $stage['remarks'] }}"</div>
-                                        @endif
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
                 </div>
 
                 @php
                     $isChief = $role === 'chief';
                     $isHR = in_array($role, ['hrstaff', 'hr staff', 'admin']);
-                    $isRegionalDirector = in_array($role, ['director', 'regionaldirector', 'regional director']);
+                    $isRegionalDirector = $role === 'regionaldirector';
 
                     $isMyTurn = false;
                     $waitingMessage = '';
 
                     if ($ctoRequest->status === 'pending') {
-                        if ($isChief && $ctoRequest->chief_status === 'pending') {
+                        if ($isHR && $ctoRequest->hrstaff_status === 'pending') {
                             $isMyTurn = true;
-                        } elseif ($isHR && $ctoRequest->hrstaff_status === 'pending') {
-                            if ($ctoRequest->chief_status === 'approved') {
-                                $isMyTurn = true;
-                            } else {
-                                $waitingMessage = 'Waiting for Division Chief approval.';
-                            }
-                        } elseif ($isRegionalDirector && $ctoRequest->rd_status === 'pending') {
+                        } elseif ($isChief && $ctoRequest->chief_status === 'pending') {
                             if ($ctoRequest->hrstaff_status === 'approved') {
                                 $isMyTurn = true;
                             } else {
-                                $waitingMessage = 'Waiting for HR Staff approval.';
+                                $waitingMessage = 'Waiting for HR verification.';
+                            }
+                        } elseif ($isRegionalDirector && $ctoRequest->rd_status === 'pending') {
+                            if ($ctoRequest->chief_status === 'approved') {
+                                $isMyTurn = true;
+                            } else {
+                                $waitingMessage = 'Waiting for Chief approval.';
                             }
                         }
                     }
@@ -206,24 +181,56 @@
                             <p class="text-indigo-200 text-xs font-medium">Please provide your decision and remarks for this CTO request.</p>
                         </div>
 
-                        <form action="{{ route('cto.update-status', $ctoRequest->id) }}" method="POST" class="space-y-6">
+                        <form action="{{ route('cto.update-status', $ctoRequest->id) }}" id="ctoStatusForm" method="POST" class="space-y-6">
                             @csrf
                             @method('PUT')
 
                             <div>
                                 <label class="block text-[10px] font-black uppercase tracking-widest text-indigo-200 mb-2">{{ __('Remarks / Notes') }}</label>
-                                <textarea name="remarks" class="w-full border-transparent rounded-2xl bg-indigo-500/50 text-sm font-medium focus:ring-white focus:border-white text-white placeholder-indigo-300" rows="4" placeholder="Add some notes here..."></textarea>
+                                <textarea name="remarks" class="w-full border-transparent rounded-2xl bg-indigo-500/50 text-sm font-medium focus:ring-white focus:border-white text-white placeholder-indigo-300 transition duration-200" rows="4" placeholder="Add some notes here..."></textarea>
+                                <span id="ctoRemarksError" class="mt-2 hidden text-xs font-semibold text-red-200 block"></span>
                             </div>
 
                             <div class="space-y-3 pt-4">
                                 <button type="submit" name="status" value="approved" class="w-full bg-white text-indigo-600 hover:bg-indigo-50 px-6 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg transform hover:-translate-y-1">
-                                    {{ __('Approve Request') }}
+                                    {{ $isHR ? __('Verify Request') : __('Approve Request') }}
                                 </button>
                                 <button type="submit" name="status" value="rejected" class="w-full bg-indigo-500/50 border-2 border-indigo-400 text-white hover:bg-indigo-500 px-6 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all">
                                     {{ __('Reject Request') }}
                                 </button>
                             </div>
                         </form>
+                        <script>
+                            (function() {
+                                const form = document.getElementById('ctoStatusForm');
+                                const remarksField = form?.querySelector('textarea[name="remarks"]');
+                                const errorSpan = document.getElementById('ctoRemarksError');
+
+                                remarksField?.addEventListener('input', function() {
+                                    remarksField.classList.remove('ring-2', 'ring-red-500', 'border-red-500');
+                                    if (errorSpan) {
+                                        errorSpan.classList.add('hidden');
+                                        errorSpan.textContent = '';
+                                    }
+                                });
+
+                                form?.addEventListener('submit', function(e) {
+                                    const action = document.activeElement ? document.activeElement.getAttribute('value') : null;
+                                    const remarks = remarksField.value.trim();
+                                    const isHR = @js($isHR);
+
+                                    if (action === 'rejected' && isHR && !remarks) {
+                                        e.preventDefault();
+                                        remarksField.classList.add('ring-2', 'ring-red-500', 'border-red-500');
+                                        if (errorSpan) {
+                                            errorSpan.textContent = 'Remarks are required when rejecting this request.';
+                                            errorSpan.classList.remove('hidden');
+                                        }
+                                        remarksField.focus();
+                                    }
+                                });
+                            })();
+                        </script>
                     </div>
                     @endif
 

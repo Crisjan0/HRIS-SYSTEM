@@ -36,9 +36,11 @@ class DashboardController extends Controller
     private function leaveCalendarData(Request $request): array
     {
         $employee = $request->user()->employee;
+        $role = strtolower($request->user()->role ?? '');
+        $isHrAdmin = in_array($role, ['admin', 'hrstaff'], true);
         $requestedMonth = $request->query('month');
         $leaveCalendarMonth = is_string($requestedMonth) && preg_match('/^\d{4}-\d{2}$/', $requestedMonth)
-            ? Carbon::createFromFormat('Y-m', $requestedMonth)->startOfMonth()
+            ? Carbon::createFromFormat('Y-m-d', $requestedMonth . '-01')->startOfMonth()
             : now()->startOfMonth();
         $leaveCalendarStart = $leaveCalendarMonth->copy()->startOfMonth();
         $leaveCalendarEnd = $leaveCalendarMonth->copy()->endOfMonth();
@@ -49,18 +51,20 @@ class DashboardController extends Controller
         $leaveUpcomingRequests = collect();
 
         if ($employee) {
-            $leaveCalendarRequests = $employee->leaveRequests()
-                ->with('leaveType')
-                ->whereNotIn('status', ['rejected', 'cancelled'])
-                ->where(function ($query) use ($leaveCalendarStart, $leaveCalendarEnd) {
-                    $query->whereBetween('start_date', [$leaveCalendarStart, $leaveCalendarEnd])
-                        ->orWhereBetween('end_date', [$leaveCalendarStart, $leaveCalendarEnd])
-                        ->orWhere(function ($innerQuery) use ($leaveCalendarStart, $leaveCalendarEnd) {
-                            $innerQuery->where('start_date', '<=', $leaveCalendarStart)
-                                ->where('end_date', '>=', $leaveCalendarEnd);
-                        });
-                })
-                ->get();
+            if (!$isHrAdmin) {
+                $leaveCalendarRequests = $employee->leaveRequests()
+                    ->with('leaveType')
+                    ->whereNotIn('status', ['rejected', 'cancelled'])
+                    ->where(function ($query) use ($leaveCalendarStart, $leaveCalendarEnd) {
+                        $query->whereBetween('start_date', [$leaveCalendarStart, $leaveCalendarEnd])
+                            ->orWhereBetween('end_date', [$leaveCalendarStart, $leaveCalendarEnd])
+                            ->orWhere(function ($innerQuery) use ($leaveCalendarStart, $leaveCalendarEnd) {
+                                $innerQuery->where('start_date', '<=', $leaveCalendarStart)
+                                    ->where('end_date', '>=', $leaveCalendarEnd);
+                            });
+                    })
+                    ->get();
+            }
 
             $holidays = Holiday::whereBetween('date', [$leaveCalendarStart, $leaveCalendarEnd])
                 ->get()
@@ -84,7 +88,7 @@ class DashboardController extends Controller
                 $holiday = $holidays->get($dateKey);
                 $requests = collect();
 
-                if ($date->isWeekday() && ! $holiday) {
+                if (!$isHrAdmin && $date->isWeekday() && !$holiday) {
                     $requests = $leaveCalendarRequests->filter(function ($leave) use ($date) {
                         return $date->between(
                             Carbon::parse($leave->start_date)->startOfDay(),
@@ -104,13 +108,15 @@ class DashboardController extends Controller
                 ]);
             }
 
-            $leaveUpcomingRequests = $employee->leaveRequests()
-                ->with('leaveType')
-                ->whereNotIn('status', ['rejected', 'cancelled'])
-                ->whereDate('end_date', '>=', now()->startOfDay())
-                ->orderBy('start_date')
-                ->limit(3)
-                ->get();
+            if (!$isHrAdmin) {
+                $leaveUpcomingRequests = $employee->leaveRequests()
+                    ->with('leaveType')
+                    ->whereNotIn('status', ['rejected', 'cancelled'])
+                    ->whereDate('end_date', '>=', now()->startOfDay())
+                    ->orderBy('start_date')
+                    ->limit(3)
+                    ->get();
+            }
         }
 
         return compact(
@@ -119,7 +125,8 @@ class DashboardController extends Controller
             'previousLeaveCalendarMonth',
             'nextLeaveCalendarMonth',
             'leaveCalendarDays',
-            'leaveUpcomingRequests'
+            'leaveUpcomingRequests',
+            'isHrAdmin'
         );
     }
 }

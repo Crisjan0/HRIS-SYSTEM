@@ -18,7 +18,7 @@ class LeaveApplicationController extends Controller
 {
     public function index(Request $request): View
     {
-        $role = auth()->user()->role;
+        $role = strtolower(auth()->user()->role ?? '');
         $search = trim((string) $request->query('search', ''));
         $leaveTypeId = $request->query('leave_type_id', '');
         $sort = $request->query('sort', 'date_filed_desc');
@@ -107,12 +107,12 @@ class LeaveApplicationController extends Controller
         $query = LeaveRequest::where('status', 'pending')
             ->with(['employee', 'leaveType']);
 
-        if ($role === 'chief') {
-            $query->where('chief_status', 'pending');
-        } elseif (in_array($role, ['hrstaff', 'admin'])) {
-            $query->where('chief_status', 'approved')->where('hrstaff_status', 'pending');
-        } elseif (in_array($role, ['regional director', 'regionaldirector', 'director'])) {
-            $query->where('hrstaff_status', 'approved')->where('rd_status', 'pending');
+        if (in_array($role, ['hrstaff', 'admin'])) {
+            $query->where('hrstaff_status', 'pending');
+        } elseif ($role === 'chief') {
+            $query->whereIn('hrstaff_status', ['approved', 'rejected'])->where('chief_status', 'pending');
+        } elseif ($role === 'regionaldirector') {
+            $query->whereIn('hrstaff_status', ['approved', 'rejected'])->where('chief_status', 'approved')->where('rd_status', 'pending');
         } else {
             $query->where('id', '<', 0);
         }
@@ -178,43 +178,69 @@ class LeaveApplicationController extends Controller
 
     public function update(Request $request, LeaveRequest $leaveApplication): RedirectResponse
     {
-        $validated = $request->validate([
+        $role = strtolower(auth()->user()->role ?? '');
+        $employeeId = auth()->user()->employee?->id;
+        $isHR = in_array($role, ['hrstaff', 'admin'], true);
+
+        $rules = [
             'status' => 'required|in:approved,rejected',
-            'remarks' => 'nullable|string',
+            'remarks' => ($isHR && $request->input('status') === 'rejected') ? 'required|string' : 'nullable|string',
+        ];
+
+        $validated = $request->validate($rules, [
+            'remarks.required' => 'Remarks are required when rejecting a request.',
         ]);
 
-        $role = auth()->user()->role;
-        $employeeId = auth()->user()->employee?->id;
         $remarks = $validated['remarks'] ?? null;
 
-        DB::transaction(function () use ($validated, $leaveApplication, $role, $employeeId, $remarks) {
-
+        DB::transaction(function () use ($validated, $leaveApplication, $role, $employeeId, $isHR, $remarks) {
             if ($validated['status'] === 'rejected') {
-                $leaveApplication->status = 'rejected';
-
-                if ($role === 'chief') {
-                    $leaveApplication->chief_status = 'rejected';
-                    $leaveApplication->approved_by_chief = $employeeId;
-                    $leaveApplication->chief_remarks = $remarks;
-                } elseif (in_array($role, ['hrstaff', 'admin'])) {
+                if ($isHR) {
                     $leaveApplication->hrstaff_status = 'rejected';
                     $leaveApplication->approved_by_hrstaff = $employeeId;
                     $leaveApplication->hrstaff_remarks = $remarks;
-                } elseif (in_array($role, ['regional director', 'regionaldirector', 'director'])) {
-                    $leaveApplication->rd_status = 'rejected';
-                    $leaveApplication->approved_by_regionaldirector = $employeeId;
-                    $leaveApplication->rd_remarks = $remarks;
+                    
+                    // Notify Chief
+                    $nextLevelUsers = User::whereHas('employee', function ($query) {
+                        $query->where('account_role', 'chief');
+                    })->get();
+                    Notification::send($nextLevelUsers, new LeaveRequestNotification($leaveApplication));
+                } else {
+                    $leaveApplication->status = 'rejected';
+                    if ($role === 'chief') {
+                        $leaveApplication->chief_status = 'rejected';
+                        $leaveApplication->approved_by_chief = $employeeId;
+                        $leaveApplication->chief_remarks = $remarks;
+                    } elseif ($role === 'regionaldirector') {
+                        $leaveApplication->rd_status = 'rejected';
+                        $leaveApplication->approved_by_regionaldirector = $employeeId;
+                        $leaveApplication->rd_remarks = $remarks;
+                    }
                 }
-            } else { // approved
-                if ($role === 'chief') {
-                    $leaveApplication->chief_status = 'approved';
-                    $leaveApplication->approved_by_chief = $employeeId;
-                    $leaveApplication->chief_remarks = $remarks;
-                } elseif (in_array($role, ['hrstaff', 'admin'])) {
+            } else { // approved/verified
+                if ($isHR) {
                     $leaveApplication->hrstaff_status = 'approved';
                     $leaveApplication->approved_by_hrstaff = $employeeId;
                     $leaveApplication->hrstaff_remarks = $remarks;
-                } elseif (in_array($role, ['regional director', 'regionaldirector', 'director'])) {
+                    
+                    // Notify Chief
+                    $nextLevelUsers = User::whereHas('employee', function ($query) {
+                        $query->where('account_role', 'chief');
+                    })->get();
+                    Notification::send($nextLevelUsers, new LeaveRequestNotification($leaveApplication));
+                } elseif ($role === 'chief' && in_array($leaveApplication->hrstaff_status, ['approved', 'rejected'], true)) {
+                    $leaveApplication->chief_status = 'approved';
+                    $leaveApplication->approved_by_chief = $employeeId;
+                    $leaveApplication->chief_remarks = $remarks;
+                    
+                    // Notify RD
+                    $nextLevelUsers = User::whereHas('employee', function ($query) {
+                        $query->where('account_role', 'regionaldirector');
+                    })->get();
+                    Notification::send($nextLevelUsers, new LeaveRequestNotification($leaveApplication));
+                } elseif ($role === 'regionaldirector'
+                    && in_array($leaveApplication->hrstaff_status, ['approved', 'rejected'], true)
+                    && $leaveApplication->chief_status === 'approved') {
                     $leaveApplication->rd_status = 'approved';
                     $leaveApplication->approved_by_regionaldirector = $employeeId;
                     $leaveApplication->rd_remarks = $remarks;
@@ -237,21 +263,6 @@ class LeaveApplicationController extends Controller
                         $leaveApplication->is_paid = false;
                     }
                 }
-
-                // Notify specific next level roles on approval
-                if ($role === 'chief') {
-                    // Chief approved -> Notify Level 2 (HR/Admin)
-                    $nextLevelUsers = User::whereHas('employee', function ($query) {
-                        $query->whereIn('account_role', ['hrstaff', 'admin']);
-                    })->get();
-                    Notification::send($nextLevelUsers, new LeaveRequestNotification($leaveApplication));
-                } elseif (in_array($role, ['hrstaff', 'admin'])) {
-                    // HR/Admin approved -> Notify Level 3 (Regional Director)
-                    $nextLevelUsers = User::whereHas('employee', function ($query) {
-                        $query->whereIn('account_role', ['regional director', 'regionaldirector', 'director']);
-                    })->get();
-                    Notification::send($nextLevelUsers, new LeaveRequestNotification($leaveApplication));
-                }
             }
 
             $leaveApplication->save();
@@ -262,7 +273,7 @@ class LeaveApplicationController extends Controller
             }
         });
 
-        $msg = $validated['status'] === 'approved' ? 'Leave request approved successfully.' : 'Leave request rejected.';
+        $msg = $validated['status'] === 'approved' ? 'Leave request verified successfully.' : 'Leave request updated.';
 
         return redirect()->route('leave-applications.index')->with('success', $msg);
     }

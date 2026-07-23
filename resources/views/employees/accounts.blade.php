@@ -1,6 +1,17 @@
 <x-app-layout>
     <x-slot name="title">{{ __('Employee Accounts') }}</x-slot>
 
+    @php
+        $roleLabels = [
+            'employee' => 'Employee',
+            'hrstaff' => 'HR Admin',
+            'chief' => 'Chief',
+            'regionaldirector' => 'Regional Director',
+            'admin' => 'Admin',
+        ];
+        $formatRole = fn ($role) => $roleLabels[strtolower((string) $role)] ?? 'Unassigned';
+    @endphp
+
     <div class="py-12" x-data="{ tab: 'pending' }">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             @if(session('success'))
@@ -100,8 +111,8 @@
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="px-2 py-0.5 inline-flex text-xs font-semibold rounded-full bg-indigo-100 text-indigo-800 uppercase">
-                                                {{ $user->employee?->account_role ? strtoupper($user->employee->account_role) : 'UNASSIGNED' }}
+                                            <span class="px-2 py-0.5 inline-flex text-xs font-semibold rounded-full bg-indigo-100 text-indigo-800">
+                                                {{ $formatRole($user->employee?->account_role) }}
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-xs text-gray-500">
@@ -202,8 +213,8 @@
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="px-2 py-0.5 inline-flex text-xs font-semibold rounded-full bg-gray-100 text-gray-700 uppercase">
-                                                {{ $user->employee?->account_role ? strtoupper($user->employee->account_role) : 'UNASSIGNED' }}
+                                            <span class="px-2 py-0.5 inline-flex text-xs font-semibold rounded-full bg-gray-100 text-gray-700">
+                                                {{ $formatRole($user->employee?->account_role) }}
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
@@ -251,7 +262,7 @@
                             class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-800 transition duration-200 text-sm bg-white">
                         <option value="">-- Select Role --</option>
                         <option value="employee">Employee</option>
-                        <option value="hrstaff">HR Staff</option>
+                        <option value="hrstaff">HR Admin</option>
                         <option value="chief">Chief</option>
                         <option value="regionaldirector">Regional Director</option>
                         <option value="admin">Admin</option>

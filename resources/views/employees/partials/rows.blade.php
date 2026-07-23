@@ -1,4 +1,14 @@
 @forelse($employees as $employee)
+    @php
+        $roleLabels = [
+            'employee' => 'Employee',
+            'hrstaff' => 'HR Admin',
+            'chief' => 'Chief',
+            'regionaldirector' => 'Regional Director',
+            'admin' => 'Admin',
+        ];
+        $accountRole = strtolower((string) ($employee->account_role ?? ''));
+    @endphp
     <tr class="hover:bg-gray-50 transition-colors duration-200">
         <td class="px-4 py-4 text-sm font-medium text-gray-900">
             <div class="truncate">{{ $employee->lastname }}, {{ $employee->firstname }} {{ $employee->middlename ?? '-' }}</div>
@@ -14,8 +24,8 @@
             <div class="truncate">{{ $employee->division ?? '-' }}</div>
         </td>
         <td class="px-4 py-4">
-            <span class="max-w-full truncate px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-indigo-100 text-indigo-800 uppercase">
-                {{ $employee->account_role ?? 'unassigned' }}
+            <span class="max-w-full truncate px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-indigo-100 text-indigo-800">
+                {{ $roleLabels[$accountRole] ?? 'Unassigned' }}
             </span>
         </td>
         <td class="px-4 py-4 text-right text-sm font-medium">

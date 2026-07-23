@@ -1,5 +1,5 @@
 <x-app-layout>
-    <x-slot name="title">{{ __('Manage Travel Orders') }}</x-slot>
+    <x-slot name="title">{{ __('Manage Travel Authorities') }}</x-slot>
 
     <div class="py-8">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -18,9 +18,9 @@
                         $trackedOrderPayload = $trackedOrder ? [
                             'title' => trim(($trackedOrder->employee?->firstname ?? '') . ' ' . ($trackedOrder->employee?->lastname ?? '')),
                             'stages' => collect([
-                                ['label' => 'Chief', 'status' => $trackedOrder->chief_status],
                                 ['label' => 'HR', 'status' => $trackedOrder->hrstaff_status],
-                                ['label' => 'Director', 'status' => $trackedOrder->rd_status],
+                                ['label' => 'Chief', 'status' => $trackedOrder->chief_status],
+                                ['label' => 'Regional Director', 'status' => $trackedOrder->rd_status],
                             ])->map(fn ($stage) => [
                                 'label' => $stage['label'],
                                 'status' => $stage['status'] ?: 'pending',
@@ -33,21 +33,21 @@
                             <button @click="tab = 'pending'"
                                     :class="tab === 'pending' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
                                     class="whitespace-nowrap py-3 px-1 border-b-2 font-bold text-sm uppercase tracking-widest transition-colors duration-200">
-                                {{ __('Pending Travel Orders') }}
+                                {{ __('Pending Travel Authorities') }}
                             </button>
                             <button @click="tab = 'all'"
                                     :class="tab === 'all' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
                                     class="whitespace-nowrap py-3 px-1 border-b-2 font-bold text-sm uppercase tracking-widest transition-colors duration-200">
-                                {{ __('All Travel Orders') }}
+                                {{ __('All Travel Authorities') }}
                             </button>
                         </nav>
                     </div>
 
-                    <x-approval-tracker :payload="$trackedOrderPayload" event="travel-selected" empty="No travel order to track yet." />
+                    <x-approval-tracker :payload="$trackedOrderPayload" event="travel-selected" empty="No travel authority to track yet." />
 
                     <div class="mb-4 flex min-w-0 flex-col gap-2 rounded-xl border border-gray-100 bg-gray-50/70 p-2 sm:flex-row sm:items-center">
                         <div class="relative min-w-0 sm:flex-1">
-                            <label for="travelOrderSearch" class="sr-only">{{ __('Search travel order') }}</label>
+                            <label for="travelOrderSearch" class="sr-only">{{ __('Search travel authority') }}</label>
                             <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" d="M21 21l-4.35-4.35M10.75 18.5a7.75 7.75 0 100-15.5 7.75 7.75 0 000 15.5z" />
@@ -85,18 +85,17 @@
                                 <table class="w-full table-fixed divide-y divide-gray-100">
                                     <thead class="bg-gray-50">
                                         <tr>
-                                            <th scope="col" class="w-[29%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Employee</th>
-                                            <th scope="col" class="w-[28%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Destination</th>
+                                            <th scope="col" class="w-[38%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Employee</th>
+                                            <th scope="col" class="w-[35%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Destination</th>
                                             <th scope="col" class="w-[17%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Date Filed</th>
-                                            <th scope="col" class="w-[14%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Status</th>
-                                            <th scope="col" class="w-[12%] px-4 py-3 text-right text-[10px] font-black uppercase tracking-widest text-gray-500">Actions</th>
+                                            <th scope="col" class="w-[10%] px-4 py-3 text-right text-[10px] font-black uppercase tracking-widest text-gray-500">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody id="pendingTravelOrderRows" class="divide-y divide-gray-100 bg-white">
-                                        @include('travel-orders._admin-rows', ['orders' => $pendingTravelOrders, 'emptyMessage' => __('No pending travel orders.')])
+                                        @include('travel-orders._admin-rows', ['orders' => $pendingTravelOrders, 'emptyMessage' => __('No pending travel authorities.'), 'actionMode' => 'review'])
                                         @if($pendingTravelOrders->isNotEmpty())
                                             <tr x-show="pendingNoResults" style="display: none;">
-                                                <td colspan="5" class="px-4 py-8 text-center text-sm font-medium italic text-gray-500">{{ __('No pending travel orders match your search or filter.') }}</td>
+                                                <td colspan="4" class="px-4 py-8 text-center text-sm font-medium italic text-gray-500">{{ __('No pending travel authorities match your search or filter.') }}</td>
                                             </tr>
                                         @endif
                                     </tbody>
@@ -111,18 +110,17 @@
                                 <table class="w-full table-fixed divide-y divide-gray-100">
                                     <thead class="bg-gray-50">
                                         <tr>
-                                            <th scope="col" class="w-[29%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Employee</th>
-                                            <th scope="col" class="w-[28%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Destination</th>
+                                            <th scope="col" class="w-[38%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Employee</th>
+                                            <th scope="col" class="w-[35%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Destination</th>
                                             <th scope="col" class="w-[17%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Date Filed</th>
-                                            <th scope="col" class="w-[14%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Status</th>
-                                            <th scope="col" class="w-[12%] px-4 py-3 text-right text-[10px] font-black uppercase tracking-widest text-gray-500">Actions</th>
+                                            <th scope="col" class="w-[10%] px-4 py-3 text-right text-[10px] font-black uppercase tracking-widest text-gray-500">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody id="allTravelOrderRows" class="divide-y divide-gray-100 bg-white">
-                                        @include('travel-orders._admin-rows', ['orders' => $allTravelOrders, 'emptyMessage' => __('No approved or rejected travel orders yet.')])
+                                        @include('travel-orders._admin-rows', ['orders' => $allTravelOrders, 'emptyMessage' => __('No approved or rejected travel authorities yet.'), 'actionMode' => 'view'])
                                         @if($allTravelOrders->isNotEmpty())
                                             <tr x-show="allNoResults" style="display: none;">
-                                                <td colspan="5" class="px-4 py-8 text-center text-sm font-medium italic text-gray-500">{{ __('No travel orders match your search or filter.') }}</td>
+                                                <td colspan="4" class="px-4 py-8 text-center text-sm font-medium italic text-gray-500">{{ __('No travel authorities match your search or filter.') }}</td>
                                             </tr>
                                         @endif
                                     </tbody>

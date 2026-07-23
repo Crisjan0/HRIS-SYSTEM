@@ -103,53 +103,6 @@
                         </div>
                     </div>
 
-                    <!-- Approval Timeline -->
-                    <div class="bg-white overflow-hidden shadow-sm rounded-3xl border border-gray-100 p-8">
-                        <div class="text-xs font-black text-indigo-500 uppercase tracking-widest mb-6 inline-block border-b-2 border-indigo-100 pb-1">Approval Progress</div>
-                        <div class="space-y-5">
-                            @php
-                                $stages = [
-                                    ['label' => 'Division Chief', 'status' => $leaveApplication->chief_status, 'approver' => $leaveApplication->chief, 'remarks' => $leaveApplication->chief_remarks],
-                                    ['label' => 'HR Staff', 'status' => $leaveApplication->hrstaff_status, 'approver' => $leaveApplication->hrstaff, 'remarks' => $leaveApplication->hrstaff_remarks],
-                                    ['label' => 'Regional Director', 'status' => $leaveApplication->rd_status, 'approver' => $leaveApplication->regionalDirector, 'remarks' => $leaveApplication->rd_remarks],
-                                ];
-                            @endphp
-
-                            @foreach($stages as $stage)
-                                <div class="flex items-start gap-5 p-6 rounded-2xl border {{ $stage['status'] === 'approved' ? 'bg-green-50/30 border-green-100' : ($stage['status'] === 'rejected' ? 'bg-red-50/30 border-red-100' : 'bg-gray-50/50 border-gray-100') }}">
-                                    <div class="mt-1">
-                                        @if($stage['status'] === 'approved')
-                                            <div class="bg-green-500 p-2 rounded-full text-white">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                                            </div>
-                                        @elseif($stage['status'] === 'rejected')
-                                            <div class="bg-red-500 p-2 rounded-full text-white">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                            </div>
-                                        @else
-                                            <div class="bg-gray-300 p-2 rounded-full text-white">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"></path></svg>
-                                            </div>
-                                        @endif
-                                    </div>
-                                    <div class="flex-1">
-                                        <div class="flex items-center justify-between mb-1">
-                                            <div class="text-sm font-black uppercase tracking-wider text-gray-900">{{ $stage['label'] }}</div>
-                                            <span class="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded {{ $stage['status'] === 'approved' ? 'text-green-600 bg-green-50' : ($stage['status'] === 'rejected' ? 'text-red-600 bg-red-50' : 'text-gray-400 bg-gray-100') }}">
-                                                {{ __($stage['status']) }}
-                                            </span>
-                                        </div>
-                                        @if($stage['approver'])
-                                            <div class="text-sm font-bold text-gray-700">{{ $stage['approver']->firstname }} {{ $stage['approver']->lastname }}</div>
-                                        @endif
-                                        @if($stage['remarks'])
-                                            <div class="mt-3 text-sm text-gray-500 italic">"{{ $stage['remarks'] }}"</div>
-                                        @endif
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
                 </div>
 
                 @php
@@ -162,19 +115,19 @@
                     $waitingMessage = '';
 
                     if ($leaveApplication->status === 'pending') {
-                        if ($isChief && $leaveApplication->chief_status === 'pending') {
+                        if ($isHR && $leaveApplication->hrstaff_status === 'pending') {
                             $isMyTurn = true;
-                        } elseif ($isHR && $leaveApplication->hrstaff_status === 'pending') {
+                        } elseif ($isChief && $leaveApplication->chief_status === 'pending') {
+                            if (in_array($leaveApplication->hrstaff_status, ['approved', 'rejected'], true)) {
+                                $isMyTurn = true;
+                            } else {
+                                $waitingMessage = 'Waiting for HR Admin verification.';
+                            }
+                        } elseif ($isDirector && $leaveApplication->rd_status === 'pending') {
                             if ($leaveApplication->chief_status === 'approved') {
                                 $isMyTurn = true;
                             } else {
                                 $waitingMessage = 'Waiting for Division Chief approval.';
-                            }
-                        } elseif ($isDirector && $leaveApplication->rd_status === 'pending') {
-                            if ($leaveApplication->hrstaff_status === 'approved') {
-                                $isMyTurn = true;
-                            } else {
-                                $waitingMessage = 'Waiting for HR Staff approval.';
                             }
                         }
                     }
@@ -189,24 +142,56 @@
                             <p class="text-indigo-200 text-xs font-medium">Please provide your decision and remarks for this application.</p>
                         </div>
 
-                        <form action="{{ route('leave-applications.update', $leaveApplication->id) }}" method="POST" class="space-y-6">
+                        <form action="{{ route('leave-applications.update', $leaveApplication->id) }}" id="leaveStatusForm" method="POST" class="space-y-6">
                             @csrf
                             @method('PUT')
                             
                             <div>
                                 <label class="block text-[10px] font-black uppercase tracking-widest text-indigo-200 mb-2">{{ __('Remarks / Notes') }}</label>
-                                <textarea name="remarks" class="w-full border-transparent rounded-2xl bg-indigo-500/50 text-sm font-medium focus:ring-white focus:border-white text-white placeholder-indigo-300" rows="4" placeholder="Add some notes here..."></textarea>
+                                <textarea name="remarks" class="w-full border-transparent rounded-2xl bg-indigo-500/50 text-sm font-medium focus:ring-white focus:border-white text-white placeholder-indigo-300 transition duration-200" rows="4" placeholder="Add some notes here..."></textarea>
+                                <span id="leaveRemarksError" class="mt-2 hidden text-xs font-semibold text-red-200 block"></span>
                             </div>
 
                             <div class="space-y-3 pt-4">
                                 <button type="submit" name="status" value="approved" class="w-full bg-white text-indigo-600 hover:bg-indigo-50 px-6 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg transform hover:-translate-y-1">
-                                    {{ __('Approve Request') }}
+                                    {{ $isHR ? __('Verify Request') : __('Approve Request') }}
                                 </button>
                                 <button type="submit" name="status" value="rejected" class="w-full bg-indigo-500/50 border-2 border-indigo-400 text-white hover:bg-indigo-500 px-6 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all">
                                     {{ __('Reject Request') }}
                                 </button>
                             </div>
                         </form>
+                        <script>
+                            (function() {
+                                const form = document.getElementById('leaveStatusForm');
+                                const remarksField = form?.querySelector('textarea[name="remarks"]');
+                                const errorSpan = document.getElementById('leaveRemarksError');
+
+                                remarksField?.addEventListener('input', function() {
+                                    remarksField.classList.remove('ring-2', 'ring-red-500', 'border-red-500');
+                                    if (errorSpan) {
+                                        errorSpan.classList.add('hidden');
+                                        errorSpan.textContent = '';
+                                    }
+                                });
+
+                                form?.addEventListener('submit', function(e) {
+                                    const action = document.activeElement ? document.activeElement.getAttribute('value') : null;
+                                    const remarks = remarksField.value.trim();
+                                    const isHR = @js($isHR);
+
+                                    if (action === 'rejected' && isHR && !remarks) {
+                                        e.preventDefault();
+                                        remarksField.classList.add('ring-2', 'ring-red-500', 'border-red-500');
+                                        if (errorSpan) {
+                                            errorSpan.textContent = 'Remarks are required when rejecting this application.';
+                                            errorSpan.classList.remove('hidden');
+                                        }
+                                        remarksField.focus();
+                                    }
+                                });
+                            })();
+                        </script>
                     </div>
                     @endif
                     

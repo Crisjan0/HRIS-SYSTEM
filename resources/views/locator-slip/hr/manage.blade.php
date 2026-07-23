@@ -58,10 +58,9 @@
                         <table class="min-w-[860px] w-full table-fixed divide-y divide-gray-100">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th scope="col" class="w-[20%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500 whitespace-nowrap">Employee</th>
+                                    <th scope="col" class="w-[25%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500 whitespace-nowrap">Employee</th>
                                     <th scope="col" class="w-[15%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500 whitespace-nowrap">Date Covered</th>
-                                    <th scope="col" class="w-[27%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500 whitespace-nowrap">Purpose</th>
-                                    <th scope="col" class="w-[18%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500 whitespace-nowrap">Time</th>
+                                    <th scope="col" class="w-[40%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500 whitespace-nowrap">Purpose</th>
                                     <th scope="col" class="w-[12%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500 whitespace-nowrap">Status</th>
                                     <th scope="col" class="w-[8%] px-4 py-3 text-right text-[10px] font-black uppercase tracking-widest text-gray-500 whitespace-nowrap">Actions</th>
                                 </tr>
@@ -72,12 +71,13 @@
                                         $displayStatus = $slip->status === 'approved by chief' ? 'approved' : strtolower($slip->status);
                                         $employeeName = trim(($slip->employee->firstname ?? '') . ' ' . ($slip->employee->lastname ?? ''));
                                         $employeePosition = $slip->employee?->position ?: __('No position');
-                                        $searchText = Str::lower($employeeName . ' ' . ($slip->employee->position ?? '') . ' ' . ($slip->employee->division ?? '') . ' ' . ($slip->destination ?? '') . ' ' . $slip->purpose . ' ' . ($slip->type ?? '') . ' ' . $displayStatus);
+                                        $displayType = ($slip->type ?? '') === 'Personal' ? 'Pass Slip' : ($slip->type ?? '');
+                                        $searchText = Str::lower($employeeName . ' ' . ($slip->employee->position ?? '') . ' ' . ($slip->employee->division ?? '') . ' ' . ($slip->destination ?? '') . ' ' . $slip->purpose . ' ' . $displayType . ' ' . $displayStatus);
                                     @endphp
                                     <tr class="hover:bg-gray-50 transition-colors duration-150 group cursor-pointer" onclick="window.location='{{ route('hr.locator-slips.show', $slip->id) }}'"
                                         data-manage-locator-row="pending"
                                         data-search="{{ $searchText }}"
-                                        data-type="{{ Str::lower($slip->type ?? '') }}"
+                                        data-type="{{ Str::lower($displayType) }}"
                                         data-employee="{{ Str::lower($employeeName) }}"
                                         data-filed="{{ $slip->created_at?->timestamp ?? 0 }}">
                                         <td class="px-3 py-3 whitespace-nowrap">
@@ -86,7 +86,6 @@
                                         </td>
                                         <td class="px-3 py-3 whitespace-nowrap text-sm text-gray-700">{{ $slip->date_covered }}</td>
                                         <td class="px-3 py-3 whitespace-nowrap text-sm text-gray-700 uppercase"><div class="truncate" title="{{ $slip->purpose }}">{{ $slip->purpose }}</div></td>
-                                        <td class="px-3 py-3 whitespace-nowrap text-sm text-gray-700">{{ \Carbon\Carbon::parse($slip->time_from)->format('h:i A') }} - {{ \Carbon\Carbon::parse($slip->time_to)->format('h:i A') }}</td>
                                         <td class="px-3 py-3 whitespace-nowrap">
                                             <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full shadow-sm
                                                 @if($slip->status == 'approved') bg-[#00c950] text-white @endif
@@ -115,7 +114,7 @@
                                                         </button>
                                                     </form>
                                                 @endif
-                                                @if(in_array(strtolower(Auth::user()->role), ['chief', 'admin', 'hrstaff']))
+                                                {{-- @if(in_array(strtolower(Auth::user()->role), ['chief', 'admin', 'hrstaff']))
                                                     <form action="{{ route('locator-slips.reject', $slip->id) }}" method="POST" class="inline">
                                                         @csrf
                                                         @method('PATCH')
@@ -126,18 +125,18 @@
                                                             <span class="sr-only">Reject</span>
                                                         </button>
                                                     </form>
-                                                @endif
+                                                @endif --}}
                                             </div>
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="px-4 py-8 whitespace-nowrap text-sm text-gray-500 text-center">No pending locator slips found.</td>
+                                        <td colspan="5" class="px-4 py-8 whitespace-nowrap text-sm text-gray-500 text-center">No pending locator slips found.</td>
                                     </tr>
                                 @endforelse
                                 @if($pendingLocatorSlips->isNotEmpty())
                                     <tr x-show="pendingNoResults" style="display: none;">
-                                        <td colspan="6" class="px-4 py-8 whitespace-nowrap text-sm text-gray-500 text-center">No pending locator slips match your search or filter.</td>
+                                        <td colspan="5" class="px-4 py-8 whitespace-nowrap text-sm text-gray-500 text-center">No pending locator slips match your search or filter.</td>
                                     </tr>
                                 @endif
                             </tbody>
@@ -152,10 +151,9 @@
                         <table class="min-w-[860px] w-full table-fixed divide-y divide-gray-100">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th scope="col" class="w-[20%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500 whitespace-nowrap">Employee</th>
+                                    <th scope="col" class="w-[25%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500 whitespace-nowrap">Employee</th>
                                     <th scope="col" class="w-[15%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500 whitespace-nowrap">Date Covered</th>
-                                    <th scope="col" class="w-[27%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500 whitespace-nowrap">Purpose</th>
-                                    <th scope="col" class="w-[18%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500 whitespace-nowrap">Time</th>
+                                    <th scope="col" class="w-[40%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500 whitespace-nowrap">Purpose</th>
                                     <th scope="col" class="w-[12%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500 whitespace-nowrap">Status</th>
                                     <th scope="col" class="w-[8%] px-4 py-3 text-right text-[10px] font-black uppercase tracking-widest text-gray-500 whitespace-nowrap">Actions</th>
                                 </tr>
@@ -166,12 +164,13 @@
                                         $displayStatus = $slip->status === 'approved by chief' ? 'approved' : strtolower($slip->status);
                                         $employeeName = trim(($slip->employee->firstname ?? '') . ' ' . ($slip->employee->lastname ?? ''));
                                         $employeePosition = $slip->employee?->position ?: __('No position');
-                                        $searchText = Str::lower($employeeName . ' ' . ($slip->employee->position ?? '') . ' ' . ($slip->employee->division ?? '') . ' ' . ($slip->destination ?? '') . ' ' . $slip->purpose . ' ' . ($slip->type ?? '') . ' ' . $displayStatus);
+                                        $displayType = ($slip->type ?? '') === 'Personal' ? 'Pass Slip' : ($slip->type ?? '');
+                                        $searchText = Str::lower($employeeName . ' ' . ($slip->employee->position ?? '') . ' ' . ($slip->employee->division ?? '') . ' ' . ($slip->destination ?? '') . ' ' . $slip->purpose . ' ' . $displayType . ' ' . $displayStatus);
                                     @endphp
                                     <tr class="hover:bg-gray-50 transition-colors duration-150 group cursor-pointer" onclick="window.location='{{ route('hr.locator-slips.show', $slip->id) }}'"
                                         data-manage-locator-row="all"
                                         data-search="{{ $searchText }}"
-                                        data-type="{{ Str::lower($slip->type ?? '') }}"
+                                        data-type="{{ Str::lower($displayType) }}"
                                         data-employee="{{ Str::lower($employeeName) }}"
                                         data-filed="{{ $slip->created_at?->timestamp ?? 0 }}">
                                         <td class="px-3 py-3 whitespace-nowrap">
@@ -180,7 +179,6 @@
                                         </td>
                                         <td class="px-3 py-3 whitespace-nowrap text-sm text-gray-700">{{ $slip->date_covered }}</td>
                                         <td class="px-3 py-3 whitespace-nowrap text-sm text-gray-700 uppercase"><div class="truncate" title="{{ $slip->purpose }}">{{ $slip->purpose }}</div></td>
-                                        <td class="px-3 py-3 whitespace-nowrap text-sm text-gray-700">{{ \Carbon\Carbon::parse($slip->time_from)->format('h:i A') }} - {{ \Carbon\Carbon::parse($slip->time_to)->format('h:i A') }}</td>
                                         <td class="px-3 py-3 whitespace-nowrap">
                                             <span class="px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full shadow-sm
                                                 @if($slip->status == 'approved') bg-[#00c950] text-white @endif
@@ -200,12 +198,12 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="px-4 py-8 whitespace-nowrap text-sm text-gray-500 text-center">No locator slips found.</td>
+                                        <td colspan="5" class="px-4 py-8 whitespace-nowrap text-sm text-gray-500 text-center">No locator slips found.</td>
                                     </tr>
                                 @endforelse
                                 @if($allLocatorSlips->isNotEmpty())
                                     <tr x-show="allNoResults" style="display: none;">
-                                        <td colspan="6" class="px-4 py-8 whitespace-nowrap text-sm text-gray-500 text-center">No locator slips match your search or filter.</td>
+                                        <td colspan="5" class="px-4 py-8 whitespace-nowrap text-sm text-gray-500 text-center">No locator slips match your search or filter.</td>
                                     </tr>
                                 @endif
                             </tbody>

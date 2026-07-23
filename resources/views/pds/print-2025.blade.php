@@ -74,7 +74,7 @@
         return str_contains($value, $expected) ? 'X' : '';
     }
 
-    $signatureUrl = $gov?->signature_path ? \Illuminate\Support\Facades\Storage::disk('public')->url($gov->signature_path) : null;
+    $signatureUrl = $employee->effective_signature_url ?? ($gov?->signature_path ? \Illuminate\Support\Facades\Storage::disk('public')->url($gov->signature_path) : null);
     $signatureMarkup = $signatureUrl ? '<img src="'.e($signatureUrl).'" alt="PDS signature" class="pds-signature">' : '<span class="signature-placeholder">Signature</span>';
     $photoUrl = $employee->profile_picture_url;
 

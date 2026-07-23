@@ -1,5 +1,5 @@
 <x-app-layout>
-    <x-slot name="title">{{ __('Create Travel Order') }}</x-slot>
+    <x-slot name="title">{{ __('Create Travel Authority') }}</x-slot>
 
     <div class="py-12">
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
@@ -13,7 +13,7 @@
             </div>
 
             <div class="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg p-8 border border-gray-100">
-                <h2 class="text-2xl font-black text-gray-900 mb-8">{{ __('Create Travel Order') }}</h2>
+                <h2 class="text-2xl font-black text-gray-900 mb-8">{{ __('Create Travel Authority') }}</h2>
 
                 <form
                     action="{{ route('travel-orders.store') }}"
@@ -120,6 +120,43 @@
                         @error('purpose') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                     </div>
 
+                    {{-- Printed Travel Authority Details --}}
+                    <div class="rounded-2xl border border-gray-100 bg-gray-50/50 p-5 space-y-4">
+                        <div>
+                            <h3 class="text-xs font-black uppercase tracking-widest text-gray-700">{{ __('Printed Travel Authority Details') }}</h3>
+                            
+                        </div>
+
+                        <div>
+                            <label for="notes_remarks" class="block text-sm font-bold text-gray-700 mb-1">
+                                {{ __('Notes / Remarks') }}
+                                <span class="text-gray-400 font-normal text-xs">- Optional</span>
+                            </label>
+                            <textarea id="notes_remarks" name="notes_remarks" rows="3" class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">{{ old('notes_remarks') }}</textarea>
+                            @error('notes_remarks') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="driver_name" class="block text-sm font-bold text-gray-700 mb-1">
+                                    {{ __('Name of Driver') }}
+                                    <span class="text-gray-400 font-normal text-xs">- Optional</span>
+                                </label>
+                                <input type="text" id="driver_name" name="driver_name" value="{{ old('driver_name') }}" class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+                                @error('driver_name') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div>
+                                <label for="vehicle_plate_no" class="block text-sm font-bold text-gray-700 mb-1">
+                                    {{ __('Vehicle / Plate No.') }}
+                                    <span class="text-gray-400 font-normal text-xs">- Optional</span>
+                                </label>
+                                <input type="text" id="vehicle_plate_no" name="vehicle_plate_no" value="{{ old('vehicle_plate_no') }}" class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+                                @error('vehicle_plate_no') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+                    </div>
+
                     {{-- Attach File --}}
                     <div x-data="{ fileName: '' }">
                         <label for="attachment" class="block text-sm font-bold text-gray-700 mb-1">
@@ -167,7 +204,7 @@
                             {{ __('Cancel') }}
                         </a>
                         <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-200 hover:-translate-y-0.5">
-                            {{ __('Submit Travel Order') }}
+                            {{ __('Submit Travel Authority') }}
                         </button>
                     </div>
                 </form>

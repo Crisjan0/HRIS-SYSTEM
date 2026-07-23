@@ -1,6 +1,17 @@
 <x-app-layout>
     <x-slot name="title">{{ __('Account Details') }}</x-slot>
 
+    @php
+        $roleLabels = [
+            'employee' => 'Employee',
+            'hrstaff' => 'HR Admin',
+            'chief' => 'Chief',
+            'regionaldirector' => 'Regional Director',
+            'admin' => 'Admin',
+        ];
+        $formatRole = fn ($role) => $roleLabels[strtolower((string) $role)] ?? 'Unassigned';
+    @endphp
+
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
@@ -87,7 +98,7 @@
                                 <select name="position" id="position" 
                                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200 text-sm bg-white">
                                     <option value="">-- Select Position --</option>
-                                    <option value="hrstaff" {{ $user->employee?->position == 'hrstaff' ? 'selected' : '' }}>HR Staff</option>
+                                    <option value="hrstaff" {{ $user->employee?->position == 'hrstaff' ? 'selected' : '' }}>HR Admin</option>
                                     <option value="chief" {{ $user->employee?->position == 'chief' ? 'selected' : '' }}>Chief</option>
                                     <option value="regionaldirector" {{ $user->employee?->position == 'regionaldirector' ? 'selected' : '' }}>Regional Director</option>
                                     <option value="admin" {{ $user->employee?->position == 'admin' ? 'selected' : '' }}>Admin</option>
@@ -124,8 +135,8 @@
                             <div class="space-y-3">
                                 <div class="flex items-center gap-3">
                                     <span class="text-sm font-semibold text-gray-600 w-24">{{ __('Current Role:') }}</span> 
-                                    <span class="uppercase inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800 border border-indigo-200">
-                                        {{ $user->employee?->account_role ?? 'UNASSIGNED' }}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800 border border-indigo-200">
+                                        {{ $formatRole($user->employee?->account_role) }}
                                     </span>
                                 </div>
                                 <div class="flex items-center gap-3">
@@ -152,7 +163,7 @@
                                     <select name="account_role" required class="text-sm border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
                                         <option value="">-- Select Role to Approve --</option>
                                         <option value="employee" {{ $user->employee?->account_role === 'employee' ? 'selected' : '' }}>Employee</option>
-                                        <option value="hrstaff" {{ $user->employee?->account_role === 'hrstaff' ? 'selected' : '' }}>HR Staff</option>
+                                        <option value="hrstaff" {{ $user->employee?->account_role === 'hrstaff' ? 'selected' : '' }}>HR Admin</option>
                                         <option value="chief" {{ $user->employee?->account_role === 'chief' ? 'selected' : '' }}>Chief</option>
                                         <option value="regionaldirector" {{ $user->employee?->account_role === 'regionaldirector' ? 'selected' : '' }}>Regional Director</option>
                                         <option value="admin" {{ $user->employee?->account_role === 'admin' ? 'selected' : '' }}>Admin</option>

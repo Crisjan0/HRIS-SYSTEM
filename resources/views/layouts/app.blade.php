@@ -107,9 +107,19 @@
 
                         <a href="{{ auth()->user()?->employee ? route('personal-information.show') : route('profile.edit') }}"
                            class="flex items-center gap-3 pl-2 rounded-xl hover:bg-gray-50 transition-colors duration-200 {{ request()->routeIs(['personal-information.*', 'profile.edit']) ? 'ring-2 ring-blue-900 bg-blue-50/50' : '' }}">
+                            @php
+                                $roleLabels = [
+                                    'employee' => 'Employee',
+                                    'hrstaff' => 'HR Admin',
+                                    'chief' => 'Chief',
+                                    'regionaldirector' => 'Regional Director',
+                                    'admin' => 'Admin',
+                                ];
+                                $displayRole = $roleLabels[strtolower((string) (Auth::user()->role ?? 'employee'))] ?? 'Employee';
+                            @endphp
                             <div class="text-right hidden xl:block">
                                 <p class="text-sm font-bold text-gray-900 leading-none mb-0.5">{{ Auth::user()->display_name }}</p>
-                                <p class="text-[10px] font-bold text-blue-500 uppercase tracking-tighter">{{ Auth::user()->role ?? 'Employee' }}</p>
+                                <p class="text-[10px] font-bold text-blue-500 tracking-tighter">{{ $displayRole }}</p>
                             </div>
                             <x-profile-avatar :user="auth()->user()" size="md" class="ring-2 ring-white hover:ring-blue-100 transition-all duration-300" />
                         </a>

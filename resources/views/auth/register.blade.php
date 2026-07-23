@@ -213,7 +213,7 @@
                                 id="reg-position">
                             <option value="">— Select Position —</option>
                             <option value="EMPLOYEE">Employee</option>
-                            <option value="HRSTAFF">HR Staff</option>
+                            <option value="HRSTAFF">HR Admin</option>
                             <option value="CHIEF">Chief</option>
                             <option value="REGIONALDIRECTOR">Regional Director</option>
                             <option value="ADMIN">Admin</option>

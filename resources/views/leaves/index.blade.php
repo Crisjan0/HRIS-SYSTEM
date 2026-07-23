@@ -2,7 +2,7 @@
     <x-slot name="title">{{ __('My Leave Requests') }}</x-slot>
 
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8" x-data="myLeaveApplicationTable()" x-init="init()">
             @if(session('success'))
                 <div class="mb-4 p-4 bg-green-100 border-l-4 border-green-500 text-green-700">
                     {{ session('success') }}
@@ -17,9 +17,9 @@
             @php
                 $trackedLeave = $leaves->firstWhere('status', 'pending') ?? $leaves->first();
                 $trackedStages = $trackedLeave ? [
-                    ['label' => 'Chief', 'status' => $trackedLeave->chief_status],
                     ['label' => 'HR', 'status' => $trackedLeave->hrstaff_status],
-                    ['label' => 'Director', 'status' => $trackedLeave->rd_status],
+                    ['label' => 'Chief', 'status' => $trackedLeave->chief_status],
+                    ['label' => 'Regional Director', 'status' => $trackedLeave->rd_status],
                 ] : [];
                 $trackedType = $trackedLeave
                     ? Str::of($trackedLeave->leaveType?->name ?? 'Leave')->replaceMatches('/\s+Leave\b/i', '')->trim()
@@ -32,7 +32,34 @@
                         'status' => $stage['status'] ?: 'pending',
                     ])->values(),
                 ] : null;
+
+                $currentYear = now()->year;
+                $leaveTypes = $leaves
+                    ->map(fn ($leave) => (string) Str::of($leave->leaveType?->name ?? '')
+                        ->replaceMatches('/\s+Leave\b/i', '')
+                        ->trim())
+                    ->filter()
+                    ->unique()
+                    ->sort()
+                    ->values();
             @endphp
+
+            {{-- Year filter outside the container --}}
+            <div class="mb-4 flex items-center justify-between">
+                <div>
+                    <h1 class="text-lg font-bold text-gray-800">{{ __('My Leave Requests') }}</h1>
+                    <p class="text-sm text-gray-500">{{ __('View and track your leave applications.') }}</p>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <label for="my_leave_year" class="text-sm font-semibold text-gray-700">{{ __('Year') }}</label>
+                    <select id="my_leave_year" x-model="year" @change="applyFilters()" class="h-10 w-28 appearance-auto rounded-lg border-gray-300 bg-white pl-4 pr-10 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        @for ($yearOption = $currentYear; $yearOption >= $currentYear - 4; $yearOption--)
+                            <option value="{{ $yearOption }}">{{ $yearOption }}</option>
+                        @endfor
+                    </select>
+                </div>
+            </div>
 
             <!-- Header Actions -->
             <div class="mb-6">
@@ -41,7 +68,7 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                         </svg>
-                        File New Leave
+                        Apply New Leave
                     </a>
                 </div>
 
@@ -68,7 +95,17 @@
                 <!-- Credits Summary Tab -->
                 <div x-show="tab === 'credits'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform scale-95" x-transition:enter-end="opacity-100 transform scale-100">
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                        @foreach($credits as $credit)
+                        @foreach($credits->filter(function ($credit) {
+                            $leaveName = Str::lower(trim($credit->leaveType?->name ?? ''));
+
+                            return in_array($leaveName, [
+                                'special privilege leave',
+                                'sick leave',
+                                'vacation leave',
+                                'mandatory/force leave',
+                                
+                            ], true);
+                        }) as $credit)
                             <div
                                 class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 ring-1 ring-black/5 transform hover:scale-105 transition-all duration-300">
                                 <div class="text-[10px] font-black uppercase text-blue-900 tracking-widest mb-1">
@@ -92,9 +129,10 @@
                 </div>
 
                 <!-- Leave Applications Tab -->
-                <div x-show="tab === 'applications'" x-data="myLeaveApplicationTable('{{ $trackedLeave?->id }}')" x-init="init()" style="display: none;" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform scale-95" x-transition:enter-end="opacity-100 transform scale-100">
-                    <div class="mb-4 flex min-w-0 flex-col gap-2 rounded-xl border border-gray-100 bg-gray-50/70 p-2 sm:flex-row sm:items-center">
-                        <div class="relative min-w-0 sm:flex-1">
+                <div x-show="tab === 'applications'" style="display: none;" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform scale-95" x-transition:enter-end="opacity-100 transform scale-100">
+                    <!-- Search and Filters -->
+                    <div class="mb-4 flex w-full flex-nowrap items-center gap-2 overflow-x-auto rounded-xl border border-gray-100 bg-gray-50/70 p-2">
+                        <div class="relative min-w-[260px] flex-1">
                             <label for="my_leave_search" class="sr-only">{{ __('Search leave application') }}</label>
                             <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -103,14 +141,26 @@
                             </span>
                             <input id="my_leave_search" type="search" x-model="search" @input.debounce.200ms="applyFilters()" placeholder="{{ __('Search leave type, status, or date...') }}" class="block h-9 w-full rounded-lg border-gray-300 pl-10 pr-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
                         </div>
-                        <div class="sm:w-48 sm:shrink-0">
-                            <label for="my_leave_sort" class="sr-only">{{ __('Sort') }}</label>
-                            <select id="my_leave_sort" x-model="sort" @change="applyFilters()" class="block h-9 w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                <option value="date_filed_desc">{{ __('Newest Filed') }}</option>
-                                <option value="date_filed_asc">{{ __('Oldest Filed') }}</option>
+                        <div class="w-48 shrink-0">
+                            <label for="my_leave_type" class="sr-only">{{ __('Filter by leave type') }}</label>
+                            <select id="my_leave_type" x-model="leaveType" @change="applyFilters()" class="block h-9 w-full rounded-lg border-gray-300 bg-white text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <option value="">{{ __('Leave Types') }}</option>
+                                @foreach($leaveTypes as $type)
+                                    <option value="{{ Str::lower($type) }}">{{ $type }}</option>
+                                @endforeach
                             </select>
                         </div>
-                        <button type="button" @click="reset()" class="inline-flex h-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-xs font-bold uppercase tracking-wider text-gray-700 transition hover:bg-gray-50 sm:shrink-0">
+                        <div class="w-40 shrink-0">
+                            <label for="my_leave_status" class="sr-only">{{ __('Filter by status') }}</label>
+                            <select id="my_leave_status" x-model="status" @change="applyFilters()" class="block h-9 w-full rounded-lg border-gray-300 bg-white text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <option value="">{{ __('Statuses') }}</option>
+                                <option value="pending">{{ __('Pending') }}</option>
+                                <option value="approved">{{ __('Approved') }}</option>
+                                <option value="rejected">{{ __('Rejected') }}</option>
+                                <option value="cancelled">{{ __('Cancelled') }}</option>
+                            </select>
+                        </div>
+                        <button type="button" @click="reset()" class="inline-flex h-9 shrink-0 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-xs font-bold uppercase tracking-wider text-gray-700 transition hover:bg-gray-50">
                             {{ __('Reset') }}
                         </button>
                     </div>
@@ -120,28 +170,24 @@
                             <table class="min-w-[720px] w-full table-fixed divide-y divide-gray-100">
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <th scope="col" class="w-[34%] px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Leave Type</th>
-                                        <th scope="col" class="w-[14%] px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Days</th>
-                                        <th scope="col" class="w-[20%] px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Date Filed</th>
-                                        <th scope="col" class="w-[20%] px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Status</th>
-                                        <th scope="col" class="w-[12%] px-6 py-4 text-right text-[10px] font-black uppercase tracking-widest text-gray-500">Actions</th>
+                                        <th scope="col" class="w-[45%] px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Leave Type</th>
+                                        <th scope="col" class="w-[18%] px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Days</th>
+                                        <th scope="col" class="w-[22%] px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Date Filed</th>
+                                        <th scope="col" class="w-[15%] px-6 py-4 text-right text-[10px] font-black uppercase tracking-widest text-gray-500">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody id="myLeaveApplicationTableBody" class="divide-y divide-gray-100 bg-white">
                                     @forelse($leaves as $leaf)
                                         @php
                                             $stages = [
-                                                ['label' => 'Chief', 'status' => $leaf->chief_status],
                                                 ['label' => 'HR', 'status' => $leaf->hrstaff_status],
-                                                ['label' => 'Director', 'status' => $leaf->rd_status],
+                                                ['label' => 'Chief', 'status' => $leaf->chief_status],
+                                                ['label' => 'Regional Director', 'status' => $leaf->rd_status],
                                             ];
                                             $approvedCount = collect($stages)->where('status', 'approved')->count();
                                             $hasRejected = collect($stages)->contains(fn($stage) => $stage['status'] === 'rejected');
                                             $displayStatus = $leaf->status === 'cancelled' ? 'Cancelled' : ($hasRejected ? 'Rejected' : ($approvedCount === 3 ? 'Approved' : 'Pending'));
                                             $filterStatus = $leaf->status === 'cancelled' ? 'cancelled' : ($hasRejected ? 'rejected' : ($approvedCount === 3 ? 'approved' : 'pending'));
-                                            $statusClass = $hasRejected
-                                                ? 'border-red-100 bg-red-50 text-red-700'
-                                                : ($approvedCount === 3 ? 'border-green-100 bg-green-50 text-green-700' : 'border-orange-100 bg-orange-50 text-orange-700');
                                             $leaveTypeName = Str::of($leaf->leaveType?->name ?? '')->replaceMatches('/\s+Leave\b/i', '')->trim();
                                             $searchText = Str::lower($leaveTypeName . ' ' . $displayStatus . ' ' . \Carbon\Carbon::parse($leaf->date_filed)->format('M d, Y'));
                                             $leaveDaysLabel = $leaf->duration . ' ' . Str::plural('day', $leaf->duration);
@@ -162,6 +208,7 @@
                                             data-search="{{ $searchText }}"
                                             data-leave-type="{{ Str::lower($leaveTypeName) }}"
                                             data-status="{{ $filterStatus }}"
+                                            data-year="{{ \Carbon\Carbon::parse($leaf->date_filed)->year }}"
                                             data-date-filed="{{ \Carbon\Carbon::parse($leaf->date_filed)->timestamp }}"
                                             data-leave-start="{{ \Carbon\Carbon::parse($leaf->start_date)->timestamp }}"
                                         >
@@ -180,31 +227,6 @@
                                                     {{ \Carbon\Carbon::parse($leaf->date_filed)->format('M d, Y') }}
                                                 </div>
                                             </td>
-                                            {{-- <td class="hidden">
-                                                <div class="hidden">
-                                                    @foreach($stages as $stage)
-                                                        @php
-                                                            $stageClass = match($stage['status']) {
-                                                                'approved' => 'bg-green-500',
-                                                                'rejected' => 'bg-red-500',
-                                                                default => 'bg-gray-300',
-                                                            };
-                                                        @endphp
-                                                        <div class="flex items-center gap-2" title="{{ $stage['label'] }}: {{ $stage['status'] ? ucfirst($stage['status']) : 'Pending' }}">
-                                                            <span class="h-2.5 w-2.5 rounded-full {{ $stageClass }}"></span>
-                                                            <span class="text-xs font-medium text-gray-500">{{ $stage['label'] }}</span>
-                                                        </div>
-                                                        @if(! $loop->last)
-                                                            <span class="text-gray-300">→</span>
-                                                        @endif
-                                                    @endforeach
-                                                </div>
-                                            </td> --}}
-                                            <td class="px-5 py-3 align-middle">
-                                                <span class="inline-flex rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-widest {{ $statusClass }}">
-                                                    {{ $displayStatus }}
-                                                </span>
-                                            </td>
                                             <td class="px-5 py-3 text-right align-middle">
                                                 <a href="{{ route('leaves.show', $leaf) }}" class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-blue-700 transition-colors hover:bg-blue-50 hover:text-blue-900" title="{{ __('View details') }}" aria-label="{{ __('View details') }}">
                                                     <i class="fa-solid fa-eye"></i>
@@ -213,7 +235,7 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="5" class="px-6 py-12 text-center">
+                                            <td colspan="4" class="px-6 py-12 text-center">
                                                 <div class="text-gray-400 mb-2">
                                                     <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -236,7 +258,7 @@
                                     @endforelse
                                     @if($leaves->isNotEmpty())
                                         <tr x-show="noResults" style="display: none;">
-                                            <td colspan="5" class="px-6 py-12 text-center">
+                                            <td colspan="4" class="px-6 py-12 text-center">
                                                 <p class="text-gray-500 italic font-medium">
                                                     {{ __('No leave applications match your search or filter.') }}
                                                 </p>
@@ -257,9 +279,9 @@
             return {
                 selectedId: initialSelectedId ? String(initialSelectedId) : '',
                 search: '',
+                year: '{{ now()->year }}',
                 leaveType: '',
                 status: '',
-                sort: 'date_filed_desc',
                 rows: [],
                 noResults: false,
                 init() {
@@ -274,35 +296,24 @@
                     const tbody = document.getElementById('myLeaveApplicationTableBody');
                     let visibleCount = 0;
 
-                    this.rows
-                        .sort((a, b) => this.compareRows(a, b))
-                        .forEach((row) => {
+                    this.rows.forEach((row) => {
                             const matchesSearch = !search || row.dataset.search.includes(search);
+                            const matchesYear = !this.year || row.dataset.year === this.year;
                             const matchesType = !this.leaveType || row.dataset.leaveType === this.leaveType;
                             const matchesStatus = !this.status || row.dataset.status === this.status;
-                            const isVisible = matchesSearch && matchesType && matchesStatus;
+                            const isVisible = matchesSearch && matchesYear && matchesType && matchesStatus;
 
                             row.classList.toggle('hidden', !isVisible);
                             if (isVisible) visibleCount++;
-                            tbody.appendChild(row);
                         });
 
                     this.noResults = this.rows.length > 0 && visibleCount === 0;
                 },
-                compareRows(a, b) {
-                    const aFiled = Number(a.dataset.dateFiled || 0);
-                    const bFiled = Number(b.dataset.dateFiled || 0);
-                    const aStart = Number(a.dataset.leaveStart || 0);
-                    const bStart = Number(b.dataset.leaveStart || 0);
-
-                    if (this.sort === 'date_filed_asc') return aFiled - bFiled;
-                    return bFiled - aFiled;
-                },
                 reset() {
                     this.search = '';
+                    this.year = '{{ now()->year }}';
                     this.leaveType = '';
                     this.status = '';
-                    this.sort = 'date_filed_desc';
                     this.applyFilters();
                 },
             };

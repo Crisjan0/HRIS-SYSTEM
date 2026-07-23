@@ -3,7 +3,7 @@
 
     @php
         $role = strtolower(auth()->user()->role ?? '');
-        $canPost = in_array($role, ['admin', 'hrstaff', 'regionaldirector', 'regional director']);
+        $canPost = in_array($role, ['admin', 'hrstaff', 'regionaldirector']);
         $categoryColor = function (?string $tag): string {
             return match (trim($tag ?? 'General')) {
                 'Meeting' => 'bg-blue-100 text-blue-700',

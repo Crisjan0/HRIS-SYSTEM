@@ -89,17 +89,17 @@ class MyCtoController extends Controller
             'cto_balance_after' => $ctoBalanceAfter,
         ]);
 
-        $chiefs = User::whereHas('employee', function ($query) {
-    $query->where('account_role', 'chief');
-})->get();
+        $hrUsers = User::whereHas('employee', function ($query) {
+            $query->whereIn('account_role', ['hrstaff', 'admin']);
+        })->get();
 
-$employeeName = trim($employee->firstname . ' ' . $employee->lastname);
+        $employeeName = trim($employee->firstname . ' ' . $employee->lastname);
 
-Notification::send($chiefs, new CtoRequestNotification(
-    $ctoRequest,
-    'New CTO Request',
-    "{$employeeName} submitted a CTO request for {$ctoRequest->hours} hour(s)."
-));
+        Notification::send($hrUsers, new CtoRequestNotification(
+            $ctoRequest,
+            'New CTO Request',
+            "{$employeeName} submitted a CTO request for {$ctoRequest->hours} hour(s)."
+        ));
 
         return redirect()->route('my-cto.index')->with('success', 'CTO request submitted successfully.');
     }
@@ -109,7 +109,7 @@ Notification::send($chiefs, new CtoRequestNotification(
         $employee = auth()->user()->employee;
 
         if ($ctoRequest->employee_id !== $employee?->id
-            && ! in_array(strtolower(auth()->user()->role ?? ''), ['admin', 'hrstaff', 'hr staff', 'chief', 'director', 'regionaldirector', 'regional director'])) {
+            && ! in_array(strtolower(auth()->user()->role ?? ''), ['admin', 'hrstaff', 'hr staff', 'chief', 'regionaldirector'])) {
             abort(403);
         }
 
@@ -123,7 +123,7 @@ Notification::send($chiefs, new CtoRequestNotification(
         $employee = auth()->user()->employee;
 
         if ($ctoRequest->employee_id !== $employee?->id
-            && ! in_array(strtolower(auth()->user()->role ?? ''), ['admin', 'hrstaff', 'hr staff', 'chief', 'director', 'regionaldirector', 'regional director'])) {
+            && ! in_array(strtolower(auth()->user()->role ?? ''), ['admin', 'hrstaff', 'hr staff', 'chief', 'regionaldirector'])) {
             abort(403);
         }
 

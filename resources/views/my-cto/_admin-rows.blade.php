@@ -16,9 +16,9 @@
         $employeePosition = $request->employee->position ?: __('No position');
         $searchText = Str::lower($employeeName . ' ' . ($request->employee->position ?? '') . ' ' . ($request->employee->division ?? '') . ' ' . $request->type_label . ' ' . $request->purpose . ' ' . $request->status);
         $stages = [
-            ['label' => 'Chief', 'status' => $request->chief_status],
             ['label' => 'HR', 'status' => $request->hrstaff_status],
-            ['label' => 'Director', 'status' => $request->rd_status],
+            ['label' => 'Chief', 'status' => $request->chief_status],
+            ['label' => 'Regional Director', 'status' => $request->rd_status],
         ];
         $ctoTrackerPayload = [
             'id' => (string) $request->id,
@@ -59,23 +59,71 @@
         <td class="px-4 py-3 text-sm font-medium text-gray-700">
             {{ $request->created_at?->format('M d, Y') }}
         </td>
-        <td class="px-4 py-3">
-            <span class="inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-widest {{ $statusColor }}">
-                {{ ucfirst($request->status) }}
-            </span>
-        </td>
         <td class="px-4 py-3 text-right">
-            <a href="{{ route('my-cto.show', $request) }}"
-               class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-indigo-700 transition-colors hover:bg-indigo-50 hover:text-indigo-900"
-               title="{{ __('View CTO Request') }}"
-               aria-label="{{ __('View CTO Request') }}">
-                <i class="fa-solid fa-eye"></i>
-            </a>
+            <div class="flex items-center justify-end gap-1.5">
+                <a href="{{ route('my-cto.show', $request) }}"
+                   class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-indigo-700 transition-colors hover:bg-indigo-50 hover:text-indigo-900"
+                   title="{{ __('View CTO Request') }}"
+                   aria-label="{{ __('View CTO Request') }}">
+                    <i class="fa-solid fa-eye"></i>
+                </a>
+                @if(($actionMode ?? 'view') === 'review')
+                    @php
+                        $role = strtolower(auth()->user()->role ?? '');
+                        $isHR = in_array($role, ['hrstaff', 'hr staff', 'admin'], true);
+                    @endphp
+                    <form action="{{ route('cto.update-status', $request->id) }}" method="POST" onsubmit="return confirm('{{ $isHR ? __('Verify this CTO request?') : __('Approve this CTO request?') }}');">
+                        @csrf
+                        @method('PUT')
+                        <input type="hidden" name="status" value="approved">
+                        <button type="submit" class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-green-600 transition-colors hover:bg-green-50 hover:text-green-800" title="{{ $isHR ? __('Verify') : __('Approve') }}" aria-label="{{ $isHR ? __('Verify') : __('Approve') }}">
+                            <i class="fa-solid fa-check"></i>
+                        </button>
+                    </form>
+                    <form action="{{ route('cto.update-status', $request->id) }}" method="POST" id="ctoRejectRowForm_{{ $request->id }}">
+                        @csrf
+                        @method('PUT')
+                        <input type="hidden" name="status" value="rejected">
+                        <input type="hidden" name="remarks" id="ctoRejectRowRemarks_{{ $request->id }}" value="">
+                        <button type="button" onclick="submitCtoRejectRow({{ $request->id }}, {{ $isHR ? 'true' : 'false' }})" class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-red-600 transition-colors hover:bg-red-50 hover:text-red-800" title="{{ __('Decline') }}" aria-label="{{ __('Decline') }}">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </form>
+                @endif
+            </div>
+            @if(($actionMode ?? 'view') === 'review')
+                <script>
+                    if (typeof window.submitCtoRejectRow === 'undefined') {
+                        window.submitCtoRejectRow = function(id, isHR) {
+                            let remarks = '';
+                            if (isHR) {
+                                remarks = prompt('Remarks are required when rejecting this request. Please enter remarks:');
+                                if (remarks === null) return; // cancelled
+                                remarks = remarks.trim();
+                                if (!remarks) {
+                                    alert('Remarks are required to reject.');
+                                    return;
+                                }
+                            } else {
+                                if (!confirm('Are you sure you want to decline this request?')) {
+                                    return;
+                                }
+                            }
+                            const form = document.getElementById('ctoRejectRowForm_' + id);
+                            const remarksInput = document.getElementById('ctoRejectRowRemarks_' + id);
+                            if (remarksInput) {
+                                remarksInput.value = remarks;
+                            }
+                            form.submit();
+                        }
+                    }
+                </script>
+            @endif
         </td>
     </tr>
 @empty
     <tr>
-        <td colspan="5" class="px-4 py-10 text-center text-sm font-medium italic text-gray-500">
+        <td colspan="4" class="px-4 py-10 text-center text-sm font-medium italic text-gray-500">
             {{ $emptyMessage }}
         </td>
     </tr>

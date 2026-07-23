@@ -5,7 +5,7 @@
         $employee = $locatorSlip->employee;
         $role = strtolower(auth()->user()->role ?? '');
         $canApprove = $role === 'chief' && $locatorSlip->status === 'pending';
-        $canReject = in_array($role, ['admin', 'hrstaff', 'chief'], true) && $locatorSlip->status === 'pending';
+        $canReject = $role === 'chief' && $locatorSlip->status === 'pending';
         $statusClass = match($locatorSlip->status) {
             'approved' => 'border-green-100 bg-green-50 text-green-700',
             'rejected' => 'border-red-100 bg-red-50 text-red-700',
@@ -29,6 +29,20 @@
                 </a>
             </div>
 
+            @php
+                $displayStatus = $locatorSlip->status === 'approved by chief' ? 'approved' : $locatorSlip->status;
+                $trackedLocatorPayload = [
+                    'id' => (string) $locatorSlip->id,
+                    'title' => trim(($employee?->firstname ?? '') . ' ' . ($employee?->lastname ?? '')),
+                    'employee' => trim(($employee?->firstname ?? '') . ' ' . ($employee?->lastname ?? '')),
+                    'type' => ($locatorSlip->type ?? '') === 'Personal' ? 'Pass Slip' : (string) ($locatorSlip->type ?: 'Locator Slip'),
+                    'stages' => [
+                        ['label' => 'Chief', 'status' => $displayStatus ?: 'pending'],
+                    ],
+                ];
+            @endphp
+            <x-approval-tracker :payload="$trackedLocatorPayload" event="locator-selected" empty="No locator slip to track yet." />
+
             <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
                 <div class="lg:col-span-2 space-y-8">
                     <div class="overflow-hidden rounded-3xl border border-gray-100 bg-white p-8 shadow-sm md:p-10">
@@ -49,7 +63,7 @@
                         <div class="space-y-8">
                             <div class="flex flex-col items-center justify-center rounded-2xl border border-gray-100 bg-gray-50/50 py-6">
                                 <span class="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400">{{ __('Locator Slip Type') }}</span>
-                                <h2 class="text-2xl font-black text-gray-800">{{ $locatorSlip->type ?: __('N/A') }}</h2>
+                                <h2 class="text-2xl font-black text-gray-800">{{ ($locatorSlip->type ?? '') === 'Personal' ? __('Pass Slip') : ($locatorSlip->type ?: __('N/A')) }}</h2>
                             </div>
 
                             <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -85,48 +99,6 @@
                         </div>
                     </div>
 
-                    <div class="overflow-hidden rounded-3xl border border-gray-100 bg-white p-8 shadow-sm">
-                        <div class="mb-6 inline-block border-b-2 border-indigo-100 pb-1 text-[10px] font-black uppercase tracking-widest text-indigo-400">
-                            {{ __('Approval Progress') }}
-                        </div>
-                        <div class="space-y-4">
-                            <div class="flex items-start gap-4 rounded-2xl border p-5 {{ $locatorSlip->status === 'rejected' ? 'border-red-100 bg-red-50/30' : ($locatorSlip->status === 'approved' || $locatorSlip->status === 'approved by chief' ? 'border-green-100 bg-green-50/30' : 'border-gray-100 bg-gray-50/50') }}">
-                                <div class="mt-1">
-                                    @if($locatorSlip->status === 'approved' || $locatorSlip->status === 'approved by chief')
-                                        <div class="rounded-full bg-green-500 p-1.5 text-white">
-                                            <i class="fa-solid fa-check text-xs"></i>
-                                        </div>
-                                    @elseif($locatorSlip->status === 'rejected')
-                                        <div class="rounded-full bg-red-500 p-1.5 text-white">
-                                            <i class="fa-solid fa-xmark text-xs"></i>
-                                        </div>
-                                    @else
-                                        <div class="rounded-full bg-gray-300 p-1.5 text-white">
-                                            <i class="fa-solid fa-ellipsis text-xs"></i>
-                                        </div>
-                                    @endif
-                                </div>
-                                <div class="flex-1">
-                                    <div class="mb-1 flex items-center justify-between">
-                                        <div class="text-[10px] font-black uppercase tracking-wider text-gray-900">{{ __('Division Chief') }}</div>
-                                        <span class="rounded px-2 py-0.5 text-[8px] font-black uppercase tracking-widest {{ $locatorSlip->status === 'approved' || $locatorSlip->status === 'approved by chief' ? 'bg-green-50 text-green-600' : ($locatorSlip->status === 'rejected' ? 'bg-red-50 text-red-600' : 'bg-gray-100 text-gray-400') }}">
-                                            {{ $statusLabel }}
-                                        </span>
-                                    </div>
-                                    @if($locatorSlip->approved_by_chief_name)
-                                        <div class="text-xs font-bold text-gray-700">
-                                            {{ $locatorSlip->approved_by_chief_name }}
-                                        </div>
-                                        <div class="mt-1 text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                                            {{ $locatorSlip->chief_approval_date ? \Carbon\Carbon::parse($locatorSlip->chief_approval_date)->format('M d, Y h:i A') : '' }}
-                                        </div>
-                                    @else
-                                        <div class="text-xs font-medium text-gray-500">{{ __('Awaiting review') }}</div>
-                                    @endif
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 <div class="space-y-8">

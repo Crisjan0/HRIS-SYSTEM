@@ -45,11 +45,10 @@
                     <table class="w-full table-fixed divide-y divide-gray-100">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th scope="col" class="w-[29%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Name</th>
-                                <th scope="col" class="w-[24%] whitespace-nowrap px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Leave Type</th>
-                                <th scope="col" class="w-[18%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Date Filed</th>
-                                <th scope="col" class="w-[15%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Status</th>
-                                <th scope="col" class="w-[14%] px-4 py-3 text-right text-[10px] font-black uppercase tracking-widest text-gray-500">Actions</th>
+                                <th scope="col" class="w-[35%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Name</th>
+                                <th scope="col" class="w-[30%] whitespace-nowrap px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Leave Type</th>
+                                <th scope="col" class="w-[20%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Date Filed</th>
+                                <th scope="col" class="w-[15%] px-4 py-3 text-right text-[10px] font-black uppercase tracking-widest text-gray-500">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="leaveApplicationTableBody" class="divide-y divide-gray-100 bg-white">

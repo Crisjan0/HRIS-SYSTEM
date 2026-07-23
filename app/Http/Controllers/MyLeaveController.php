@@ -109,12 +109,12 @@ class MyLeaveController extends Controller
             $msg .= ' Note: You have insufficient credits, this leave may be approved without pay.';
         }
 
-        // Notify only the Chief (Level 1 Approval)
-        $chiefs = User::whereHas('employee', function ($query) {
-            $query->where('account_role', 'chief');
+        // Notify HR first for leave review.
+        $hrUsers = User::whereHas('employee', function ($query) {
+            $query->whereIn('account_role', ['hrstaff', 'admin']);
         })->get();
 
-        Notification::send($chiefs, new LeaveRequestNotification($leaveRequest));
+        Notification::send($hrUsers, new LeaveRequestNotification($leaveRequest));
 
         return redirect()->route('leaves.index')->with('success', 'Leave request submitted successfully. Credits will be deducted once approved.');
     }

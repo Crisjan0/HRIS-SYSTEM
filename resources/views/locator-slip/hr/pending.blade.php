@@ -44,20 +44,20 @@
                                                 <button type="submit" class="text-green-600 hover:text-green-900 font-bold uppercase tracking-wider text-xs"><i class="fa-solid fa-check"></i></button>
                                             </form>
                                         @endif
-                                        @if(in_array(strtolower(Auth::user()->role), ['chief', 'admin', 'hrstaff']))
+                                        <!-- @if(in_array(strtolower(Auth::user()->role), ['chief', 'admin', 'hrstaff']))
                                             <form action="{{ route('locator-slips.reject', $slip->id) }}" method="POST" class="inline">
                                                 @csrf
                                                 @method('PATCH')
-                                                <button type="submit" class="text-red-600 hover:text-red-900 font-bold uppercase tracking-wider text-xs"><i class="fa-solid fa-trash"></i></button>
+                                                <button type="submit" class="text-red-600 hover:text-red-900 font-bold uppercase tracking-wider text-xs">button>
                                             </form>
-                                        @endif
+                                        @endif -->
                                     </div>
                                 </td>
                             </tr>
                         @empty
                             <tr>
                                 <td colspan="6" class="px-6 py-8 whitespace-nowrap text-sm text-gray-500 text-center">No pending locator slips found.</td>
-                            </tr>
+                            </tr><i class="fa-solid fa-trash"></i></
                         @endforelse
                     </tbody>
                 </table>

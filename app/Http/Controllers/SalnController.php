@@ -13,8 +13,18 @@ class SalnController extends Controller
 {
     public function index()
     {
-        $salns = Auth::user()->employee->salns()->orderBy('as_of_date', 'desc')->get();
-        return view('saln.index', compact('salns'));
+        $employee = Auth::user()->employee;
+
+        if (! $employee) {
+            abort(403, 'User is not linked to an employee record.');
+        }
+
+        $salns = $employee->salns()->orderBy('as_of_date', 'desc')->get();
+        $selectedYear = (int) request('year', now()->year);
+        $selectedSaln = $salns->first(fn (Saln $saln) => (int) $saln->as_of_date->format('Y') === $selectedYear);
+        $isSalnIndex = true;
+
+        return view('saln.create', compact('employee', 'salns', 'selectedYear', 'selectedSaln', 'isSalnIndex'));
     }
 
     public function create()
@@ -25,7 +35,12 @@ class SalnController extends Controller
             abort(403, 'User is not linked to an employee record.');
         }
 
-        return view('saln.create', compact('employee'));
+        $salns = $employee->salns()->orderBy('as_of_date', 'desc')->get();
+        $selectedYear = (int) now()->year;
+        $selectedSaln = null;
+        $isSalnIndex = false;
+
+        return view('saln.create', compact('employee', 'salns', 'selectedYear', 'selectedSaln', 'isSalnIndex'));
     }
 
     public function store(StoreSalnRequest $request)
@@ -56,13 +71,32 @@ class SalnController extends Controller
 
         $net_worth = $total_assets - $total_liabilities;
 
-        $saln = Auth::user()->employee->salns()->create(array_merge($validated, [
+        $employee = Auth::user()->employee;
+        $payload = array_merge($validated, [
+            'employee_id' => $employee->id,
             'total_assets' => $total_assets,
             'total_liabilities' => $total_liabilities,
             'net_worth' => $net_worth,
-        ]));
+        ]);
 
-        return redirect()->route('salns.show', $saln)->with('success', 'SALN created successfully.');
+        $saln = null;
+        if ($request->filled('saln_id')) {
+            $saln = Saln::where('employee_id', $employee->id)
+                ->findOrFail($request->integer('saln_id'));
+            $saln->update($payload);
+        } else {
+            $saln = Saln::updateOrCreate(
+                [
+                    'employee_id' => $employee->id,
+                    'as_of_date' => $validated['as_of_date'],
+                ],
+                $payload
+            );
+        }
+
+        return redirect()
+            ->route('salns.index', ['year' => $saln->as_of_date->format('Y')])
+            ->with('success', 'SALN saved successfully.');
     }
 
     public function show(Saln $saln)
@@ -82,7 +116,7 @@ class SalnController extends Controller
         }
 
         try {
-            return $exporter->download($saln);
+            return $exporter->download($saln, request()->boolean('inline'));
         } catch (\Throwable $e) {
             return redirect()
                 ->route('salns.show', $saln)

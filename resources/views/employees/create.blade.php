@@ -82,8 +82,17 @@
                                     <x-input-label for="account_role" :value="__('Role')" />
                                     <select id="account_role" name="account_role" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
                                         <option value="" disabled selected>{{ __('Select a role') }}</option>
+                                        @php
+                                            $roleLabels = [
+                                                'employee' => 'Employee',
+                                                'hrstaff' => 'HR Admin',
+                                                'chief' => 'Chief',
+                                                'regionaldirector' => 'Regional Director',
+                                                'admin' => 'Admin',
+                                            ];
+                                        @endphp
                                         @foreach($roles as $role)
-                                            <option value="{{ $role }}" {{ old('account_role') == $role ? 'selected' : '' }}>{{ strtoupper($role) }}</option>
+                                            <option value="{{ $role }}" {{ old('account_role') == $role ? 'selected' : '' }}>{{ $roleLabels[$role] ?? strtoupper($role) }}</option>
                                         @endforeach
                                     </select>
                                     <p class="mt-1 text-xs text-gray-500">{{ __('Assign the employee role for system access.') }}</p>

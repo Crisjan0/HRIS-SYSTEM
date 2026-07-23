@@ -200,7 +200,7 @@ class PdsController extends Controller
             'gov_id.id_no' => 'nullable|string',
             'gov_id.date_place_issuance' => 'nullable|string',
             'pds_photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'pds_signature' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'pds_signature' => 'nullable|image|mimes:png|max:2048',
         ]);
 
         DB::transaction(function () use ($employee, $request) {
@@ -238,11 +238,16 @@ class PdsController extends Controller
             $govIdData = $request->input('gov_id', []);
             if ($request->hasFile('pds_signature')) {
                 $existingSignature = $employee->pdsGovId?->signature_path;
-                if ($existingSignature) {
+                if ($existingSignature && $existingSignature !== $employee->e_signature_path) {
                     Storage::disk('public')->delete($existingSignature);
                 }
+                if ($employee->e_signature_path) {
+                    Storage::disk('public')->delete($employee->e_signature_path);
+                }
 
-                $govIdData['signature_path'] = $request->file('pds_signature')->store('pds-signatures', 'public');
+                $signaturePath = $request->file('pds_signature')->store('employee-signatures', 'public');
+                $govIdData['signature_path'] = $signaturePath;
+                $employee->update(['e_signature_path' => $signaturePath]);
             }
 
             $employee->pdsGovId()->updateOrCreate(

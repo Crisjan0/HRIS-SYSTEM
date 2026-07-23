@@ -10,9 +10,9 @@
         $employeePosition = $order->employee?->position ?: __('No position');
         $searchText = Str::lower($employeeName . ' ' . ($order->employee?->position ?? '') . ' ' . ($order->employee?->division ?? '') . ' ' . $order->places_of_travel . ' ' . $order->purpose . ' ' . $order->travel_type_label . ' ' . $order->status);
         $stages = [
-            ['label' => 'Chief', 'status' => $order->chief_status],
             ['label' => 'HR', 'status' => $order->hrstaff_status],
-            ['label' => 'Director', 'status' => $order->rd_status],
+            ['label' => 'Chief', 'status' => $order->chief_status],
+            ['label' => 'Regional Director', 'status' => $order->rd_status],
         ];
         $travelTrackerPayload = [
             'id' => (string) $order->id,
@@ -48,26 +48,60 @@
                 {{ $order->created_at?->format('M d, Y') }}
             </div>
         </td>
-        <td class="px-3 py-2.5 align-middle">
-            <span class="inline-flex rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-widest {{ $statusColor }}">
-                {{ ucfirst($order->status) }}
-            </span>
-        </td>
         <td class="px-3 py-2.5 text-right align-middle">
-            <a href="{{ route('travel-orders.show', $order) }}" class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-indigo-700 transition-colors hover:bg-indigo-50 hover:text-indigo-900" title="{{ __('View details') }}" aria-label="{{ __('View details') }}">
-                <i class="fa-solid fa-eye"></i>
-            </a>
+            <div class="flex items-center justify-end gap-1.5">
+                <a href="{{ route('travel-orders.show', $order) }}" class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-indigo-700 transition-colors hover:bg-indigo-50 hover:text-indigo-900" title="{{ __('View details') }}" aria-label="{{ __('View details') }}">
+                    <i class="fa-solid fa-eye"></i>
+                </a>
+                @if(($actionMode ?? 'view') === 'review')
+                    @php
+                        $role = strtolower(auth()->user()->role ?? '');
+                        $isRD = $role === 'regionaldirector';
+                    @endphp
+                    @if($isRD)
+                        <form action="{{ route('travel-orders.update-status', $order->id) }}" method="POST" onsubmit="return confirm('{{ __('Approve this travel authority?') }}');">
+                            @csrf
+                            @method('PUT')
+                            <input type="hidden" name="status" value="approved">
+                            <button type="submit" class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-green-600 transition-colors hover:bg-green-50 hover:text-green-800" title="{{ __('Approve') }}" aria-label="{{ __('Approve') }}">
+                                <i class="fa-solid fa-check"></i>
+                            </button>
+                        </form>
+                        <form action="{{ route('travel-orders.update-status', $order->id) }}" method="POST" id="taRejectRowForm_{{ $order->id }}">
+                            @csrf
+                            @method('PUT')
+                            <input type="hidden" name="status" value="rejected">
+                            <input type="hidden" name="remarks" id="taRejectRowRemarks_{{ $order->id }}" value="">
+                            <button type="button" onclick="submitTaRejectRow({{ $order->id }})" class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-red-600 transition-colors hover:bg-red-50 hover:text-red-800" title="{{ __('Decline') }}" aria-label="{{ __('Decline') }}">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </form>
+                    @endif
+                @endif
+            </div>
+            @if(($actionMode ?? 'view') === 'review' && ($isRD ?? false))
+                <script>
+                    if (typeof window.submitTaRejectRow === 'undefined') {
+                        window.submitTaRejectRow = function(id) {
+                            if (!confirm('Are you sure you want to decline this travel authority?')) {
+                                return;
+                            }
+                            document.getElementById('taRejectRowForm_' + id).submit();
+                        }
+                    }
+                </script>
+            @endif
         </td>
     </tr>
 @empty
     <tr>
-        <td colspan="5" class="px-4 py-8 text-center">
+        <td colspan="4" class="px-4 py-8 text-center">
             <div class="text-gray-400 mb-2">
                 <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
             </div>
-            <p class="text-gray-500 italic font-medium">{{ $emptyMessage ?? __('No travel orders found.') }}</p>
+            <p class="text-gray-500 italic font-medium">{{ $emptyMessage ?? __('No travel authorities found.') }}</p>
         </td>
     </tr>
 @endforelse

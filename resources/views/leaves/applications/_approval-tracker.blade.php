@@ -3,9 +3,9 @@
         ? ($leaves->firstWhere('status', 'pending') ?? $leaves->first())
         : $leaves->first();
     $trackedStages = $trackedLeave ? [
-        ['label' => 'Chief', 'status' => $trackedLeave->chief_status],
         ['label' => 'HR', 'status' => $trackedLeave->hrstaff_status],
-        ['label' => 'Director', 'status' => $trackedLeave->rd_status],
+        ['label' => 'Chief', 'status' => $trackedLeave->chief_status],
+        ['label' => 'Regional Director', 'status' => $trackedLeave->rd_status],
     ] : [];
     $trackedType = $trackedLeave ? Str::of($trackedLeave->leaveType?->name ?? 'Leave')->replaceMatches('/\s+Leave\b/i', '')->trim() : null;
     $trackerDisplay = $trackerDisplay ?? 'employee';

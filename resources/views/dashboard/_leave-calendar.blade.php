@@ -1,7 +1,10 @@
+@php
+    $isHrAdmin = $isHrAdmin ?? in_array(strtolower(auth()->user()->role ?? ''), ['admin', 'hrstaff'], true);
+@endphp
 <div class="bg-white overflow-hidden shadow-sm sm:rounded-3xl border border-gray-100 p-6">
     <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-            <h4 class="text-xs font-black uppercase tracking-widest text-gray-400">{{ __('My Leave Calendar') }}</h4>
+            <h4 class="text-xs font-black uppercase tracking-widest text-gray-400">{{ $isHrAdmin ? __('Holiday Calendar') : __('My Leave Calendar') }}</h4>
             <p class="text-lg font-black text-gray-900 uppercase tracking-tight">{{ $leaveCalendarMonth->format('F Y') }}</p>
         </div>
         <div class="flex items-center gap-2">
@@ -56,21 +59,23 @@
     </div>
 
     <div class="mt-4 flex flex-wrap items-center gap-3 text-[10px] font-black uppercase tracking-widest text-gray-400">
-        <span class="inline-flex items-center gap-1.5">
-            <span class="h-2.5 w-2.5 rounded-full bg-green-500"></span>
-            {{ __('Approved Leave') }}
-        </span>
-        <span class="inline-flex items-center gap-1.5">
-            <span class="h-2.5 w-2.5 rounded-full bg-amber-500"></span>
-            {{ __('Pending Leave') }}
-        </span>
+        @if(!$isHrAdmin)
+            <span class="inline-flex items-center gap-1.5">
+                <span class="h-2.5 w-2.5 rounded-full bg-green-500"></span>
+                {{ __('Approved Leave') }}
+            </span>
+            <span class="inline-flex items-center gap-1.5">
+                <span class="h-2.5 w-2.5 rounded-full bg-amber-500"></span>
+                {{ __('Pending Leave') }}
+            </span>
+        @endif
         <span class="inline-flex items-center gap-1.5">
             <span class="h-2.5 w-2.5 rounded-full bg-red-500"></span>
             {{ __('Holiday') }}
         </span>
     </div>
 
-    @if($leaveUpcomingRequests->isNotEmpty())
+    @if(!$isHrAdmin && $leaveUpcomingRequests->isNotEmpty())
         <div class="mt-4 space-y-2">
             @foreach($leaveUpcomingRequests as $leave)
                 <div class="flex items-center justify-between gap-3 rounded-xl bg-gray-50 px-3 py-2">

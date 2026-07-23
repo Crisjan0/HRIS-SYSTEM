@@ -17,9 +17,9 @@
                         $trackedCtoPayload = $trackedCto ? [
                             'title' => trim(($trackedCto->employee?->firstname ?? '') . ' ' . ($trackedCto->employee?->lastname ?? '')),
                             'stages' => collect([
-                                ['label' => 'Chief', 'status' => $trackedCto->chief_status],
                                 ['label' => 'HR', 'status' => $trackedCto->hrstaff_status],
-                                ['label' => 'Director', 'status' => $trackedCto->rd_status],
+                                ['label' => 'Chief', 'status' => $trackedCto->chief_status],
+                                ['label' => 'Regional Director', 'status' => $trackedCto->rd_status],
                             ])->map(fn ($stage) => [
                                 'label' => $stage['label'],
                                 'status' => $stage['status'] ?: 'pending',
@@ -83,18 +83,17 @@
                                 <table class="w-full table-fixed divide-y divide-gray-100">
                                     <thead class="bg-gray-50/80">
                                         <tr>
-                                            <th class="w-[36%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">{{ __('Employee') }}</th>
-                                            <th class="w-[18%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">{{ __('Type') }}</th>
-                                            <th class="w-[14%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">{{ __('Date Filed') }}</th>
-                                            <th class="w-[16%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">{{ __('Status') }}</th>
-                                            <th class="w-[16%] px-4 py-3 text-right text-[10px] font-black uppercase tracking-widest text-gray-500">{{ __('Actions') }}</th>
+                                            <th class="w-[40%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">{{ __('Employee') }}</th>
+                                            <th class="w-[25%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">{{ __('Type') }}</th>
+                                            <th class="w-[20%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">{{ __('Date Filed') }}</th>
+                                            <th class="w-[15%] px-4 py-3 text-right text-[10px] font-black uppercase tracking-widest text-gray-500">{{ __('Actions') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody id="pendingCtoRows" class="divide-y divide-gray-100 bg-white">
-                                        @include('my-cto._admin-rows', ['requests' => $pendingCtoRequests, 'emptyMessage' => __('No pending CTO requests.')])
+                                        @include('my-cto._admin-rows', ['requests' => $pendingCtoRequests, 'emptyMessage' => __('No pending CTO requests.'), 'actionMode' => 'review'])
                                         @if($pendingCtoRequests->isNotEmpty())
                                             <tr x-show="pendingNoResults" style="display: none;">
-                                                <td colspan="5" class="px-4 py-10 text-center text-sm font-medium italic text-gray-500">{{ __('No pending CTO requests match your search or filter.') }}</td>
+                                                <td colspan="4" class="px-4 py-10 text-center text-sm font-medium italic text-gray-500">{{ __('No pending CTO requests match your search or filter.') }}</td>
                                             </tr>
                                         @endif
                                     </tbody>
@@ -109,18 +108,17 @@
                                 <table class="w-full table-fixed divide-y divide-gray-100">
                                     <thead class="bg-gray-50/80">
                                         <tr>
-                                            <th class="w-[36%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">{{ __('Employee') }}</th>
-                                            <th class="w-[18%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">{{ __('Type') }}</th>
-                                            <th class="w-[14%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">{{ __('Date Filed') }}</th>
-                                            <th class="w-[16%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">{{ __('Status') }}</th>
-                                            <th class="w-[16%] px-4 py-3 text-right text-[10px] font-black uppercase tracking-widest text-gray-500">{{ __('Actions') }}</th>
+                                            <th class="w-[40%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">{{ __('Employee') }}</th>
+                                            <th class="w-[25%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">{{ __('Type') }}</th>
+                                            <th class="w-[20%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">{{ __('Date Filed') }}</th>
+                                            <th class="w-[15%] px-4 py-3 text-right text-[10px] font-black uppercase tracking-widest text-gray-500">{{ __('Actions') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody id="allCtoRows" class="divide-y divide-gray-100 bg-white">
-                                        @include('my-cto._admin-rows', ['requests' => $allCtoRequests, 'emptyMessage' => __('No approved or rejected CTO requests yet.')])
+                                        @include('my-cto._admin-rows', ['requests' => $allCtoRequests, 'emptyMessage' => __('No approved or rejected CTO requests yet.'), 'actionMode' => 'view'])
                                         @if($allCtoRequests->isNotEmpty())
                                             <tr x-show="allNoResults" style="display: none;">
-                                                <td colspan="5" class="px-4 py-10 text-center text-sm font-medium italic text-gray-500">{{ __('No CTO requests match your search or filter.') }}</td>
+                                                <td colspan="4" class="px-4 py-10 text-center text-sm font-medium italic text-gray-500">{{ __('No CTO requests match your search or filter.') }}</td>
                                             </tr>
                                         @endif
                                     </tbody>

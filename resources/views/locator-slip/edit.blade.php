@@ -19,8 +19,8 @@
                                 {{ __('Official Business') }}
                             </label>
                             <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700 transition hover:border-indigo-300">
-                                <input type="radio" name="type" value="Personal" class="border-gray-300 text-indigo-600 focus:ring-indigo-500" {{ old('type', $locatorSlip->type) === 'Personal' ? 'checked' : '' }} required>
-                                {{ __('Personal') }}
+                                <input type="radio" name="type" value="Pass Slip" class="border-gray-300 text-indigo-600 focus:ring-indigo-500" {{ old('type', $locatorSlip->type === 'Personal' ? 'Pass Slip' : $locatorSlip->type) === 'Pass Slip' ? 'checked' : '' }} required>
+                                {{ __('Pass Slip') }}
                             </label>
                         </div>
                         @error('type') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror

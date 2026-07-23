@@ -31,7 +31,7 @@ class LocatorSlipController extends Controller
             'date_covered' => 'required|date',
             'destination' => 'required|string|max:255',
             'purpose' => 'required|string',
-            'type' => 'required|string|in:Official Business,Personal',
+            'type' => 'required|string|in:Official Business,Pass Slip',
             'time_from' => 'required',
             'time_to' => 'required',
         ]);
@@ -82,7 +82,7 @@ class LocatorSlipController extends Controller
             $tab = 'pending';
         }
 
-        $locatorTypes = collect(['Official Business', 'Personal']);
+        $locatorTypes = collect(['Official Business', 'Pass Slip']);
 
         return view('locator-slip.hr.manage', compact('allLocatorSlips', 'pendingLocatorSlips', 'tab', 'sort', 'search', 'type', 'status', 'locatorTypes'));
     }
@@ -123,7 +123,15 @@ class LocatorSlipController extends Controller
                         });
                 });
             })
-            ->when($type !== '', fn ($query) => $query->where('type', $type))
+            ->when($type !== '', function ($query) use ($type) {
+                $query->where(function ($query) use ($type) {
+                    $query->where('type', $type);
+
+                    if ($type === 'Pass Slip') {
+                        $query->orWhere('type', 'Personal');
+                    }
+                });
+            })
             ->when($status === 'approved', fn ($query) => $query->whereIn('status', ['approved', 'approved by chief']))
             ->when($status === 'rejected', fn ($query) => $query->where('status', 'rejected'));
     }
@@ -225,7 +233,7 @@ class LocatorSlipController extends Controller
 
         $request->validate([
             'date_covered' => 'required|date',
-            'type' => 'required|string|in:Official Business,Personal',
+            'type' => 'required|string|in:Official Business,Pass Slip',
             'purpose' => 'required|string',
             'time_from' => 'required',
             'time_to' => 'required',

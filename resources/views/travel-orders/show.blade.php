@@ -1,21 +1,41 @@
 <x-app-layout>
-    <x-slot name="title">{{ __('Travel Order Details') }}</x-slot>
+    <x-slot name="title">{{ __('Travel Authority Details') }}</x-slot>
 
     <div class="py-12">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
             @php
                 $role = strtolower(auth()->user()->role ?? '');
-                $isApprover = in_array($role, ['admin', 'hrstaff', 'director', 'chief', 'regionaldirector', 'regional director']);
+                $isApprover = in_array($role, ['admin', 'hrstaff', 'chief', 'regionaldirector']);
             @endphp
 
-            <div class="mb-5">
+            <div class="mb-5 flex items-center justify-between gap-3">
                 <a href="{{ $isApprover ? route('hr.travel-orders.index') : route('travel-orders.index') }}" class="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-bold text-blue-900 shadow-sm transition hover:border-blue-200 hover:text-blue-800">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                     </svg>
                     {{ __('Back') }}
                 </a>
+                <a href="{{ route('travel-orders.print', $travelOrder) }}" target="_blank" rel="noopener" data-no-transition class="inline-flex items-center gap-2 rounded-xl bg-blue-900 px-5 py-2.5 text-xs font-black uppercase tracking-widest text-white shadow-sm transition hover:bg-blue-800">
+                    <i class="fa-solid fa-print"></i>
+                    {{ __('Print Travel Authority') }}
+                </a>
             </div>
+
+            @php
+                $trackedEmployee = trim(($travelOrder->employee?->firstname ?? '') . ' ' . ($travelOrder->employee?->lastname ?? ''));
+                $trackedOrderPayload = [
+                    'id' => (string) $travelOrder->id,
+                    'title' => $isApprover ? $trackedEmployee : (string) $travelOrder->places_of_travel,
+                    'employee' => $trackedEmployee,
+                    'type' => (string) $travelOrder->places_of_travel,
+                    'stages' => [
+                        ['label' => 'HR', 'status' => $travelOrder->hrstaff_status ?: 'pending'],
+                        ['label' => 'Chief', 'status' => $travelOrder->chief_status ?: 'pending'],
+                        ['label' => 'Regional Director', 'status' => $travelOrder->rd_status ?: 'pending'],
+                    ],
+                ];
+            @endphp
+            <x-approval-tracker :payload="$trackedOrderPayload" event="travel-selected" empty="No travel authority to track yet." />
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {{-- Left Column: Details --}}
@@ -76,6 +96,25 @@
                                 <p class="text-gray-700 font-medium leading-relaxed italic">"{{ $travelOrder->purpose }}"</p>
                             </div>
 
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="rounded-2xl border border-gray-100 bg-gray-50/50 p-4">
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">Requesting Office</span>
+                                    <p class="text-sm font-bold text-gray-700">{{ $travelOrder->requesting_office ?: 'Regional Office XI' }}</p>
+                                </div>
+                                <div class="rounded-2xl border border-gray-100 bg-gray-50/50 p-4">
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">Vehicle / Plate No.</span>
+                                    <p class="text-sm font-bold text-gray-700">{{ $travelOrder->vehicle_plate_no ?: 'N/A' }}</p>
+                                </div>
+                                <div class="rounded-2xl border border-gray-100 bg-gray-50/50 p-4">
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">Name of Driver</span>
+                                    <p class="text-sm font-bold text-gray-700">{{ $travelOrder->driver_name ?: 'N/A' }}</p>
+                                </div>
+                                <div class="rounded-2xl border border-gray-100 bg-gray-50/50 p-4">
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">Notes / Remarks</span>
+                                    <p class="text-sm font-bold text-gray-700">{{ $travelOrder->notes_remarks ?: 'N/A' }}</p>
+                                </div>
+                            </div>
+
                             @if($travelOrder->attachment_path)
                                 <div>
                                     <span class="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-3">Attached File</span>
@@ -120,79 +159,20 @@
                         </div>
                     </div>
 
-                    {{-- Approval Timeline --}}
-                    <div class="bg-white overflow-hidden shadow-sm rounded-3xl border border-gray-100 p-8">
-                        <div class="text-xs font-black text-indigo-500 uppercase tracking-widest mb-6 inline-block border-b-2 border-indigo-100 pb-1">Approval Progress</div>
-                        <div class="space-y-5">
-                            @php
-                                $stages = [
-                                    ['label' => 'Division Chief', 'status' => $travelOrder->chief_status, 'approver' => $travelOrder->chief, 'remarks' => $travelOrder->chief_remarks],
-                                    ['label' => 'HR Staff', 'status' => $travelOrder->hrstaff_status, 'approver' => $travelOrder->hrstaff, 'remarks' => $travelOrder->hrstaff_remarks],
-                                    ['label' => 'Regional Director', 'status' => $travelOrder->rd_status, 'approver' => $travelOrder->regionalDirector, 'remarks' => $travelOrder->rd_remarks],
-                                ];
-                            @endphp
-
-                            @foreach($stages as $stage)
-                                <div class="flex items-start gap-5 p-6 rounded-2xl border {{ $stage['status'] === 'approved' ? 'bg-green-50/30 border-green-100' : ($stage['status'] === 'rejected' ? 'bg-red-50/30 border-red-100' : 'bg-gray-50/50 border-gray-100') }}">
-                                    <div class="mt-1">
-                                        @if($stage['status'] === 'approved')
-                                            <div class="bg-green-500 p-2 rounded-full text-white">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                                            </div>
-                                        @elseif($stage['status'] === 'rejected')
-                                            <div class="bg-red-500 p-2 rounded-full text-white">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                            </div>
-                                        @else
-                                            <div class="bg-gray-300 p-2 rounded-full text-white">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"></path></svg>
-                                            </div>
-                                        @endif
-                                    </div>
-                                    <div class="flex-1">
-                                        <div class="flex items-center justify-between mb-1">
-                                            <div class="text-sm font-black uppercase tracking-wider text-gray-900">{{ $stage['label'] }}</div>
-                                            <span class="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded {{ $stage['status'] === 'approved' ? 'text-green-600 bg-green-50' : ($stage['status'] === 'rejected' ? 'text-red-600 bg-red-50' : 'text-gray-400 bg-gray-100') }}">
-                                                {{ __($stage['status']) }}
-                                            </span>
-                                        </div>
-                                        @if($stage['approver'])
-                                            <div class="text-sm font-bold text-gray-700">{{ $stage['approver']->firstname }} {{ $stage['approver']->lastname }}</div>
-                                        @endif
-                                        @if($stage['remarks'])
-                                            <div class="mt-3 text-sm text-gray-500 italic">"{{ $stage['remarks'] }}"</div>
-                                        @endif
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
                 </div>
 
                 {{-- Right Column: Action Card --}}
                 @php
-                    $isChief = $role === 'chief';
-                    $isHR = in_array($role, ['hrstaff', 'admin']);
-                    $isDirector = in_array($role, ['regional director', 'regionaldirector', 'director']);
+                    $isDirector = $role === 'regionaldirector';
 
                     $isMyTurn = false;
                     $waitingMessage = '';
 
                     if ($travelOrder->status === 'pending') {
-                        if ($isChief && $travelOrder->chief_status === 'pending') {
+                        if ($isDirector && $travelOrder->rd_status === 'pending') {
                             $isMyTurn = true;
-                        } elseif ($isHR && $travelOrder->hrstaff_status === 'pending') {
-                            if ($travelOrder->chief_status === 'approved') {
-                                $isMyTurn = true;
-                            } else {
-                                $waitingMessage = 'Waiting for Division Chief approval.';
-                            }
-                        } elseif ($isDirector && $travelOrder->rd_status === 'pending') {
-                            if ($travelOrder->hrstaff_status === 'approved') {
-                                $isMyTurn = true;
-                            } else {
-                                $waitingMessage = 'Waiting for HR Staff approval.';
-                            }
+                        } elseif (! $isDirector) {
+                            $waitingMessage = 'Waiting for Regional Director approval.';
                         }
                     }
                 @endphp
@@ -202,7 +182,7 @@
                     <div class="bg-indigo-600 rounded-3xl p-8 text-white shadow-2xl shadow-indigo-200 sticky top-12">
                         <div class="mb-8">
                             <h3 class="text-xl font-black uppercase tracking-widest mb-2">Review Action</h3>
-                            <p class="text-indigo-200 text-xs font-medium">Please provide your decision and remarks for this travel order.</p>
+                            <p class="text-indigo-200 text-xs font-medium">Please provide your decision and remarks for this travel authority.</p>
                         </div>
 
                         <form action="{{ route('travel-orders.update-status', $travelOrder->id) }}" method="POST" class="space-y-6">
@@ -216,10 +196,10 @@
 
                             <div class="space-y-3 pt-4">
                                 <button type="submit" name="status" value="approved" class="w-full bg-white text-indigo-600 hover:bg-indigo-50 px-6 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg transform hover:-translate-y-1">
-                                    {{ __('Approve Travel Order') }}
+                                    {{ __('Approve Travel Authority') }}
                                 </button>
                                 <button type="submit" name="status" value="rejected" class="w-full bg-indigo-500/50 border-2 border-indigo-400 text-white hover:bg-indigo-500 px-6 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all">
-                                    {{ __('Reject Travel Order') }}
+                                    {{ __('Reject Travel Authority') }}
                                 </button>
                             </div>
                         </form>
@@ -247,15 +227,15 @@
                         </div>
                         <p class="text-[10px] text-gray-500 leading-relaxed font-medium">
                             @if($isMyTurn)
-                                As the current reviewer, your decision will move this travel order to the next stage. Please verify all details before confirming.
+                                As the current reviewer, your decision will finalize this travel authority. Please verify all details before confirming.
                             @elseif($waitingMessage)
-                                {{ $waitingMessage }} This travel order must be approved by the previous stage before you can take action.
+                                {{ $waitingMessage }}
                             @elseif($travelOrder->status === 'approved')
-                                This travel order has been fully approved by all required approvers.
+                                This travel authority has been fully approved by all required approvers.
                             @elseif($travelOrder->status === 'rejected')
-                                This travel order has been rejected.
+                                This travel authority has been rejected.
                             @else
-                                This travel order is awaiting review from the Division Chief.
+                                This travel authority is awaiting review from the Regional Director.
                             @endif
                         </p>
                     </div>

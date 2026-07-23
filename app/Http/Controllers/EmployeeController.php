@@ -369,8 +369,8 @@ class EmployeeController extends Controller
      */
     public function uploadProfilePicture(Request $request, Employee $employee): RedirectResponse
     {
-        // Only allow admins, hrstaff, director, or the employee themselves to update it
-        if (!in_array(auth()->user()->role, ['admin', 'hrstaff', 'director', 'chief', 'regionaldirector', 'regional director']) && auth()->user()->employee?->id !== $employee->id) {
+        // Only allow admins, HR staff, regional directors, chiefs, or the employee themselves to update it.
+        if (!in_array(auth()->user()->role, ['admin', 'hrstaff', 'chief', 'regionaldirector']) && auth()->user()->employee?->id !== $employee->id) {
             abort(403);
         }
 
@@ -388,6 +388,38 @@ class EmployeeController extends Controller
         return back()->with('success', 'Profile picture updated successfully.');
     }
 
+    /**
+     * Upload reusable employee e-signature for printable HRIS documents.
+     */
+    public function uploadESignature(Request $request, Employee $employee): RedirectResponse
+    {
+        if (!in_array(auth()->user()->role, ['admin', 'hrstaff', 'chief', 'regionaldirector']) && auth()->user()->employee?->id !== $employee->id) {
+            abort(403);
+        }
+
+        $request->validate([
+            'e_signature' => 'required|image|mimes:png|max:2048',
+        ]);
+
+        if ($request->hasFile('e_signature')) {
+            $existingPdsSignature = $employee->pdsGovId?->signature_path;
+            if ($existingPdsSignature && $existingPdsSignature !== $employee->e_signature_path) {
+                $this->deleteESignature($existingPdsSignature);
+            }
+            $this->deleteESignature($employee->e_signature_path);
+
+            $path = $request->file('e_signature')->store('employee-signatures', 'public');
+            $employee->update(['e_signature_path' => $path]);
+
+            $employee->pdsGovId()->updateOrCreate(
+                ['employee_id' => $employee->id],
+                ['signature_path' => $path]
+            );
+        }
+
+        return back()->with('success', 'Reusable e-signature updated successfully.');
+    }
+
     private function deleteProfilePicture(?string $path): void
     {
         if (! $path) {
@@ -396,6 +428,17 @@ class EmployeeController extends Controller
 
         if (Storage::disk('public_uploads')->exists($path)) {
             Storage::disk('public_uploads')->delete($path);
+        }
+
+        if (Storage::disk('public')->exists($path)) {
+            Storage::disk('public')->delete($path);
+        }
+    }
+
+    private function deleteESignature(?string $path): void
+    {
+        if (! $path) {
+            return;
         }
 
         if (Storage::disk('public')->exists($path)) {

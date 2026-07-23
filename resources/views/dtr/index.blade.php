@@ -1,208 +1,303 @@
 <x-app-layout>
     <x-slot name="title">{{ __('Daily Time Records (DTR)') }}</x-slot>
 
-    <div class="py-12" x-data="{ printPreviewOpen: false }">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+    @php
+        $user = auth()->user();
+        $employee = $user->employee;
+        $isAdministrativeDtr = ! ($isPersonal ?? false) && in_array(strtolower($user->role ?? ''), ['admin', 'hrstaff', 'chief', 'regionaldirector'], true);
+        $months = [
+            1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April',
+            5 => 'May', 6 => 'June', 7 => 'July', 8 => 'August',
+            9 => 'September', 10 => 'October', 11 => 'November', 12 => 'December',
+        ];
+        $startYear = now()->year - 3;
+        $endYear = now()->year + 1;
+        $selectedDate = \Carbon\Carbon::create((int) $selectedYear, (int) $selectedMonth, 1);
+        $calendarDays = collect(range(1, $selectedDate->daysInMonth))->map(fn ($day) => $selectedDate->copy()->day($day));
+        $recordsByDate = collect($dtrRecords ?? [])->groupBy(fn ($record) => \Carbon\Carbon::parse($record->date)->format('Y-m-d'));
+        $displayEmployeeNo = $employee?->employee_no ?? ($employee?->id ? 'EMP-' . str_pad((string) $employee->id, 4, '0', STR_PAD_LEFT) : 'N/A');
+        $statusText = fn ($record) => (string) ($record->status ?: 'Present');
+        $formatTime = fn ($time) => $time ? \Carbon\Carbon::parse($time)->format('h:i A') : '';
+        $recordHours = function ($record) {
+            if (! $record->time_in || ! $record->time_out) {
+                return '';
+            }
+
+            $hours = \Carbon\Carbon::parse($record->time_in)->diffInMinutes(\Carbon\Carbon::parse($record->time_out)) / 60;
+
+            return number_format($hours, 2);
+        };
+    @endphp
+
+    <style>
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 10mm;
+            }
+
+            body {
+                background: #fff !important;
+            }
+
+            .no-print,
+            nav,
+            aside,
+            header {
+                display: none !important;
+            }
+
+            .dtr-print-shell {
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            .dtr-sheet {
+                width: 100% !important;
+                min-width: 0 !important;
+                border: 0 !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+            }
+
+            .dtr-sheet table {
+                font-size: 9px !important;
+            }
+
+            .dtr-sheet th,
+            .dtr-sheet td {
+                padding: 3px 4px !important;
+            }
+
+            .dtr-late-summary,
+            .dtr-signatures {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+
+    <div class="py-8">
+        <div class="mx-auto max-w-7xl space-y-5 sm:px-6 lg:px-8">
             @if(session('success'))
-                <div class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-6 py-4 rounded-[1.5rem] shadow-sm flex items-center animate-fade-in">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                    <span class="font-bold text-sm">{{ session('success') }}</span>
+                <div class="no-print rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm font-bold text-emerald-700 shadow-sm">
+                    {{ session('success') }}
                 </div>
             @endif
 
             @if(session('error'))
-                <div class="bg-rose-50 border border-rose-200 text-rose-700 px-6 py-4 rounded-[1.5rem] shadow-sm flex items-center">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                    <span class="font-bold text-sm">{{ session('error') }}</span>
+                <div class="no-print rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-bold text-red-700 shadow-sm">
+                    {{ session('error') }}
                 </div>
             @endif
 
-            <div class="bg-white overflow-hidden shadow-2xl shadow-indigo-50 sm:rounded-[2.5rem] border border-gray-100">
-                <div class="p-10">
-                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-                        <div>
-                            <h3 class="text-2xl font-black text-gray-900 tracking-tight">{{ __('Daily Time Record') }}</h3>
-                            <p class="text-sm text-gray-500 font-medium">{{ __('Printable personal DTR copy preview.') }}</p>
-                        </div>
-                        <button type="button" @click="printPreviewOpen = true" class="inline-flex w-fit items-center gap-2 rounded-xl bg-[#0038a8] px-5 py-2.5 text-xs font-black uppercase tracking-widest text-white shadow-md shadow-blue-100 hover:bg-[#002f8f] transition">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2m-12 0h12v-6H6v6z"></path>
-                            </svg>
-                            {{ __('Print DTR Copy') }}
-                        </button>
-                    </div>
-
-                    @if(auth()->user()->hasRole('hrstaff') || auth()->user()->hasRole('admin'))
-                    <!-- Stats Section -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-                        <div class="bg-gradient-to-br from-indigo-50 to-white p-8 rounded-3xl border border-indigo-100/50 group hover:shadow-lg transition-all duration-300">
-                            <p class="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-1">{{ __('Total Records') }}</p>
-                            <h4 class="text-3xl font-black text-gray-900 italic">{{ $records->total() }}</h4>
-                        </div>
-                        <div class="bg-gradient-to-br from-emerald-50 to-white p-8 rounded-3xl border border-emerald-100/50 group hover:shadow-lg transition-all duration-300">
-                            <p class="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1">{{ __('Latest Sync') }}</p>
-                            <h4 class="text-xl font-black text-gray-900 uppercase tracking-tight">{{ now()->format('M d, h:i A') }}</h4>
-                        </div>
-                        <div class="bg-gradient-to-br from-amber-50 to-white p-8 rounded-3xl border border-amber-100/50 group hover:shadow-lg transition-all duration-300">
-                            <p class="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-1">{{ __('File Source') }}</p>
-                            <h4 class="text-xl font-black text-gray-900 italic underline decoration-amber-200 decoration-4 underline-offset-4 tracking-tighter">dtr.xlsx</h4>
-                        </div>
-                    </div>
-                    @endif
-                    
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-separate border-spacing-y-4">
-                            <thead>
-                                <tr class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
-                                    <th class="px-6 pb-2">{{ __('Employee') }}</th>
-                                    <th class="px-6 pb-2">{{ __('Date') }}</th>
-                                    <th class="px-6 pb-2">{{ __('Time In') }}</th>
-                                    <th class="px-6 pb-2">{{ __('Time Out') }}</th>
-                                    <th class="px-6 pb-2">{{ __('Status') }}</th>
-                                    <th class="px-6 pb-2 text-right">{{ __('Hours') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($records as $record)
-                                    <tr class="group hover:-translate-y-1 transition-all duration-300">
-                                        <td class="px-6 py-5 bg-gray-50/50 rounded-l-[1.5rem] group-hover:bg-white border-y border-l border-transparent group-hover:border-gray-100 group-hover:shadow-sm">
-                                            <div class="flex items-center gap-3">
-                                                <x-profile-avatar :employee="$record->employee" size="md" variant="indigo" rounded="2xl" class="shadow-lg shadow-indigo-100 group-hover:scale-110 transition-transform" />
-                                                <div>
-                                                    <p class="text-sm font-black text-gray-900 group-hover:text-indigo-600 transition-colors">{{ $record->employee->firstname ?? 'Unknown' }} {{ $record->employee->lastname ?? '' }}</p>
-                                                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">ID: {{ $record->employee_id }}</p>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-5 bg-gray-50/50 group-hover:bg-white border-y border-transparent group-hover:border-gray-100 group-hover:shadow-sm">
-                                            <p class="text-sm font-bold text-gray-700 leading-none mb-1">{{ \Carbon\Carbon::parse($record->date)->format('M d, Y') }}</p>
-                                            <p class="text-[10px] text-gray-400 font-medium tracking-tighter uppercase">{{ \Carbon\Carbon::parse($record->date)->format('l') }}</p>
-                                        </td>
-                                        <td class="px-6 py-5 bg-gray-50/50 group-hover:bg-white border-y border-transparent group-hover:border-gray-100 group-hover:shadow-sm">
-                                            <div class="flex items-center gap-2">
-                                                <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
-                                                <span class="text-sm font-black text-gray-900 uppercase">{{ \Carbon\Carbon::parse($record->time_in)->format('h:i A') }}</span>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-5 bg-gray-50/50 group-hover:bg-white border-y border-transparent group-hover:border-gray-100 group-hover:shadow-sm">
-                                            @if($record->time_out)
-                                                <div class="flex items-center gap-2">
-                                                    <div class="w-2 h-2 rounded-full bg-rose-500"></div>
-                                                    <span class="text-sm font-black text-gray-900 uppercase">{{ \Carbon\Carbon::parse($record->time_out)->format('h:i A') }}</span>
-                                                </div>
-                                            @else
-                                                <span class="text-[10px] font-black text-gray-300 uppercase tracking-widest">{{ __('No Out') }}</span>
-                                            @endif
-                                        </td>
-                                        <td class="px-6 py-5 bg-gray-50/50 group-hover:bg-white border-y border-transparent group-hover:border-gray-100 group-hover:shadow-sm">
-                                            <span @class([
-                                                'inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.1em] border',
-                                                'bg-emerald-50 text-emerald-600 border-emerald-100' => $record->status === 'Present',
-                                                'bg-amber-50 text-amber-600 border-amber-100' => $record->status === 'Late',
-                                                'bg-rose-50 text-rose-600 border-rose-100' => $record->status === 'Absent',
-                                                'bg-gray-50 text-gray-600 border-gray-100' => !in_array($record->status, ['Present', 'Late', 'Absent']),
-                                            ])>
-                                                {{ __($record->status) }}
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-5 bg-gray-50/50 rounded-r-[1.5rem] group-hover:bg-white border-y border-r border-transparent group-hover:border-gray-100 group-hover:shadow-sm text-right">
-                                            @if($record->time_in && $record->time_out)
-                                                @php
-                                                    $in = \Carbon\Carbon::parse($record->time_in);
-                                                    $out = \Carbon\Carbon::parse($record->time_out);
-                                                    $hours = $in->diffInMinutes($out) / 60;
-                                                @endphp
-                                                <span class="text-sm font-black text-gray-900 italic tracking-tighter">{{ number_format($hours, 2) }} {{ Str::plural('hr', $hours) }}</span>
-                                            @else
-                                                <span class="text-gray-300 font-medium italic">—</span>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="6" class="p-20 text-center bg-gray-50/30 rounded-[2.5rem] border-2 border-dashed border-gray-100 mt-8">
-                                            <div class="flex flex-col items-center">
-                                                <div class="w-20 h-20 bg-white rounded-3xl flex items-center justify-center shadow-lg shadow-gray-100 mb-6">
-                                                    <svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                    </svg>
-                                                </div>
-                                                <h4 class="text-xl font-black text-gray-900 italic uppercase tracking-tight mb-2">{{ __('No DTR logs found') }}</h4>
-                                                <p class="text-gray-400 font-medium max-w-xs mx-auto">{{ __('Attendance logs will appear here once the sync from your biometric dtr.xlsx file is complete.') }}</p>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="mt-12">
-                        {{ $records->links() }}
-                    </div>
+            <div class="no-print flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                    <h1 class="text-xl font-bold text-slate-900">
+                        {{ __('My Daily Time Record') }}
+                    </h1>
+                    <p class="mt-1 text-sm text-slate-500">
+                        {{ __('Review and print your monthly DTR.') }}
+                    </p>
                 </div>
             </div>
-        </div>
 
-        <div x-show="printPreviewOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center px-4 py-6">
-            <div class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" @click="printPreviewOpen = false"></div>
-            <div class="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-2xl border border-gray-100">
-                <div class="px-6 py-5 border-b border-gray-100 flex items-start justify-between gap-4">
-                    <div>
-                        <p class="text-[10px] font-black uppercase tracking-widest text-[#0038a8]">{{ __('UI Preview Only') }}</p>
-                        <h2 class="text-xl font-black text-gray-900">{{ __('Printable DTR Copy') }}</h2>
-                        <p class="text-xs text-gray-500 mt-1">{{ now()->startOfMonth()->format('M d, Y') }} - {{ now()->format('M d, Y') }}</p>
+            <div class="no-print rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+                <form method="GET" action="{{ route('my-dtr.index') }}" class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div class="flex flex-1 flex-col gap-4 sm:flex-row">
+                        <label class="relative block flex-1">
+                            <span class="absolute -top-2 left-3 bg-white px-1 text-xs text-slate-500">Month</span>
+                            <select name="month" class="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-[#2b428f]">
+                                @foreach($months as $num => $name)
+                                    <option value="{{ $num }}" {{ (int) $selectedMonth === $num ? 'selected' : '' }}>{{ $name }}</option>
+                                @endforeach
+                            </select>
+                        </label>
+
+                        <label class="relative block flex-1">
+                            <span class="absolute -top-2 left-3 bg-white px-1 text-xs text-slate-500">Year</span>
+                            <select name="year" class="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-[#2b428f]">
+                                @for($year = $startYear; $year <= $endYear; $year++)
+                                    <option value="{{ $year }}" {{ (int) $selectedYear === $year ? 'selected' : '' }}>{{ $year }}</option>
+                                @endfor
+                            </select>
+                        </label>
                     </div>
-                    <button type="button" @click="printPreviewOpen = false" class="h-9 w-9 rounded-lg text-gray-400 hover:bg-gray-50 hover:text-gray-700">
-                        <svg class="mx-auto w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                </div>
 
-                <div class="p-6 space-y-6">
-                    <div class="rounded-xl border border-gray-100 bg-gray-50 p-5">
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+                    <div class="flex gap-2">
+                        <button type="submit" style="background-color: #2b428f;" class="rounded-lg px-6 py-3 text-sm font-bold uppercase tracking-wide text-white shadow">
+                            {{ __('Select') }}
+                        </button>
+                        <button type="button" onclick="window.print()" style="background-color: #2b428f;" class="rounded-lg px-6 py-3 text-sm font-bold uppercase tracking-wide text-white shadow">
+                            {{ __('Print') }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="dtr-print-shell rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+                <div class="overflow-x-auto">
+                    <div class="dtr-sheet min-w-[980px] rounded-lg border border-slate-200 bg-white p-5">
+                        <div class="text-center">
+                            <h2 class="text-base font-bold text-slate-900">
+                                Department of Migrant Workers - Region XI
+                            </h2>
+                            <p class="text-xs text-slate-600">
+                                Davao City, Philippines
+                            </p>
+                            <p class="text-xs text-slate-600">
+                                Website: www.dmw.gov.ph | Email: region11@dmw.gov.ph
+                            </p>
+                            <h3 class="mt-4 text-base font-bold text-slate-900">
+                                Daily Time Record for the period of {{ $dtrSummary['period'] }}
+                            </h3>
+                        </div>
+
+                        <div class="mt-5 grid gap-4 text-xs text-slate-700 md:grid-cols-2">
                             <div>
-                                <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">{{ __('Employee') }}</p>
-                                <p class="font-black text-gray-900">{{ auth()->user()->employee?->firstname }} {{ auth()->user()->employee?->lastname }}</p>
+                                <p class="font-semibold">Legend</p>
+                                <p class="mt-1">AHW - Actual Hours Worked &nbsp;&nbsp; OHW - Official Hours Worked</p>
+                                <p>OT - Overtime &nbsp;&nbsp; LT - Lates &nbsp;&nbsp; UT - Undertime</p>
                             </div>
-                            <div>
-                                <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">{{ __('Department') }}</p>
-                                <p class="font-black text-gray-900">{{ auth()->user()->employee?->division ?? 'Sample Division' }}</p>
-                            </div>
-                            <div>
-                                <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">{{ __('Total Hours') }}</p>
-                                <p class="font-black text-gray-900">156.00</p>
+
+                            <div class="md:text-right">
+                                <p>Employee No. <span class="font-bold underline">{{ $displayEmployeeNo }}</span></p>
+                                <p>Name: <span class="font-bold uppercase">{{ trim(($employee?->firstname ?? '') . ' ' . ($employee?->lastname ?? '')) ?: $user->name }}</span></p>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="rounded-2xl border border-gray-100 overflow-hidden">
-                        <table class="w-full text-left text-sm">
-                            <thead class="bg-gray-50 text-[10px] font-black uppercase tracking-widest text-gray-400">
-                                <tr>
-                                    <th class="px-5 py-3">{{ __('Date') }}</th>
-                                    <th class="px-5 py-3">{{ __('Time In') }}</th>
-                                    <th class="px-5 py-3">{{ __('Time Out') }}</th>
-                                    <th class="px-5 py-3">{{ __('Status') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-100">
-                                <tr><td class="px-5 py-4 font-bold">Jun 02, 2026</td><td class="px-5 py-4 font-bold">08:00 AM</td><td class="px-5 py-4 font-bold">05:00 PM</td><td class="px-5 py-4 font-bold text-emerald-600">Present</td></tr>
-                                <tr><td class="px-5 py-4 font-bold">Jun 03, 2026</td><td class="px-5 py-4 font-bold">08:14 AM</td><td class="px-5 py-4 font-bold">05:05 PM</td><td class="px-5 py-4 font-bold text-amber-600">Late</td></tr>
-                                <tr><td class="px-5 py-4 font-bold">Jun 04, 2026</td><td class="px-5 py-4 font-bold">08:01 AM</td><td class="px-5 py-4 font-bold">05:00 PM</td><td class="px-5 py-4 font-bold text-emerald-600">Present</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
+                        <div class="mt-5 overflow-x-auto">
+                            <table class="w-full border-collapse text-center text-xs">
+                                <thead>
+                                    <tr class="bg-slate-50">
+                                        <th rowspan="2" class="border border-slate-300 px-2 py-2">Date</th>
+                                        <th rowspan="2" class="border border-slate-300 px-2 py-2">Day</th>
+                                        <th rowspan="2" class="border border-slate-300 px-2 py-2">In</th>
+                                        <th colspan="2" class="border border-slate-300 px-2 py-2">Break</th>
+                                        <th rowspan="2" class="border border-slate-300 px-2 py-2">Out</th>
+                                        <th colspan="2" class="border border-slate-300 px-2 py-2">Overtime</th>
+                                        <th rowspan="2" class="border border-slate-300 px-2 py-2">AHW</th>
+                                        <th rowspan="2" class="border border-slate-300 px-2 py-2">OHW</th>
+                                        <th rowspan="2" class="border border-slate-300 px-2 py-2">OT</th>
+                                        <th rowspan="2" class="border border-slate-300 px-2 py-2">LT</th>
+                                        <th rowspan="2" class="border border-slate-300 px-2 py-2">UT</th>
+                                        <th rowspan="2" class="border border-slate-300 px-2 py-2">Remarks</th>
+                                    </tr>
+                                    <tr class="bg-slate-50">
+                                        <th class="border border-slate-300 px-2 py-2">Out</th>
+                                        <th class="border border-slate-300 px-2 py-2">In</th>
+                                        <th class="border border-slate-300 px-2 py-2">In</th>
+                                        <th class="border border-slate-300 px-2 py-2">Out</th>
+                                    </tr>
+                                </thead>
 
-                    <div class="flex justify-end gap-3">
-                        <button type="button" disabled class="rounded-lg bg-gray-100 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-gray-400 cursor-not-allowed">{{ __('Download') }}</button>
-                        <button type="button" disabled class="rounded-lg bg-gray-100 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-gray-400 cursor-not-allowed">{{ __('Print') }}</button>
+                                <tbody>
+                                    @foreach($calendarDays as $day)
+                                        @php
+                                            $record = $recordsByDate->get($day->format('Y-m-d'), collect())->first();
+                                            $isWeekend = $day->isWeekend();
+                                            $hours = $record ? $recordHours($record) : '';
+                                            $isLate = $record && strtolower($statusText($record)) === 'late';
+                                            $remarks = $record ? $statusText($record) : ($isWeekend ? 'Weekend' : '');
+                                        @endphp
+                                        <tr class="hover:bg-slate-50">
+                                            <td class="border border-slate-300 px-2 py-1">{{ $day->day }}</td>
+                                            <td class="border border-slate-300 px-2 py-1">{{ $day->format('D') }}</td>
+                                            <td class="border border-slate-300 px-2 py-1">{{ $record ? $formatTime($record->time_in) : '' }}</td>
+                                            <td class="border border-slate-300 px-2 py-1"></td>
+                                            <td class="border border-slate-300 px-2 py-1"></td>
+                                            <td class="border border-slate-300 px-2 py-1">{{ $record ? $formatTime($record->time_out) : '' }}</td>
+                                            <td class="border border-slate-300 px-2 py-1"></td>
+                                            <td class="border border-slate-300 px-2 py-1"></td>
+                                            <td class="border border-slate-300 px-2 py-1">{{ $hours }}</td>
+                                            <td class="border border-slate-300 px-2 py-1">{{ $isWeekend ? '' : '8.00' }}</td>
+                                            <td class="border border-slate-300 px-2 py-1"></td>
+                                            <td class="border border-slate-300 px-2 py-1">{{ $isLate ? 'Late' : '' }}</td>
+                                            <td class="border border-slate-300 px-2 py-1"></td>
+                                            <td class="border border-slate-300 px-2 py-1 text-left">{{ $remarks }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="dtr-late-summary mt-8 rounded-lg border border-slate-300 bg-slate-50 p-4">
+                            <div class="flex items-start justify-between gap-4">
+                                <div>
+                                    <h4 class="text-sm font-bold uppercase tracking-wide text-slate-900">
+                                        Late Dates Summary
+                                    </h4>
+                                    <p class="mt-1 text-xs text-slate-600">
+                                        This section helps the employee and HR quickly review dates with late attendance for the selected month.
+                                    </p>
+                                </div>
+
+                                <span class="rounded-full bg-white px-3 py-1 text-xs font-bold text-amber-700 ring-1 ring-amber-200">
+                                    {{ $lateRecords->count() }} late day(s)
+                                </span>
+                            </div>
+
+                            <div class="mt-3 overflow-x-auto">
+                                <table class="w-full border-collapse text-xs">
+                                    <thead>
+                                        <tr class="bg-white text-left text-slate-600">
+                                            <th class="border border-slate-300 px-2 py-2">Date</th>
+                                            <th class="border border-slate-300 px-2 py-2">Day</th>
+                                            <th class="border border-slate-300 px-2 py-2">Time In</th>
+                                            <th class="border border-slate-300 px-2 py-2">Late</th>
+                                            <th class="border border-slate-300 px-2 py-2">Remarks</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        @forelse($lateRecords as $lateRecord)
+                                            @php $lateDate = \Carbon\Carbon::parse($lateRecord->date); @endphp
+                                            <tr class="bg-white">
+                                                <td class="border border-slate-300 px-2 py-1">{{ $lateDate->format('M d, Y') }}</td>
+                                                <td class="border border-slate-300 px-2 py-1">{{ $lateDate->format('D') }}</td>
+                                                <td class="border border-slate-300 px-2 py-1">{{ $formatTime($lateRecord->time_in) ?: 'N/A' }}</td>
+                                                <td class="border border-slate-300 px-2 py-1">Late</td>
+                                                <td class="border border-slate-300 px-2 py-1">{{ $lateRecord->status ?: 'Late arrival' }}</td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="5" class="border border-slate-300 px-2 py-3 text-center text-slate-500">
+                                                    No late records for this selected month.
+                                                </td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="dtr-signatures mt-12 grid gap-12 text-sm md:grid-cols-2">
+                            <div class="text-center">
+                                <div class="mx-auto flex h-16 w-64 items-end justify-center">
+                                    @if($employee?->effective_signature_url)
+                                        <img src="{{ $employee->effective_signature_url }}" alt="Employee e-signature" class="max-h-14 object-contain">
+                                    @else
+                                        <span class="text-xs italic text-slate-400">Employee e-signature</span>
+                                    @endif
+                                </div>
+
+                                <div class="mx-auto w-64 border-t border-slate-400 pt-2">
+                                    <p class="font-semibold">Employee Signature</p>
+                                    <p class="mt-1 text-xs text-slate-500">{{ trim(($employee?->firstname ?? '') . ' ' . ($employee?->lastname ?? '')) ?: $user->name }}</p>
+                                </div>
+                            </div>
+
+                            <div class="text-center">
+                                <div class="mx-auto flex h-16 w-64 items-end justify-center">
+                                    <span class="text-xs italic text-slate-400">HR e-signature</span>
+                                </div>
+
+                                <div class="mx-auto w-64 border-t border-slate-400 pt-2">
+                                    <p class="font-semibold">HR Verification</p>
+                                    <p class="mt-1 text-xs text-slate-500">Authorized HR Personnel</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

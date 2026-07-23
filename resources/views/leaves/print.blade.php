@@ -682,7 +682,7 @@
     $chiefName = $formatName($leaveRequest->chief) ?: 'LOUIE JAY C. LOSARIA';
     $hrName = $formatName($leaveRequest->hrstaff) ?: 'MANILYN JOY P. VELITA';
     $directorName = $formatName($leaveRequest->regionalDirector) ?: 'MARIA CAROLINA B. AGDAMAG';
-    $signatureUrl = $employee?->pdsGovId?->signature_path ? Storage::disk('public')->url($employee->pdsGovId->signature_path) : null;
+    $signatureUrl = $employee?->effective_signature_url ?? ($employee?->pdsGovId?->signature_path ? Storage::disk('public')->url($employee->pdsGovId->signature_path) : null);
     $isApproved = $leaveRequest->status === 'approved';
     $isRejected = $leaveRequest->status === 'rejected';
     $rejectReason = trim(collect([$leaveRequest->rd_remarks, $leaveRequest->hrstaff_remarks, $leaveRequest->chief_remarks, $leaveRequest->remarks])->filter()->implode(' '));

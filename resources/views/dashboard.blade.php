@@ -43,7 +43,7 @@
 
                 <!-- Latest Announcement Sidebar -->
                 <div class="lg:col-span-1 lg:self-start">
-                    @if(in_array(auth()->user()->role, ['admin', 'hrstaff', 'regionaldirector', 'regional director']))
+                    @if(in_array(auth()->user()->role, ['admin', 'hrstaff', 'regionaldirector']))
                         <div class="mb-3 flex justify-end">
                             <a href="{{ route('announcements.index', ['openCreate' => 1]) }}" class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-xs font-black uppercase tracking-widest text-white shadow-md shadow-indigo-100 transition hover:bg-indigo-700">
                                 <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

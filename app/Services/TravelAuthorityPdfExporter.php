@@ -1,0 +1,30 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\TravelOrder;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Response;
+
+class TravelAuthorityPdfExporter
+{
+    public function stream(TravelOrder $travelOrder): Response
+    {
+        $travelOrder->loadMissing(['employee', 'companions']);
+
+        $filename = 'Travel_Authority_'.$travelOrder->id.'.pdf';
+
+        $pdf = Pdf::loadView('travel-orders.pdf', [
+            'travelOrder' => $travelOrder,
+            'dmwLogoPath' => public_path('images/dmw.png'),
+            'bagongPilipinasLogoPath' => public_path('images/bagong-pilipinas-logo.png'),
+            'regionalOffice' => 'REGIONAL OFFICE XI, DAVAO CITY',
+            'requestingOffice' => 'Regional Office XI',
+            'notesRemarks' => $travelOrder->notes_remarks ?: '',
+            'driverName' => $travelOrder->driver_name ?: '',
+            'vehiclePlateNo' => $travelOrder->vehicle_plate_no ?: '',
+        ])->setPaper('a4', 'portrait');
+
+        return $pdf->stream($filename, ['Content-Type' => 'application/pdf']);
+    }
+}

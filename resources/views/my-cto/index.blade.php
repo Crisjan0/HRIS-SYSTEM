@@ -15,9 +15,9 @@
                     'id' => (string) $trackedCto->id,
                     'title' => $trackedCto->type_label,
                     'stages' => collect([
-                        ['label' => 'Chief', 'status' => $trackedCto->chief_status],
                         ['label' => 'HR', 'status' => $trackedCto->hrstaff_status],
-                        ['label' => 'Director', 'status' => $trackedCto->rd_status],
+                        ['label' => 'Chief', 'status' => $trackedCto->chief_status],
+                        ['label' => 'Regional Director', 'status' => $trackedCto->rd_status],
                     ])->map(fn ($stage) => [
                         'label' => $stage['label'],
                         'status' => $stage['status'] ?: 'pending',
@@ -67,10 +67,31 @@
 
             <x-approval-tracker :payload="$trackedCtoPayload" event="cto-selected" empty="No CTO request to track yet." />
 
-            <div class="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-100 overflow-hidden" x-data="myCtoRequestsTable()" x-init="init()">
+            <div x-data="myCtoRequestsTable()" x-init="init()">
+                {{-- Year filter outside the table container --}}
+                <div class="mb-4 flex items-center justify-end gap-2">
+                    <label for="my_cto_year" class="text-sm font-semibold text-gray-700">
+                        {{ __('Year') }}
+                    </label>
+                    <select
+                        id="my_cto_year"
+                        x-model="year"
+                        @change="applyFilters()"
+                        class="h-10 w-28 appearance-auto rounded-lg border-gray-300 bg-white pl-4 pr-10 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    >
+                        @php
+                            $currentYear = now()->year;
+                        @endphp
+                        @for ($yearOption = $currentYear; $yearOption >= $currentYear - 4; $yearOption--)
+                            <option value="{{ $yearOption }}">{{ $yearOption }}</option>
+                        @endfor
+                    </select>
+                </div>
+
+                <div class="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
                 <div class="border-b border-gray-100 bg-gray-50/70 p-2">
-                    <div class="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
-                        <div class="relative min-w-0 sm:flex-1">
+                    <div class="flex min-w-max items-center gap-2 overflow-x-auto">
+                        <div class="relative min-w-[260px] flex-1">
                             <label for="my_cto_search" class="sr-only">{{ __('Search CTO request') }}</label>
                             <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -79,11 +100,23 @@
                             </span>
                             <input id="my_cto_search" type="search" x-model="search" @input.debounce.200ms="applyFilters()" placeholder="{{ __('Search type, status, or approver...') }}" class="block h-9 w-full rounded-lg border-gray-300 pl-10 pr-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
                         </div>
-                        <select x-model="sort" @change="applyFilters()" class="block h-9 rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:w-44">
-                            <option value="latest">{{ __('Latest Filed') }}</option>
-                            <option value="oldest">{{ __('Oldest Filed') }}</option>
+
+                        <select x-model="type" @change="applyFilters()" class="block h-9 w-44 shrink-0 rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <option value="">{{ __('All Types') }}</option>
+                            @foreach($ctoRequests->pluck('type_label')->filter()->unique()->sort() as $typeOption)
+                                <option value="{{ Str::lower($typeOption) }}">{{ $typeOption }}</option>
+                            @endforeach
                         </select>
-                        <button type="button" @click="reset()" class="inline-flex h-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-xs font-bold uppercase tracking-wider text-gray-700 transition hover:bg-gray-50">
+
+                        <select x-model="status" @change="applyFilters()" class="block h-9 w-40 shrink-0 rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <option value="">{{ __('All Statuses') }}</option>
+                            <option value="pending">{{ __('Pending') }}</option>
+                            <option value="approved">{{ __('Approved') }}</option>
+                            <option value="rejected">{{ __('Rejected') }}</option>
+                            <option value="cancelled">{{ __('Cancelled') }}</option>
+                        </select>
+
+                        <button type="button" @click="reset()" class="inline-flex h-9 shrink-0 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-xs font-bold uppercase tracking-wider text-gray-700 transition hover:bg-gray-50">
                             {{ __('Reset') }}
                         </button>
                     </div>
@@ -93,10 +126,9 @@
                     <table class="w-full text-left border-collapse">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">{{ __('Type') }}</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">{{ __('Date Filed') }}</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">{{ __('Status') }}</th>
-                                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">{{ __('Actions') }}</th>
+                                <th scope="col" class="w-[50%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">{{ __('Type') }}</th>
+                                <th scope="col" class="w-[35%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">{{ __('Date Filed') }}</th>
+                                <th scope="col" class="w-[15%] px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">{{ __('Actions') }}</th>
                             </tr>
                         </thead>
                         <tbody id="myCtoRequestsTableBody" class="divide-y divide-gray-100 bg-white">
@@ -105,14 +137,14 @@
                                     $searchText = Str::lower($request->type_label . ' ' . $request->purpose . ' ' . $request->status . ' ' . $request->date_start->format('M d, Y'));
                                     $statusClass = match($request->status) {
                                         'approved' => 'bg-[#00c950] text-white',
-                                        'rejected' => 'bg-red-500 text-white',
+                                        'rejected' => 'bg-red-50 text-white',
                                         'pending' => 'border border-orange-100 bg-orange-50 text-orange-700',
                                         default => 'bg-gray-400 text-white',
                                     };
                                     $stages = [
-                                        ['label' => 'Chief', 'status' => $request->chief_status],
                                         ['label' => 'HR', 'status' => $request->hrstaff_status],
-                                        ['label' => 'Director', 'status' => $request->rd_status],
+                                        ['label' => 'Chief', 'status' => $request->chief_status],
+                                        ['label' => 'Regional Director', 'status' => $request->rd_status],
                                     ];
                                     $ctoTrackerPayload = [
                                         'id' => (string) $request->id,
@@ -128,7 +160,9 @@
                                     data-approval-row="{{ $request->id }}"
                                     data-cto-row
                                     data-search="{{ $searchText }}"
-                                    data-filed="{{ $request->created_at?->timestamp ?? 0 }}"
+                                    data-type="{{ Str::lower($request->type_label) }}"
+                                    data-status="{{ Str::lower($request->status) }}"
+                                    data-year="{{ $request->created_at?->year ?? now()->year }}"
                                 >
                                     <td class="px-5 py-3 text-sm font-bold text-gray-900 whitespace-nowrap">
                                         <button type="button" @click="$dispatch('cto-selected', @js($ctoTrackerPayload))" class="text-left font-bold text-blue-900 underline-offset-4 transition hover:text-blue-700 hover:underline" title="{{ __('Show approval progress for ') }}{{ $request->type_label }}">
@@ -136,11 +170,6 @@
                                         </button>
                                     </td>
                                     <td class="px-5 py-3 text-sm text-gray-700 whitespace-nowrap">{{ $request->created_at?->format('M d, Y') }}</td>
-                                    <td class="px-5 py-3 text-sm whitespace-nowrap">
-                                        <span class="px-4 py-1 inline-flex text-xs leading-5 font-semibold rounded-full shadow-sm {{ $statusClass }}">
-                                            {{ ucfirst($request->status) }}
-                                        </span>
-                                    </td>
                                     <td class="px-5 py-3 text-right whitespace-nowrap">
                                         <a href="{{ route('my-cto.show', $request) }}" class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-indigo-700 transition-colors hover:bg-indigo-50 hover:text-indigo-900" title="{{ __('View details') }}" aria-label="{{ __('View details') }}">
                                             <i class="fa-solid fa-eye"></i>
@@ -149,14 +178,14 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4" class="py-8 text-center text-gray-500">
+                                    <td colspan="3" class="py-8 text-center text-gray-500">
                                         {{ __('No compensatory time-off records found.') }}
                                     </td>
                                 </tr>
                             @endforelse
                             @if($ctoRequests->isNotEmpty())
                                 <tr x-show="noResults" style="display: none;">
-                                    <td colspan="4" class="py-8 text-center text-gray-500">
+                                    <td colspan="3" class="py-8 text-center text-gray-500">
                                         {{ __('No CTO requests match your search or filter.') }}
                                     </td>
                                 </tr>
@@ -165,6 +194,7 @@
                     </table>
                 </div>
             </div>
+            </div>
         </div>
     </div>
 
@@ -172,7 +202,9 @@
         function myCtoRequestsTable() {
             return {
                 search: '',
-                sort: 'latest',
+                type: '',
+                status: '',
+                year: '{{ now()->year }}',
                 rows: [],
                 noResults: false,
                 init() {
@@ -181,29 +213,26 @@
                 },
                 applyFilters() {
                     const search = this.search.trim().toLowerCase();
-                    const tbody = document.getElementById('myCtoRequestsTableBody');
                     let visibleCount = 0;
 
-                    this.rows.sort((a, b) => this.compareRows(a, b)).forEach((row) => {
-                        const visible = !search || row.dataset.search.includes(search);
+                    this.rows.forEach((row) => {
+                        const matchesSearch = !search || row.dataset.search.includes(search);
+                        const matchesType = !this.type || row.dataset.type === this.type;
+                        const matchesStatus = !this.status || row.dataset.status === this.status;
+                        const matchesYear = !this.year || row.dataset.year === this.year;
+                        const visible = matchesSearch && matchesType && matchesStatus && matchesYear;
 
                         row.classList.toggle('hidden', !visible);
                         if (visible) visibleCount++;
-                        tbody.appendChild(row);
                     });
 
                     this.noResults = this.rows.length > 0 && visibleCount === 0;
                 },
-                compareRows(a, b) {
-                    const aFiled = Number(a.dataset.filed || 0);
-                    const bFiled = Number(b.dataset.filed || 0);
-
-                    if (this.sort === 'oldest') return aFiled - bFiled;
-                    return bFiled - aFiled;
-                },
                 reset() {
                     this.search = '';
-                    this.sort = 'latest';
+                    this.type = '';
+                    this.status = '';
+                    this.year = '{{ now()->year }}';
                     this.applyFilters();
                 },
             };

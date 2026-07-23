@@ -99,7 +99,7 @@
                     {{-- Applicant Signature --}}
                     <div x-data="{ signatureName: '' }">
                         <label for="applicant_signature" class="block text-sm font-bold text-gray-700 mb-1">
-                            {{ __('Applicant Signature') }}
+                            {{ __('Applicant Signature Override') }}
                             <span class="text-gray-400 font-normal text-xs">- Optional</span>
                         </label>
                         <div class="relative group">
@@ -121,7 +121,7 @@
                                         </svg>
                                     </div>
                                     <div class="min-w-0">
-                                        <span x-show="!signatureName" class="text-sm font-bold text-gray-500">{{ __('Upload Signature Image') }}</span>
+                                        <span x-show="!signatureName" class="text-sm font-bold text-gray-500">{{ __('Use profile signature unless replaced here') }}</span>
                                         <span x-show="signatureName" x-text="signatureName" class="text-sm font-bold text-indigo-700 truncate max-w-xs"></span>
                                         <p class="text-xs text-gray-400">{{ __('JPG or PNG only (Max 2MB)') }}</p>
                                     </div>

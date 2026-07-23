@@ -1,6 +1,16 @@
 <x-app-layout>
     <x-slot name="title">{{ __('Update Personal Data Sheet (CS Form No. 212)') }}</x-slot>
 
+    <style>
+        /* Always-visible field background only */
+        .pds-form-body input:not([type="radio"]):not([type="checkbox"]):not([type="hidden"]):not([type="file"]),
+        .pds-form-body select,
+        .pds-form-body textarea {
+            background-color: #eef2ff !important;
+        }
+    </style>
+
+
     @php
         $allowedTabs = ['personal', 'family', 'education', 'eligibility', 'work', 'voluntary', 'training', 'otherinfo', 'declaration'];
         $initialTab = in_array(request('tab'), $allowedTabs, true) ? request('tab') : 'personal';
@@ -16,7 +26,7 @@
         voluntary: {{ $employee->pdsVoluntaryWorks->count() > 0 ? $employee->pdsVoluntaryWorks->toJson() : '[{organization_name: \'\', date_from: \'\', date_to: \'\', number_of_hours: \'\', position: \'\'}]' }},
         others: {{ $employee->pdsOthers->count() > 0 ? $employee->pdsOthers->toJson() : '[{type: \'Skill\', description: \'\'}]' }},
         references: {{ $employee->pdsReferences->count() > 0 ? $employee->pdsReferences->toJson() : '[{name: \'\', address: \'\', telephone_no: \'\'}, {name: \'\', address: \'\', telephone_no: \'\'}, {name: \'\', address: \'\', telephone_no: \'\'}]' }},
-        signaturePreview: @js($employee->pdsGovId?->signature_path ? \Illuminate\Support\Facades\Storage::disk('public')->url($employee->pdsGovId->signature_path) : null),
+        signaturePreview: @js($employee->effective_signature_url),
         photoPreview: @js($employee->profile_picture_url)
     }">
         <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
@@ -110,7 +120,6 @@
                         <div>
                             <div class="pds-section-heading flex justify-between items-center border border-black bg-gray-200 px-3 py-2 mb-4">
                                 <div class="flex items-center gap-3">
-                                    <span class="bg-black text-white px-2 py-0.5 text-[10px] font-black tracking-widest">I</span>
                                     <h3 class="text-base font-black text-gray-900 uppercase tracking-tight">Personal Information</h3>
                                 </div>
                                 @php $personalReview = $employee->pdsSectionReviews->where('section_name', 'Personal Information')->first(); @endphp
@@ -132,13 +141,13 @@
                                 <div class="pds-field-table pds-field-table-4">
                                     <!-- 1. Surname -->
                                     <div class="space-y-1">
-                                        <x-input-label value="1. Surname" class="text-[10px] font-black uppercase text-gray-500 tracking-wider" />
+                                        <x-input-label value="Surname" class="text-[10px] font-black uppercase text-gray-500 tracking-wider" />
                                         <x-text-input class="block w-full text-sm font-bold border-gray-100 bg-gray-50/30" name="personal[surname]" :value="old('personal.surname', $employee->pdsPersonal?->surname ?? $employee->lastname)" />
                                     </div>
                                     <!-- 2. First Name & Extension -->
                                     <div class="contents">
                                         <div class="space-y-1">
-                                            <x-input-label value="2. First Name" class="text-[10px] font-black uppercase text-gray-500 tracking-wider" />
+                                            <x-input-label value="First Name" class="text-[10px] font-black uppercase text-gray-500 tracking-wider" />
                                             <x-text-input class="block w-full text-sm font-bold border-gray-100 bg-gray-50/30" name="personal[firstname]" :value="old('personal.firstname', $employee->pdsPersonal?->firstname ?? $employee->firstname)" />
                                         </div>
                                         <div class="space-y-1">
@@ -154,11 +163,11 @@
                                     <!-- 3. DOB & 4. POB -->
                                     <div class="contents">
                                         <div class="space-y-1">
-                                            <x-input-label value="3. Date of Birth" class="text-[10px] font-black uppercase text-gray-500 tracking-wider" />
+                                            <x-input-label value="Date of Birth" class="text-[10px] font-black uppercase text-gray-500 tracking-wider" />
                                             <x-text-input type="date" class="block w-full text-sm font-bold border-gray-100" name="personal[date_of_birth]" :value="old('personal.date_of_birth', $employee->pdsPersonal?->date_of_birth)" />
                                         </div>
                                         <div class="space-y-1">
-                                            <x-input-label value="4. Place of Birth" class="text-[10px] font-black uppercase text-gray-500 tracking-wider" />
+                                            <x-input-label value="Place of Birth" class="text-[10px] font-black uppercase text-gray-500 tracking-wider" />
                                             <x-text-input class="block w-full text-sm font-bold border-gray-100" name="personal[place_of_birth]" :value="old('personal.place_of_birth', $employee->pdsPersonal?->place_of_birth)" />
                                         </div>
                                     </div>
@@ -166,7 +175,7 @@
                                     <!-- 5. Sex & 6. Civil Status -->
                                     <div class="contents">
                                         <div class="space-y-1">
-                                            <x-input-label value="5. Sex" class="text-[10px] font-black uppercase text-gray-500 tracking-wider" />
+                                            <x-input-label value="Sex" class="text-[10px] font-black uppercase text-gray-500 tracking-wider" />
                                             <select name="personal[sex]" class="w-full border-gray-100 focus:border-indigo-500 focus:ring-indigo-500 rounded-xl shadow-sm text-sm font-bold">
                                                 <option value="">Select</option>
                                                 <option value="Male" {{ old('personal.sex', $employee->pdsPersonal?->sex) == 'Male' ? 'selected' : '' }}>Male</option>
@@ -174,23 +183,33 @@
                                             </select>
                                         </div>
                                         <div class="space-y-1">
-                                            <x-input-label value="6. Civil Status" class="text-[10px] font-black uppercase text-gray-500 tracking-wider" />
-                                            <x-text-input class="block w-full text-sm font-bold border-gray-100" name="personal[civil_status]" :value="old('personal.civil_status', $employee->pdsPersonal?->civil_status)" />
+                                            <x-input-label value="Civil Status" class="text-[10px] font-black uppercase text-gray-500 tracking-wider" />
+                                            @php
+                                                $currCivilStatus = strtolower(old('personal.civil_status', $employee->pdsPersonal?->civil_status ?? ''));
+                                            @endphp
+                                            <select name="personal[civil_status]" class="w-full border-gray-100 focus:border-indigo-500 focus:ring-indigo-500 rounded-xl shadow-sm text-sm font-bold">
+                                                <option value="">Select</option>
+                                                <option value="single" {{ $currCivilStatus == 'single' ? 'selected' : '' }}>Single</option>
+                                                <option value="married" {{ $currCivilStatus == 'married' ? 'selected' : '' }}>Married</option>
+                                                <option value="widow" {{ in_array($currCivilStatus, ['widow', 'widowed']) ? 'selected' : '' }}>Widowed</option>
+                                                <option value="separated" {{ $currCivilStatus == 'separated' ? 'selected' : '' }}>Separated</option>
+                                                <option value="other" {{ $currCivilStatus == 'other' ? 'selected' : '' }}>Other</option>
+                                            </select>
                                         </div>
                                     </div>
 
                                     <!-- 7. Height, 8. Weight, 9. Blood -->
                                     <div class="contents">
                                         <div class="space-y-1">
-                                            <x-input-label value="7. Height (m)" class="text-[10px] font-black uppercase text-gray-500 tracking-wider" />
+                                            <x-input-label value="Height (m)" class="text-[10px] font-black uppercase text-gray-500 tracking-wider" />
                                             <x-text-input class="block w-full text-sm font-bold border-gray-100" name="personal[height_m]" :value="old('personal.height_m', $employee->pdsPersonal?->height_m)" />
                                         </div>
                                         <div class="space-y-1">
-                                            <x-input-label value="8. Weight (kg)" class="text-[10px] font-black uppercase text-gray-500 tracking-wider" />
+                                            <x-input-label value="Weight (kg)" class="text-[10px] font-black uppercase text-gray-500 tracking-wider" />
                                             <x-text-input class="block w-full text-sm font-bold border-gray-100" name="personal[weight_kg]" :value="old('personal.weight_kg', $employee->pdsPersonal?->weight_kg)" />
                                         </div>
                                         <div class="space-y-1">
-                                            <x-input-label value="9. Blood Type" class="text-[10px] font-black uppercase text-gray-500 tracking-wider" />
+                                            <x-input-label value="Blood Type" class="text-[10px] font-black uppercase text-gray-500 tracking-wider" />
                                             <x-text-input class="block w-full text-sm font-bold border-gray-100" name="personal[blood_type]" :value="old('personal.blood_type', $employee->pdsPersonal?->blood_type)" />
                                         </div>
                                     </div>
@@ -198,13 +217,13 @@
                                     <!-- IDs 10-15 -->
                                     <div class="col-span-full border-t border-slate-100 pt-4">
                                         <div class="pds-field-table pds-field-table-4">
-                                        <div class="space-y-1"><x-input-label value="10. UMID ID NO." class="text-[9px] font-black text-gray-400" /><x-text-input class="w-full text-xs font-bold border-gray-100" name="personal[umid_no]" :value="old('personal.umid_no', $employee->pdsPersonal?->umid_no)" /></div>
-                                        <div class="space-y-1"><x-input-label value="11. PAG-IBIG ID NO." class="text-[9px] font-black text-gray-400" /><x-text-input class="w-full text-xs font-bold border-gray-100" name="personal[pagibig_id_no]" :value="old('personal.pagibig_id_no', $employee->pdsPersonal?->pagibig_id_no)" /></div>
-                                        <div class="space-y-1"><x-input-label value="12. PHILHEALTH NO." class="text-[9px] font-black text-gray-400" /><x-text-input class="w-full text-xs font-bold border-gray-100" name="personal[philhealth_no]" :value="old('personal.philhealth_no', $employee->pdsPersonal?->philhealth_no)" /></div>
-                                        <div class="space-y-1"><x-input-label value="13. SSS NO." class="text-[9px] font-black text-gray-400" /><x-text-input class="w-full text-xs font-bold border-gray-100" name="personal[sss_no]" :value="old('personal.sss_no', $employee->pdsPersonal?->sss_no)" /></div>
-                                        <div class="space-y-1"><x-input-label value="14. PhilSys No. (PSN)" class="text-[9px] font-black text-gray-400" /><x-text-input class="w-full text-xs font-bold border-gray-100" name="personal[philsys_no]" :value="old('personal.philsys_no', $employee->pdsPersonal?->philsys_no)" /></div>
-                                        <div class="space-y-1"><x-input-label value="15. TIN NO." class="text-[9px] font-black text-gray-400" /><x-text-input class="w-full text-xs font-bold border-gray-100" name="personal[tin_no]" :value="old('personal.tin_no', $employee->pdsPersonal?->tin_no)" /></div>
-                                            <div class="space-y-1"><x-input-label value="16. AGENCY EMPLOYEE NO." class="text-[9px] font-black text-gray-400" /><x-text-input class="w-full text-xs font-bold border-gray-100" name="personal[agency_employee_no]" :value="old('personal.agency_employee_no', $employee->pdsPersonal?->agency_employee_no)" /></div>
+                                        <div class="space-y-1"><x-input-label value="UMID ID NO." class="text-[9px] font-black text-gray-400" /><x-text-input class="w-full text-xs font-bold border-gray-100" name="personal[umid_no]" :value="old('personal.umid_no', $employee->pdsPersonal?->umid_no)" /></div>
+                                        <div class="space-y-1"><x-input-label value="PAG-IBIG ID NO." class="text-[9px] font-black text-gray-400" /><x-text-input class="w-full text-xs font-bold border-gray-100" name="personal[pagibig_id_no]" :value="old('personal.pagibig_id_no', $employee->pdsPersonal?->pagibig_id_no)" /></div>
+                                        <div class="space-y-1"><x-input-label value="PHILHEALTH NO." class="text-[9px] font-black text-gray-400" /><x-text-input class="w-full text-xs font-bold border-gray-100" name="personal[philhealth_no]" :value="old('personal.philhealth_no', $employee->pdsPersonal?->philhealth_no)" /></div>
+                                        <div class="space-y-1"><x-input-label value="SSS NO." class="text-[9px] font-black text-gray-400" /><x-text-input class="w-full text-xs font-bold border-gray-100" name="personal[sss_no]" :value="old('personal.sss_no', $employee->pdsPersonal?->sss_no)" /></div>
+                                        <div class="space-y-1"><x-input-label value="PhilSys No. (PSN)" class="text-[9px] font-black text-gray-400" /><x-text-input class="w-full text-xs font-bold border-gray-100" name="personal[philsys_no]" :value="old('personal.philsys_no', $employee->pdsPersonal?->philsys_no)" /></div>
+                                        <div class="space-y-1"><x-input-label value="TIN NO." class="text-[9px] font-black text-gray-400" /><x-text-input class="w-full text-xs font-bold border-gray-100" name="personal[tin_no]" :value="old('personal.tin_no', $employee->pdsPersonal?->tin_no)" /></div>
+                                            <div class="space-y-1"><x-input-label value="AGENCY EMPLOYEE NO." class="text-[9px] font-black text-gray-400" /><x-text-input class="w-full text-xs font-bold border-gray-100" name="personal[agency_employee_no]" :value="old('personal.agency_employee_no', $employee->pdsPersonal?->agency_employee_no)" /></div>
                                         </div>
                                     </div>
                                 </div>
@@ -212,7 +231,7 @@
                                 <div class="space-y-8">
                                     <!-- 16. Citizenship -->
                                     <div class="space-y-4 rounded-lg border border-slate-200 p-5">
-                                        <x-input-label value="16. Citizenship" class="text-[10px] font-black uppercase text-indigo-700 tracking-wider" />
+                                        <x-input-label value="Citizenship" class="text-[10px] font-black uppercase text-indigo-700 tracking-wider" />
                                         <div class="flex gap-6 items-center">
                                             <label class="inline-flex items-center">
                                                 <input type="radio" name="personal[citizenship]" value="Filipino" class="text-indigo-600 focus:ring-indigo-500" {{ (old('personal.citizenship', $employee->pdsPersonal?->citizenship) == 'Filipino' || !old('personal.citizenship', $employee->pdsPersonal?->citizenship)) ? 'checked' : '' }}>
@@ -235,7 +254,7 @@
 
                                     <!-- 17. Residential Address -->
                                     <div class="rounded-lg border border-slate-200 p-5">
-                                        <x-input-label value="17. Residential Address" class="text-[10px] font-black uppercase text-gray-500 tracking-wider" />
+                                        <x-input-label value="Residential Address" class="text-[10px] font-black uppercase text-gray-500 tracking-wider" />
                                         <div class="pds-field-table pds-field-table-4 mt-5">
                                             <x-text-input placeholder="House/Block/Lot No." class="text-xs font-bold" name="personal[res_house_no]" :value="old('personal.res_house_no', $employee->pdsPersonal?->res_house_no)" />
                                             <x-text-input placeholder="Street" class="text-xs font-bold" name="personal[res_street]" :value="old('personal.res_street', $employee->pdsPersonal?->res_street)" />
@@ -250,7 +269,7 @@
                                     <!-- 18. Permanent Address -->
                                     <div class="rounded-lg border border-slate-200 p-5">
                                         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                            <x-input-label value="18. Permanent Address" class="text-[10px] font-black uppercase text-gray-500 tracking-wider" />
+                                            <x-input-label value="Permanent Address" class="text-[10px] font-black uppercase text-gray-500 tracking-wider" />
                                             <label class="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-slate-500">
                                                 <input type="checkbox" id="sameAsResidentialAddress" class="rounded border-slate-300 text-indigo-700 focus:ring-indigo-500">
                                                 Same as residential address
@@ -269,9 +288,9 @@
 
                                     <!-- 19-21 Contact -->
                                     <div class="pds-field-table pds-field-table-3 border-t border-slate-100 pt-4">
-                                        <div class="space-y-1"><x-input-label value="19. Telephone No." class="text-[9px] font-black text-gray-400" /><x-text-input class="w-full text-xs font-bold border-gray-100" name="personal[telephone_no]" :value="old('personal.telephone_no', $employee->pdsPersonal?->telephone_no)" /></div>
-                                        <div class="space-y-1"><x-input-label value="20. Mobile No." class="text-[9px] font-black text-gray-400" /><x-text-input class="w-full text-xs font-bold border-gray-100" name="personal[mobile_no]" :value="old('personal.mobile_no', $employee->pdsPersonal?->mobile_no)" /></div>
-                                        <div class="space-y-1"><x-input-label value="21. E-mail Address" class="text-[9px] font-black text-gray-400" /><x-text-input class="w-full text-xs font-bold border-gray-100" name="personal[email_address]" :value="old('personal.email_address', $employee->pdsPersonal?->email_address)" /></div>
+                                        <div class="space-y-1"><x-input-label value="Telephone No." class="text-[9px] font-black text-gray-400" /><x-text-input class="w-full text-xs font-bold border-gray-100" name="personal[telephone_no]" :value="old('personal.telephone_no', $employee->pdsPersonal?->telephone_no)" /></div>
+                                        <div class="space-y-1"><x-input-label value="Mobile No." class="text-[9px] font-black text-gray-400" /><x-text-input class="w-full text-xs font-bold border-gray-100" name="personal[mobile_no]" :value="old('personal.mobile_no', $employee->pdsPersonal?->mobile_no)" /></div>
+                                        <div class="space-y-1"><x-input-label value="E-mail Address" class="text-[9px] font-black text-gray-400" /><x-text-input class="w-full text-xs font-bold border-gray-100" name="personal[email_address]" :value="old('personal.email_address', $employee->pdsPersonal?->email_address)" /></div>
                                     </div>
                                 </div>
                             </div>
@@ -283,7 +302,6 @@
                         <div>
                             <div class="pds-section-heading flex justify-between items-center border border-black bg-gray-200 px-3 py-2 mb-4">
                                 <div class="flex items-center gap-3">
-                                    <span class="bg-indigo-700 text-white px-2 py-0.5 rounded text-[10px] font-black tracking-widest">II</span>
                                     <h3 class="text-base font-black text-gray-900 uppercase tracking-tight">Family Background</h3>
                                 </div>
                                 @php $familyReview = $employee->pdsSectionReviews->where('section_name', 'Family Background')->first(); @endphp
@@ -342,7 +360,6 @@
                          <div>
                             <div class="flex justify-between items-center border-b-2 border-indigo-700 pb-2 mb-4">
                                 <div class="flex items-center gap-3">
-                                    <span class="bg-indigo-700 text-white px-2 py-0.5 rounded text-[10px] font-black tracking-widest">III</span>
                                     <h3 class="text-base font-black text-gray-900 uppercase tracking-tight">Educational Background</h3>
                                 </div>
                                 <div class="flex items-center gap-2">
@@ -400,7 +417,6 @@
                         <div>
                             <div class="flex justify-between items-center border-b-2 border-indigo-700 pb-2 mb-4">
                                 <div class="flex items-center gap-3">
-                                    <span class="bg-indigo-700 text-white px-2 py-0.5 rounded text-[10px] font-black tracking-widest">IV</span>
                                     <h3 class="text-base font-black text-gray-900 uppercase tracking-tight">Civil Service Eligibility</h3>
                                 </div>
                                 <div class="flex items-center gap-2">
@@ -450,7 +466,6 @@
                          <div>
                             <div class="flex justify-between items-center border-b-2 border-indigo-700 pb-2 mb-4">
                                 <div class="flex items-center gap-3">
-                                    <span class="bg-black text-white px-2 py-0.5 text-[10px] font-black tracking-widest">V</span>
                                     <h3 class="text-base font-black text-gray-900 uppercase tracking-tight">Work Experience</h3>
                                 </div>
                                 <div class="flex items-center gap-2">
@@ -504,7 +519,6 @@
                          <div>
                             <div class="flex justify-between items-center border-b-2 border-indigo-700 pb-2 mb-4">
                                 <div class="flex items-center gap-3">
-                                    <span class="bg-black text-white px-2 py-0.5 text-[10px] font-black tracking-widest">VI</span>
                                     <h3 class="text-base font-black text-gray-900 uppercase tracking-tight">Voluntary Work or Involvement</h3>
                                 </div>
                                 <button type="button" @click="voluntary.push({organization_name: '', date_from: '', date_to: '', number_of_hours: '', position: ''})" class="text-[9px] font-black uppercase tracking-[0.1em] bg-indigo-700 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-800 transition">+ Add Voluntary Work</button>
@@ -543,7 +557,6 @@
                          <div>
                             <div class="pds-section-heading flex justify-between items-center border border-black bg-gray-200 px-3 py-2 mb-4">
                                 <div class="flex items-center gap-3">
-                                    <span class="bg-black text-white px-2 py-0.5 text-[10px] font-black tracking-widest">VII</span>
                                     <h3 class="text-base font-black text-gray-900 uppercase tracking-tight">L&D / Training Interventions</h3>
                                 </div>
                                 <div class="flex items-center gap-2">
@@ -604,7 +617,6 @@
                         <div>
                             <div class="pds-section-heading flex justify-between items-center border border-black bg-gray-200 px-3 py-2 mb-4">
                                 <div class="flex items-center gap-3">
-                                    <span class="bg-black text-white px-2 py-0.5 text-[10px] font-black tracking-widest">VIII</span>
                                     <h3 class="text-base font-black text-gray-900 uppercase tracking-tight">Other Information</h3>
                                 </div>
                                 <button type="button" @click="others.push({type: 'Skill', description: ''})" class="text-[9px] font-black uppercase tracking-[0.1em] bg-indigo-700 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-800 transition">+ Add Info</button>
@@ -640,7 +652,6 @@
                         <div>
                             <div class="pds-section-heading flex justify-between items-center border border-black bg-gray-200 px-3 py-2 mb-4">
                                 <div class="flex items-center gap-3">
-                                    <span class="bg-black text-white px-2 py-0.5 text-[10px] font-black tracking-widest">VIII</span>
                                     <h3 class="text-base font-black text-gray-900 uppercase tracking-tight">References</h3>
                                 </div>
                                 @php $referenceReview = $employee->pdsSectionReviews->where('section_name', 'References')->first(); @endphp
@@ -685,7 +696,6 @@
                         <div>
                             <div class="pds-section-heading flex justify-between items-center border border-black bg-gray-200 px-3 py-2 mb-4">
                                 <div class="flex items-center gap-3">
-                                    <span class="bg-black text-white px-2 py-0.5 text-[10px] font-black tracking-widest">IX</span>
                                     <h3 class="text-base font-black text-gray-900 uppercase tracking-tight">Questions 34-42, Declaration, ID, Photo, and Signature</h3>
                                 </div>
                             </div>
@@ -761,7 +771,7 @@
                                         <template x-if="signaturePreview"><img :src="signaturePreview" class="h-full w-full object-contain" alt="PDS signature preview"></template>
                                         <span x-show="!signaturePreview">Signature</span>
                                     </div>
-                                    <input type="file" name="pds_signature" accept="image/jpeg,image/png,image/jpg" @change="signaturePreview = $event.target.files[0] ? URL.createObjectURL($event.target.files[0]) : signaturePreview" class="block w-full text-[10px] font-bold text-gray-500 file:mr-3 file:rounded-lg file:border-0 file:bg-indigo-50 file:px-3 file:py-2 file:text-[10px] file:font-black file:uppercase file:tracking-widest file:text-indigo-700">
+                                    <input type="file" name="pds_signature" accept="image/png,.png" @change="signaturePreview = $event.target.files[0] ? URL.createObjectURL($event.target.files[0]) : signaturePreview" class="block w-full text-[10px] font-bold text-gray-500 file:mr-3 file:rounded-lg file:border-0 file:bg-indigo-50 file:px-3 file:py-2 file:text-[10px] file:font-black file:uppercase file:tracking-widest file:text-indigo-700">
                                 </div>
                             </div>
                         </div>
@@ -859,15 +869,15 @@
         .pds-line-page .pds-form-body input:not([type="radio"]):not([type="checkbox"]):not([type="file"]),
         .pds-line-page .pds-form-body select,
         .pds-line-page .pds-form-body textarea {
-            border: 0 !important;
-            border-bottom: 1px dashed #94a3b8 !important;
-            border-radius: 0 !important;
-            background: transparent !important;
-            box-shadow: none !important;
-            padding: 0.25rem 0 !important;
-            font-size: 1rem !important;
-            font-weight: 500 !important;
-            color: #475569 !important;
+    border: 0 !important;
+    border-bottom: 1px dashed #94a3b8 !important;
+    border-radius: 6px !important;
+    background: #eef2ff !important;
+    box-shadow: none !important;
+    padding: 0.45rem 0.65rem !important;
+    font-size: 1rem !important;
+    font-weight: 500 !important;
+    color: #475569 !important;
         }
         .pds-line-page .pds-form-body select {
             appearance: auto !important;
@@ -895,10 +905,6 @@
             border-bottom: 2px solid #2b428f !important;
             background: transparent !important;
             padding: 0 0 0.5rem 0 !important;
-        }
-        .pds-line-page .pds-section-heading span:first-child {
-            background: #2b428f !important;
-            border-radius: 0.25rem !important;
         }
         .pds-line-page .pds-section-heading h3 {
             color: #0f172a !important;

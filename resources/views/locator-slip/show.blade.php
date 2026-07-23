@@ -23,6 +23,19 @@
                 </div>
             </div>
 
+            @php
+                $displayStatus = strtolower($locatorSlip->status) === 'approved by chief' ? 'approved' : strtolower($locatorSlip->status);
+                $trackedLocatorPayload = [
+                    'id' => (string) $locatorSlip->id,
+                    'title' => ($locatorSlip->type ?? '') === 'Personal' ? 'Pass Slip' : (string) ($locatorSlip->type ?? 'Locator Slip'),
+                    'type' => ($locatorSlip->type ?? '') === 'Personal' ? 'Pass Slip' : (string) ($locatorSlip->type ?? 'Locator Slip'),
+                    'stages' => [
+                        ['label' => 'Chief', 'status' => $displayStatus ?: 'pending'],
+                    ],
+                ];
+            @endphp
+            <x-approval-tracker :payload="$trackedLocatorPayload" event="locator-selected" empty="No locator slip to track yet." />
+
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div class="lg:col-span-2 space-y-8">
                     <div class="bg-white overflow-hidden shadow-sm rounded-3xl border border-gray-100 p-8 md:p-10">
@@ -43,7 +56,7 @@
                         <div class="space-y-8">
                             <div class="flex flex-col items-center justify-center py-6 bg-gray-50/50 rounded-2xl border border-gray-100">
                                 <span class="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400 mb-2">{{ __('Locator Type') }}</span>
-                                <h2 class="text-2xl font-black text-gray-800">{{ $locatorSlip->type ?? __('N/A') }}</h2>
+                                <h2 class="text-2xl font-black text-gray-800">{{ ($locatorSlip->type ?? '') === 'Personal' ? __('Pass Slip') : ($locatorSlip->type ?? __('N/A')) }}</h2>
                             </div>
 
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
@@ -80,53 +93,6 @@
                         </div>
                     </div>
 
-                    <div class="bg-white overflow-hidden shadow-sm rounded-3xl border border-gray-100 p-8">
-                        <div class="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-6 inline-block border-b-2 border-indigo-100 pb-1">{{ __('Approval Progress') }}</div>
-                        @php
-                            $displayStatus = strtolower($locatorSlip->status) === 'approved by chief' ? 'approved' : strtolower($locatorSlip->status);
-                            $stageClass = match($displayStatus) {
-                                'approved' => 'bg-green-50/30 border-green-100',
-                                'rejected' => 'bg-red-50/30 border-red-100',
-                                default => 'bg-gray-50/50 border-gray-100',
-                            };
-                            $iconClass = match($displayStatus) {
-                                'approved' => 'bg-green-500',
-                                'rejected' => 'bg-red-500',
-                                default => 'bg-gray-300',
-                            };
-                        @endphp
-                        <div class="flex items-start gap-4 p-5 rounded-2xl border {{ $stageClass }}">
-                            <div class="mt-1">
-                                <div class="{{ $iconClass }} p-1.5 rounded-full text-white">
-                                    @if($displayStatus === 'approved')
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                                    @elseif($displayStatus === 'rejected')
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                    @else
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 12h.01M12 12h.01M19 12h.01"></path></svg>
-                                    @endif
-                                </div>
-                            </div>
-                            <div class="flex-1">
-                                <div class="flex items-center justify-between mb-1">
-                                    <div class="text-[10px] font-black uppercase tracking-wider text-gray-900">{{ __('Division Chief') }}</div>
-                                    <span class="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded {{ $displayStatus === 'approved' ? 'text-green-600 bg-green-50' : ($displayStatus === 'rejected' ? 'text-red-600 bg-red-50' : 'text-gray-400 bg-gray-100') }}">
-                                        {{ ucfirst($displayStatus) }}
-                                    </span>
-                                </div>
-                                @if($locatorSlip->approved_by_chief_name)
-                                    <div class="text-xs font-bold text-gray-700">
-                                        {{ $locatorSlip->approved_by_chief_name }}
-                                        @if($locatorSlip->chief_approval_date)
-                                            <span class="font-medium text-gray-400">on {{ \Carbon\Carbon::parse($locatorSlip->chief_approval_date)->format('M d, Y h:i A') }}</span>
-                                        @endif
-                                    </div>
-                                @else
-                                    <div class="text-xs font-medium text-gray-400">{{ __('Awaiting review') }}</div>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 <div class="space-y-8">
