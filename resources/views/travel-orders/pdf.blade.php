@@ -276,7 +276,7 @@
         <table class="ta-header">
             <tr>
                 <td class="ta-logo-cell">
-                    @if(is_file($dmwLogoPath))
+                    @if($dmwLogoPath)
                         <img class="ta-logo" src="{{ $dmwLogoPath }}" alt="">
                     @endif
                     <div class="ta-logo-caption">TAHANAN NG OFW</div>
@@ -288,7 +288,7 @@
                     <div class="ta-contact">Website: dmw.gov.ph | Email: davao@dmw.gov.ph | Hotline: 0931 029 8009</div>
                 </td>
                 <td class="ta-logo-cell">
-                    @if(is_file($bagongPilipinasLogoPath))
+                    @if($bagongPilipinasLogoPath)
                         <img class="ta-logo-right" src="{{ $bagongPilipinasLogoPath }}" alt="">
                     @endif
                     <div class="ta-logo-caption">BAGONG PILIPINAS</div>

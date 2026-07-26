@@ -1,9 +1,57 @@
 <x-app-layout>
+        @if(request()->boolean('modal'))
+        <style>
+            body > .flex.h-screen.overflow-hidden > aside,
+            body > .flex.h-screen.overflow-hidden header {
+                display: none !important;
+            }
+            body > .flex.h-screen.overflow-hidden,
+            body > .flex.h-screen.overflow-hidden > .flex,
+            body > .flex.h-screen.overflow-hidden main {
+                height: auto !important;
+                min-height: 100vh !important;
+                overflow: visible !important;
+            }
+            body > .flex.h-screen.overflow-hidden main {
+                padding: 0 !important;
+                background: #fff !important;
+            }
+            body > .flex.h-screen.overflow-hidden main > div {
+                max-width: none !important;
+                padding: 0 !important;
+            }
+            body > .flex.h-screen.overflow-hidden main > div > div {
+                border: 0 !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                overflow: visible !important;
+            }
+            .modal-form-shell {
+                padding: 0 !important;
+            }
+            .modal-form-shell > div {
+                max-width: none !important;
+                padding: 0 !important;
+            }
+            .modal-form-shell .modal-page-back {
+                display: none !important;
+            }
+            .modal-form-shell .modal-form-card {
+                border: 0 !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                padding: 1.5rem !important;
+            }
+            .modal-form-shell .modal-form-title {
+                display: none !important;
+            }
+        </style>
+    @endif
     <x-slot name="title">{{ __('Create Travel Authority') }}</x-slot>
 
-    <div class="py-12">
+    <div class="py-12 modal-form-shell">
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
-            <div class="mb-5">
+            <div class="mb-5 modal-page-back">
                 <a href="{{ route('travel-orders.index') }}" class="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-bold text-gray-700 shadow-sm transition hover:border-indigo-200 hover:text-indigo-700">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -12,8 +60,8 @@
                 </a>
             </div>
 
-            <div class="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg p-8 border border-gray-100">
-                <h2 class="text-2xl font-black text-gray-900 mb-8">{{ __('Create Travel Authority') }}</h2>
+            <div class="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg p-8 border border-gray-100 modal-form-card">
+                <h2 class="text-2xl font-black text-gray-900 mb-8 modal-form-title">{{ __('Create Travel Authority') }}</h2>
 
                 <form
                     action="{{ route('travel-orders.store') }}"
@@ -200,9 +248,22 @@
 
                     {{-- Submit --}}
                     <div class="flex items-center justify-end gap-4 pt-4 border-t border-gray-100">
-                        <a href="{{ route('travel-orders.index') }}" class="text-sm font-bold text-gray-500 hover:text-gray-700 transition-colors">
-                            {{ __('Cancel') }}
-                        </a>
+                        @if(request()->boolean('modal'))
+    <button
+        type="button"
+        onclick="window.parent.postMessage('close-travel-authority-modal', '*')"
+        class="text-sm font-bold text-gray-500 transition-colors hover:text-gray-700"
+    >
+        {{ __('Cancel') }}
+    </button>
+@else
+    <a
+        href="{{ route('travel-orders.index') }}"
+        class="text-sm font-bold text-gray-500 transition-colors hover:text-gray-700"
+    >
+        {{ __('Cancel') }}
+    </a>
+@endif
                         <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-200 hover:-translate-y-0.5">
                             {{ __('Submit Travel Authority') }}
                         </button>

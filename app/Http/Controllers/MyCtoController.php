@@ -22,7 +22,7 @@ class MyCtoController extends Controller
             abort(404, 'Employee record not found.');
         }
 
-        $ctoRequests = $employee->ctoRequests()->latest()->get();
+        $ctoRequests = $employee->ctoRequests()->with(['chief', 'hrstaff', 'regionalDirector'])->latest()->get();
 
         return view('my-cto.index', compact('employee', 'ctoRequests'));
     }

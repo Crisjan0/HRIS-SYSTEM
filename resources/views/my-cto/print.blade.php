@@ -437,16 +437,18 @@ REGION XI</td>
         </table>
     </main>
 
-    <script>
-        const ctoReturnUrl = @js(route('my-cto.show', $ctoRequest));
+    @unless(request()->boolean('preview'))
+        <script>
+            const ctoReturnUrl = @js(route('my-cto.show', $ctoRequest));
 
-        window.addEventListener('afterprint', () => {
-            window.location.href = ctoReturnUrl;
-        });
+            window.addEventListener('afterprint', () => {
+                window.location.href = ctoReturnUrl;
+            });
 
-        window.addEventListener('load', () => {
-            window.print();
-        });
-    </script>
+            window.addEventListener('load', () => {
+                window.print();
+            });
+        </script>
+    @endunless
 </body>
 </html>

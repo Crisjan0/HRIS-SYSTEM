@@ -16,6 +16,10 @@
         $initialTab = in_array(request('tab'), $allowedTabs, true) ? request('tab') : 'personal';
     @endphp
 
+    @php
+        $yearOptions = range(now()->year, 1950);
+    @endphp
+
     <div class="pds-line-page py-8 bg-white min-h-screen" x-data="{ 
         tab: @js($initialTab),
         children: {{ $employee->pdsChildren->count() > 0 ? $employee->pdsChildren->toJson() : '[{fullname: \'\', date_of_birth: \'\'}]' }},
@@ -123,6 +127,10 @@
                                     <h3 class="text-base font-black text-gray-900 uppercase tracking-tight">Personal Information</h3>
                                 </div>
                                 @php $personalReview = $employee->pdsSectionReviews->where('section_name', 'Personal Information')->first(); @endphp
+
+    @php
+        $yearOptions = range(now()->year, 1950);
+    @endphp
                                 @if($personalReview && $personalReview->remarks)
                                     <span class="bg-yellow-100 text-yellow-800 text-[10px] px-2 py-1 rounded font-bold border border-yellow-200">Has HR Remarks</span>
                                 @endif
@@ -156,7 +164,12 @@
                                         </div>
                                         <div class="space-y-1">
                                             <x-input-label value="Extension (JR., SR)" class="text-[9px] font-black uppercase text-gray-400 tracking-tighter" />
-                                            <x-text-input class="block w-full text-sm font-bold border-gray-100 bg-indigo-50/30" name="personal[name_extension]" :value="old('personal.name_extension', $employee->pdsPersonal?->name_extension)" placeholder="e.g. JR." />
+                                            <select name="personal[name_extension]" class="w-full rounded-xl border-gray-100 text-sm font-bold">
+                                                <option value="">Select extension</option>
+                                                @foreach($utilityOptionSets['name_extensions'] as $option)
+                                                    <option value="{{ $option->value }}" {{ old('personal.name_extension', $employee->pdsPersonal?->name_extension) == $option->value ? 'selected' : '' }}>{{ $option->label }}</option>
+                                                @endforeach
+                                            </select>
                                         </div>
                                     </div>
 
@@ -187,13 +200,15 @@
                                             @php
                                                 $currCivilStatus = strtolower(old('personal.civil_status', $employee->pdsPersonal?->civil_status ?? ''));
                                             @endphp
+
+    @php
+        $yearOptions = range(now()->year, 1950);
+    @endphp
                                             <select name="personal[civil_status]" class="w-full border-gray-100 focus:border-indigo-500 focus:ring-indigo-500 rounded-xl shadow-sm text-sm font-bold">
                                                 <option value="">Select</option>
-                                                <option value="single" {{ $currCivilStatus == 'single' ? 'selected' : '' }}>Single</option>
-                                                <option value="married" {{ $currCivilStatus == 'married' ? 'selected' : '' }}>Married</option>
-                                                <option value="widow" {{ in_array($currCivilStatus, ['widow', 'widowed']) ? 'selected' : '' }}>Widowed</option>
-                                                <option value="separated" {{ $currCivilStatus == 'separated' ? 'selected' : '' }}>Separated</option>
-                                                <option value="other" {{ $currCivilStatus == 'other' ? 'selected' : '' }}>Other</option>
+                                                @foreach($utilityOptionSets['civil_statuses'] as $option)
+                                                    <option value="{{ $option->value }}" {{ old('personal.civil_status', $employee->pdsPersonal?->civil_status) == $option->value ? 'selected' : '' }}>{{ $option->label }}</option>
+                                                @endforeach
                                             </select>
                                         </div>
                                     </div>
@@ -210,7 +225,12 @@
                                         </div>
                                         <div class="space-y-1">
                                             <x-input-label value="Blood Type" class="text-[10px] font-black uppercase text-gray-500 tracking-wider" />
-                                            <x-text-input class="block w-full text-sm font-bold border-gray-100" name="personal[blood_type]" :value="old('personal.blood_type', $employee->pdsPersonal?->blood_type)" />
+                                            <select name="personal[blood_type]" class="w-full rounded-xl border-gray-100 text-sm font-bold">
+                                                <option value="">Select blood type</option>
+                                                @foreach($utilityOptionSets['blood_types'] as $option)
+                                                    <option value="{{ $option->value }}" {{ old('personal.blood_type', $employee->pdsPersonal?->blood_type) == $option->value ? 'selected' : '' }}>{{ $option->label }}</option>
+                                                @endforeach
+                                            </select>
                                         </div>
                                     </div>
 
@@ -245,10 +265,16 @@
                                         <div class="grid grid-cols-2 gap-4">
                                             <select name="personal[citizenship_type]" class="w-full border-gray-100 rounded-xl text-[10px] font-bold">
                                                 <option value="">By Birth / Naturalization</option>
-                                                <option value="By Birth" {{ old('personal.citizenship_type', $employee->pdsPersonal?->citizenship_type) == 'By Birth' ? 'selected' : '' }}>By Birth</option>
-                                                <option value="By Naturalization" {{ old('personal.citizenship_type', $employee->pdsPersonal?->citizenship_type) == 'By Naturalization' ? 'selected' : '' }}>By Naturalization</option>
+                                                @foreach($utilityOptionSets['citizenship_types'] as $option)
+                                                    <option value="{{ $option->value }}" {{ old('personal.citizenship_type', $employee->pdsPersonal?->citizenship_type) == $option->value ? 'selected' : '' }}>{{ $option->label }}</option>
+                                                @endforeach
                                             </select>
-                                            <x-text-input placeholder="Country" class="w-full text-[10px] font-bold border-gray-100" name="personal[citizenship_country]" :value="old('personal.citizenship_country', $employee->pdsPersonal?->citizenship_country)" />
+                                            <select name="personal[citizenship_country]" class="w-full rounded-xl border-gray-100 text-[10px] font-bold">
+                                                <option value="">Country</option>
+                                                @foreach($utilityOptionSets['countries'] as $option)
+                                                    <option value="{{ $option->value }}" {{ old('personal.citizenship_country', $employee->pdsPersonal?->citizenship_country) == $option->value ? 'selected' : '' }}>{{ $option->label }}</option>
+                                                @endforeach
+                                            </select>
                                         </div>
                                     </div>
 
@@ -259,9 +285,30 @@
                                             <x-text-input placeholder="House/Block/Lot No." class="text-xs font-bold" name="personal[res_house_no]" :value="old('personal.res_house_no', $employee->pdsPersonal?->res_house_no)" />
                                             <x-text-input placeholder="Street" class="text-xs font-bold" name="personal[res_street]" :value="old('personal.res_street', $employee->pdsPersonal?->res_street)" />
                                             <x-text-input placeholder="Subdivision/Village" class="text-xs font-bold" name="personal[res_subdivision]" :value="old('personal.res_subdivision', $employee->pdsPersonal?->res_subdivision)" />
-                                            <x-text-input placeholder="Barangay" class="text-xs font-bold" name="personal[res_barangay]" :value="old('personal.res_barangay', $employee->pdsPersonal?->res_barangay)" />
-                                            <x-text-input placeholder="City/Municipality" class="text-xs font-bold" name="personal[res_city]" :value="old('personal.res_city', $employee->pdsPersonal?->res_city)" />
-                                            <x-text-input placeholder="Province" class="text-xs font-bold" name="personal[res_province]" :value="old('personal.res_province', $employee->pdsPersonal?->res_province)" />
+                                            <select name="personal[res_region]" class="rounded-xl border-gray-100 text-xs font-bold">
+                                                <option value="">Region</option>
+                                                @foreach($locationOptionSets['ph_regions'] as $option)
+                                                    <option value="{{ $option->value }}" {{ old('personal.res_region', $employee->pdsPersonal?->res_region) == $option->value ? 'selected' : '' }}>{{ $option->label }}</option>
+                                                @endforeach
+                                            </select>
+                                            <select name="personal[res_province]" class="rounded-xl border-gray-100 text-xs font-bold">
+                                                <option value="">Province</option>
+                                                @foreach($locationOptionSets['ph_provinces'] as $option)
+                                                    <option value="{{ $option->value }}" {{ old('personal.res_province', $employee->pdsPersonal?->res_province) == $option->value ? 'selected' : '' }}>{{ $option->label }}</option>
+                                                @endforeach
+                                            </select>
+                                            <select name="personal[res_city]" class="rounded-xl border-gray-100 text-xs font-bold">
+                                                <option value="">City / Municipality</option>
+                                                @foreach($locationOptionSets['ph_cities'] as $option)
+                                                    <option value="{{ $option->value }}" {{ old('personal.res_city', $employee->pdsPersonal?->res_city) == $option->value ? 'selected' : '' }}>{{ $option->label }}</option>
+                                                @endforeach
+                                            </select>
+                                            <select name="personal[res_barangay]" class="rounded-xl border-gray-100 text-xs font-bold">
+                                                <option value="">Barangay</option>
+                                                @foreach($locationOptionSets['ph_barangays'] as $option)
+                                                    <option value="{{ $option->value }}" {{ old('personal.res_barangay', $employee->pdsPersonal?->res_barangay) == $option->value ? 'selected' : '' }}>{{ $option->label }}</option>
+                                                @endforeach
+                                            </select>
                                             <x-text-input placeholder="Zip Code" class="text-xs font-bold" name="personal[res_zip_code]" :value="old('personal.res_zip_code', $employee->pdsPersonal?->res_zip_code)" />
                                         </div>
                                     </div>
@@ -279,9 +326,30 @@
                                             <x-text-input placeholder="House/Block/Lot No." class="text-xs font-bold" name="personal[perm_house_no]" :value="old('personal.perm_house_no', $employee->pdsPersonal?->perm_house_no)" />
                                             <x-text-input placeholder="Street" class="text-xs font-bold" name="personal[perm_street]" :value="old('personal.perm_street', $employee->pdsPersonal?->perm_street)" />
                                             <x-text-input placeholder="Subdivision/Village" class="text-xs font-bold" name="personal[perm_subdivision]" :value="old('personal.perm_subdivision', $employee->pdsPersonal?->perm_subdivision)" />
-                                            <x-text-input placeholder="Barangay" class="text-xs font-bold" name="personal[perm_barangay]" :value="old('personal.perm_barangay', $employee->pdsPersonal?->perm_barangay)" />
-                                            <x-text-input placeholder="City/Municipality" class="text-xs font-bold" name="personal[perm_city]" :value="old('personal.perm_city', $employee->pdsPersonal?->perm_city)" />
-                                            <x-text-input placeholder="Province" class="text-xs font-bold" name="personal[perm_province]" :value="old('personal.perm_province', $employee->pdsPersonal?->perm_province)" />
+                                            <select name="personal[perm_region]" class="rounded-xl border-gray-100 text-xs font-bold">
+                                                <option value="">Region</option>
+                                                @foreach($locationOptionSets['ph_regions'] as $option)
+                                                    <option value="{{ $option->value }}" {{ old('personal.perm_region', $employee->pdsPersonal?->perm_region) == $option->value ? 'selected' : '' }}>{{ $option->label }}</option>
+                                                @endforeach
+                                            </select>
+                                            <select name="personal[perm_province]" class="rounded-xl border-gray-100 text-xs font-bold">
+                                                <option value="">Province</option>
+                                                @foreach($locationOptionSets['ph_provinces'] as $option)
+                                                    <option value="{{ $option->value }}" {{ old('personal.perm_province', $employee->pdsPersonal?->perm_province) == $option->value ? 'selected' : '' }}>{{ $option->label }}</option>
+                                                @endforeach
+                                            </select>
+                                            <select name="personal[perm_city]" class="rounded-xl border-gray-100 text-xs font-bold">
+                                                <option value="">City / Municipality</option>
+                                                @foreach($locationOptionSets['ph_cities'] as $option)
+                                                    <option value="{{ $option->value }}" {{ old('personal.perm_city', $employee->pdsPersonal?->perm_city) == $option->value ? 'selected' : '' }}>{{ $option->label }}</option>
+                                                @endforeach
+                                            </select>
+                                            <select name="personal[perm_barangay]" class="rounded-xl border-gray-100 text-xs font-bold">
+                                                <option value="">Barangay</option>
+                                                @foreach($locationOptionSets['ph_barangays'] as $option)
+                                                    <option value="{{ $option->value }}" {{ old('personal.perm_barangay', $employee->pdsPersonal?->perm_barangay) == $option->value ? 'selected' : '' }}>{{ $option->label }}</option>
+                                                @endforeach
+                                            </select>
                                             <x-text-input placeholder="Zip Code" class="text-xs font-bold" name="personal[perm_zip_code]" :value="old('personal.perm_zip_code', $employee->pdsPersonal?->perm_zip_code)" />
                                         </div>
                                     </div>
@@ -305,6 +373,10 @@
                                     <h3 class="text-base font-black text-gray-900 uppercase tracking-tight">Family Background</h3>
                                 </div>
                                 @php $familyReview = $employee->pdsSectionReviews->where('section_name', 'Family Background')->first(); @endphp
+
+    @php
+        $yearOptions = range(now()->year, 1950);
+    @endphp
                                 @if($familyReview && $familyReview->remarks)
                                     <span class="bg-yellow-100 text-yellow-800 text-[10px] px-2 py-1 rounded font-bold border border-yellow-200">Has HR Remarks</span>
                                 @endif
@@ -319,9 +391,10 @@
                                 </div>
                             @endif
                             
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                                 <div class="space-y-1"><x-input-label value="Spouse Surname" class="text-[9px] font-black uppercase text-gray-400 tracking-[0.2em]" /><x-text-input class="block w-full text-sm font-bold border-gray-100" name="family[spouse_surname]" :value="$employee->pdsFamily?->spouse_surname" /></div>
                                 <div class="space-y-1"><x-input-label value="Spouse First Name" class="text-[9px] font-black uppercase text-gray-400 tracking-[0.2em]" /><x-text-input class="block w-full text-sm font-bold border-gray-100" name="family[spouse_firstname]" :value="$employee->pdsFamily?->spouse_firstname" /></div>
+                                <div class="space-y-1"><x-input-label value="Spouse Extension" class="text-[9px] font-black uppercase text-gray-400 tracking-[0.2em]" /><select name="family[spouse_extension]" class="block w-full rounded-xl border-gray-100 text-sm font-bold"><option value="">Select extension</option>@foreach($utilityOptionSets['name_extensions'] as $option)<option value="{{ $option->value }}" {{ old('family.spouse_extension', $employee->pdsFamily?->spouse_extension) == $option->value ? 'selected' : '' }}>{{ $option->label }}</option>@endforeach</select></div>
                                 <div class="space-y-1"><x-input-label value="Occupation" class="text-[9px] font-black uppercase text-gray-400 tracking-[0.2em]" /><x-text-input class="block w-full text-sm font-bold border-gray-100" name="family[spouse_occupation]" :value="$employee->pdsFamily?->spouse_occupation" /></div>
                             </div>
 
@@ -364,6 +437,10 @@
                                 </div>
                                 <div class="flex items-center gap-2">
                                     @php $educationReview = $employee->pdsSectionReviews->where('section_name', 'Educational Background')->first(); @endphp
+
+    @php
+        $yearOptions = range(now()->year, 1950);
+    @endphp
                                     @if($educationReview && $educationReview->remarks)
                                         <span class="bg-yellow-100 text-yellow-800 text-[10px] px-2 py-1 rounded font-bold border border-yellow-200">Has HR Remarks</span>
                                     @endif
@@ -396,12 +473,12 @@
                                     <tbody class="divide-y divide-gray-50 font-bold text-gray-800">
                                         <template x-for="(edu, index) in education" :key="index">
                                             <tr>
-                                                <td class="p-0.5"><x-text-input class="w-full text-[10px] font-bold border-transparent focus:border-indigo-100 bg-transparent px-2" x-model="edu.level" ::name="`education[${index}][level]`" /></td>
+                                                <td class="p-0.5"><select class="w-full text-[10px] font-bold border-transparent focus:border-indigo-100 bg-transparent px-2" x-model="edu.level" :name="`education[${index}][level]`"><option value="">Select</option>@foreach($utilityOptionSets['education_levels'] as $option)<option value="{{ $option->value }}">{{ $option->label }}</option>@endforeach</select></td>
                                                 <td class="p-0.5"><x-text-input class="w-full text-[10px] font-bold border-transparent focus:border-indigo-100 bg-transparent px-2" x-model="edu.school_name" ::name="`education[${index}][school_name]`" /></td>
                                                 <td class="p-0.5"><x-text-input class="w-full text-[10px] font-bold border-transparent focus:border-indigo-100 bg-transparent px-2" x-model="edu.course" ::name="`education[${index}][course]`" /></td>
                                                 <td class="p-0.5"><x-text-input class="w-full text-[10px] font-bold border-transparent focus:border-indigo-100 bg-transparent px-2" x-model="edu.period_from" ::name="`education[${index}][period_from]`" /></td>
                                                 <td class="p-0.5"><x-text-input class="w-full text-[10px] font-bold border-transparent focus:border-indigo-100 bg-transparent px-2" x-model="edu.period_to" ::name="`education[${index}][period_to]`" /></td>
-                                                <td class="p-0.5"><x-text-input class="w-full text-[10px] font-bold border-transparent focus:border-indigo-100 bg-transparent px-2" x-model="edu.year_graduated" ::name="`education[${index}][year_graduated]`" /></td>
+                                                <td class="p-0.5"><select class="w-full text-[10px] font-bold border-transparent focus:border-indigo-100 bg-transparent px-2" x-model="edu.year_graduated" :name="`education[${index}][year_graduated]`"><option value="">Year</option>@foreach($yearOptions as $year)<option value="{{ $year }}">{{ $year }}</option>@endforeach</select></td>
                                                 <td class="p-0.5"><x-text-input class="w-full text-[10px] font-bold border-transparent focus:border-indigo-100 bg-transparent px-2" x-model="edu.honors" ::name="`education[${index}][honors]`" /></td>
                                                 <td class="p-0.5 text-center"><button type="button" @click="education.splice(index, 1)" class="text-red-400 hover:text-red-600">&times;</button></td>
                                             </tr>
@@ -421,6 +498,10 @@
                                 </div>
                                 <div class="flex items-center gap-2">
                                     @php $eligibilityReview = $employee->pdsSectionReviews->where('section_name', 'Civil Service Eligibility')->first(); @endphp
+
+    @php
+        $yearOptions = range(now()->year, 1950);
+    @endphp
                                     @if($eligibilityReview && $eligibilityReview->remarks)
                                         <span class="bg-yellow-100 text-yellow-800 text-[10px] px-2 py-1 rounded font-bold border border-yellow-200">Has HR Remarks</span>
                                     @endif
@@ -449,7 +530,7 @@
                                     <tbody class="divide-y divide-gray-50 font-bold">
                                         <template x-for="(eli, index) in eligibility" :key="index">
                                             <tr>
-                                                <td class="p-1"><x-text-input class="w-full text-[10px] font-bold border-transparent px-3" x-model="eli.title" ::name="`eligibility[${index}][title]`" /></td>
+                                                <td class="p-1"><select class="w-full text-[10px] font-bold border-transparent px-3" x-model="eli.title" :name="`eligibility[${index}][title]`"><option value="">Select</option>@foreach($utilityOptionSets['eligibility_titles'] as $option)<option value="{{ $option->value }}">{{ $option->label }}</option>@endforeach</select></td>
                                                 <td class="p-1"><x-text-input class="w-full text-[10px] font-bold border-transparent px-3" x-model="eli.rating" ::name="`eligibility[${index}][rating]`" /></td>
                                                 <td class="p-1"><x-text-input type="date" class="w-full text-[10px] font-bold border-transparent px-3" x-model="eli.date_of_exam" ::name="`eligibility[${index}][date_of_exam]`" /></td>
                                                 <td class="p-1 text-center"><button type="button" @click="eligibility.splice(index, 1)" class="text-red-400 hover:text-red-600">&times;</button></td>
@@ -470,6 +551,10 @@
                                 </div>
                                 <div class="flex items-center gap-2">
                                     @php $workReview = $employee->pdsSectionReviews->where('section_name', 'Work Experience')->first(); @endphp
+
+    @php
+        $yearOptions = range(now()->year, 1950);
+    @endphp
                                     @if($workReview && $workReview->remarks)
                                         <span class="bg-yellow-100 text-yellow-800 text-[10px] px-2 py-1 rounded font-bold border border-yellow-200">Has HR Remarks</span>
                                     @endif
@@ -494,6 +579,9 @@
                                             <th class="px-4 py-3">Position</th>
                                             <th class="px-4 py-3">Company</th>
                                             <th class="px-4 py-3">Salary</th>
+                                            <th class="px-4 py-3">Salary Grade</th>
+                                            <th class="px-4 py-3">Appointment Status</th>
+                                            <th class="px-4 py-3">Gov Service</th>
                                             <th class="px-4 py-3 w-8"></th>
                                         </tr>
                                     </thead>
@@ -505,6 +593,9 @@
                                                 <td class="p-1"><x-text-input class="w-full text-[10px] font-bold border-transparent px-3" x-model="w.position_title" ::name="`work_experience[${index}][position_title]`" /></td>
                                                 <td class="p-1"><x-text-input class="w-full text-[10px] font-bold border-transparent px-3" x-model="w.company" ::name="`work_experience[${index}][company]`" /></td>
                                                 <td class="p-1"><x-text-input type="number" step="0.01" class="w-full text-[10px] font-bold border-transparent px-3" x-model="w.monthly_salary" ::name="`work_experience[${index}][monthly_salary]`" /></td>
+                                                <td class="p-1"><select class="w-full text-[10px] font-bold border-transparent px-3" x-model="w.salary_grade" :name="`work_experience[${index}][salary_grade]`"><option value="">SG</option>@foreach($utilityOptionSets['salary_grades'] as $option)<option value="{{ $option->value }}">{{ $option->label }}</option>@endforeach</select></td>
+                                                <td class="p-1"><select class="w-full text-[10px] font-bold border-transparent px-3" x-model="w.appointment_status" :name="`work_experience[${index}][appointment_status]`"><option value="">Status</option>@foreach($utilityOptionSets['appointment_statuses'] as $option)<option value="{{ $option->value }}">{{ $option->label }}</option>@endforeach</select></td>
+                                                <td class="p-1"><select class="w-full text-[10px] font-bold border-transparent px-3" x-model="w.is_gov_service" :name="`work_experience[${index}][is_gov_service]`"><option value="">Select</option><option value="1">Yes</option><option value="0">No</option></select></td>
                                                 <td class="p-1 text-center"><button type="button" @click="work.splice(index, 1)" class="text-red-400 hover:text-red-600">&times;</button></td>
                                             </tr>
                                         </template>
@@ -561,6 +652,10 @@
                                 </div>
                                 <div class="flex items-center gap-2">
                                     @php $trainingReview = $employee->pdsSectionReviews->where('section_name', 'Training')->first(); @endphp
+
+    @php
+        $yearOptions = range(now()->year, 1950);
+    @endphp
                                     @if($trainingReview && $trainingReview->remarks)
                                         <span class="bg-yellow-100 text-yellow-800 text-[10px] px-2 py-1 rounded font-bold border border-yellow-200">Has HR Remarks</span>
                                     @endif
@@ -655,6 +750,10 @@
                                     <h3 class="text-base font-black text-gray-900 uppercase tracking-tight">References</h3>
                                 </div>
                                 @php $referenceReview = $employee->pdsSectionReviews->where('section_name', 'References')->first(); @endphp
+
+    @php
+        $yearOptions = range(now()->year, 1950);
+    @endphp
                                 @if($referenceReview && $referenceReview->remarks)
                                     <span class="bg-yellow-100 text-yellow-800 text-[10px] px-2 py-1 rounded font-bold border border-yellow-200">Has HR Remarks</span>
                                 @endif
@@ -717,6 +816,10 @@
                                 ];
                             @endphp
 
+    @php
+        $yearOptions = range(now()->year, 1950);
+    @endphp
+
                             <div class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
                                 <table class="w-full text-xs">
                                     <thead>
@@ -730,6 +833,10 @@
                                     <tbody class="divide-y divide-gray-50 font-bold">
                                         @foreach($questionRows as $row)
                                             @php $current = old('questionnaire.'.$row['key'], $employee->pdsQuestionnaire?->{$row['key']}); @endphp
+
+    @php
+        $yearOptions = range(now()->year, 1950);
+    @endphp
                                             <tr>
                                                 <td class="px-4 py-3 text-gray-700">{{ $row['label'] }}</td>
                                                 <td class="px-4 py-3 text-center"><input type="radio" name="questionnaire[{{ $row['key'] }}]" value="1" {{ (string) $current === '1' ? 'checked' : '' }}></td>
@@ -753,7 +860,12 @@
                             <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
                                 <div class="space-y-4 rounded-xl border border-gray-100 bg-gray-50/50 p-5">
                                     <h4 class="text-xs font-black uppercase tracking-widest text-gray-500">Government Issued ID</h4>
-                                    <x-text-input class="w-full text-xs font-bold border-gray-100" name="gov_id[id_type]" :value="old('gov_id.id_type', $employee->pdsGovId?->id_type)" placeholder="ID Type" />
+                                    <select name="gov_id[id_type]" class="w-full rounded-xl border-gray-100 text-xs font-bold">
+                                        <option value="">ID Type</option>
+                                        @foreach($utilityOptionSets['government_id_types'] as $option)
+                                            <option value="{{ $option->value }}" {{ old('gov_id.id_type', $employee->pdsGovId?->id_type) == $option->value ? 'selected' : '' }}>{{ $option->label }}</option>
+                                        @endforeach
+                                    </select>
                                     <x-text-input class="w-full text-xs font-bold border-gray-100" name="gov_id[id_no]" :value="old('gov_id.id_no', $employee->pdsGovId?->id_no)" placeholder="ID / License / Passport No." />
                                     <x-text-input class="w-full text-xs font-bold border-gray-100" name="gov_id[date_place_issuance]" :value="old('gov_id.date_place_issuance', $employee->pdsGovId?->date_place_issuance)" placeholder="Date / Place of Issuance" />
                                 </div>
@@ -918,3 +1030,4 @@
         }
     </style>
 </x-app-layout>
+

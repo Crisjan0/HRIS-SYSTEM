@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\UtilityOption;
 use App\Services\PdsPdfExporter;
+use App\Support\UtilityOptionRegistry;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -13,9 +15,6 @@ use Illuminate\View\View;
 
 class PdsController extends Controller
 {
-    /**
-     * Display current PDS status.
-     */
     public function index(): View
     {
         $employee = Auth::user()->employee;
@@ -34,9 +33,6 @@ class PdsController extends Controller
         return view('pds.index', compact('employee'));
     }
 
-    /**
-     * Download PDS as PDF (CS Form No. 212 Revised 2017 format).
-     */
     public function download(Request $request, PdsPdfExporter $exporter): Response|RedirectResponse
     {
         $employee = Auth::user()->employee;
@@ -50,7 +46,7 @@ class PdsController extends Controller
         } catch (\Throwable $e) {
             return redirect()
                 ->route('pds.index')
-                ->with('error', 'Could not generate PDF. Run: composer require barryvdh/laravel-dompdf â€” '.$e->getMessage());
+                ->with('error', 'Could not generate PDF. Run: composer require barryvdh/laravel-dompdf - '.$e->getMessage());
         }
     }
 
@@ -71,6 +67,7 @@ class PdsController extends Controller
 
         return view('pds.print-2025', compact('employee'));
     }
+
     public function printClean(Request $request): View|RedirectResponse
     {
         $employee = Auth::user()->employee;
@@ -89,9 +86,6 @@ class PdsController extends Controller
         return view('pds.print-clean-2025', compact('employee'));
     }
 
-    /**
-     * Show the multi-step form for editing PDS.
-     */
     public function edit(): View
     {
         $employee = Auth::user()->employee;
@@ -107,12 +101,35 @@ class PdsController extends Controller
             'pdsSectionReviews',
         ]);
 
-        return view('pds.edit', compact('employee'));
+        UtilityOptionRegistry::ensureDefaults();
+
+        $utilityOptionSets = [
+            'name_extensions' => UtilityOption::listFor('name_extensions', null, $employee->pdsPersonal?->name_extension),
+            'civil_statuses' => UtilityOption::listFor('civil_statuses', null, $employee->pdsPersonal?->civil_status),
+            'blood_types' => UtilityOption::listFor('blood_types', null, $employee->pdsPersonal?->blood_type),
+            'citizenship_types' => UtilityOption::listFor('citizenship_types', null, $employee->pdsPersonal?->citizenship_type),
+            'countries' => UtilityOption::listFor('countries', null, $employee->pdsPersonal?->citizenship_country),
+            'education_levels' => UtilityOption::listFor('education_levels'),
+            'highest_levels' => UtilityOption::listFor('highest_levels'),
+            'eligibility_titles' => UtilityOption::listFor('eligibility_titles'),
+            'salary_grades' => UtilityOption::listFor('salary_grades'),
+            'step_increments' => UtilityOption::listFor('step_increments'),
+            'appointment_statuses' => UtilityOption::listFor('appointment_statuses'),
+            'government_service_options' => UtilityOption::listFor('government_service_options'),
+            'government_id_types' => UtilityOption::listFor('government_id_types', null, $employee->pdsGovId?->id_type),
+        ];
+
+        $locationOptionSets = [
+            'countries' => UtilityOption::listFor('countries', null, $employee->pdsPersonal?->citizenship_country)->values(),
+            'ph_regions' => UtilityOption::query()->active()->forGroup('ph_regions')->orderBy('sort_order')->orderBy('label')->get(['label', 'value', 'parent_value']),
+            'ph_provinces' => UtilityOption::query()->active()->forGroup('ph_provinces')->orderBy('sort_order')->orderBy('label')->get(['label', 'value', 'parent_value']),
+            'ph_cities' => UtilityOption::query()->active()->forGroup('ph_cities')->orderBy('sort_order')->orderBy('label')->get(['label', 'value', 'parent_value']),
+            'ph_barangays' => UtilityOption::query()->active()->forGroup('ph_barangays')->orderBy('sort_order')->orderBy('label')->get(['label', 'value', 'parent_value']),
+        ];
+
+        return view('pds.edit', compact('employee', 'utilityOptionSets', 'locationOptionSets'));
     }
 
-    /**
-     * Update/Save the PDS data.
-     */
     public function update(Request $request): RedirectResponse
     {
         $employee = Auth::user()->employee;
@@ -121,9 +138,7 @@ class PdsController extends Controller
             abort(404);
         }
 
-        // Validation for simple 1:1 pieces
-        $validated = $request->validate([
-            // Personal Info
+        $request->validate([
             'personal.surname' => 'nullable|string',
             'personal.firstname' => 'nullable|string',
             'personal.middlename' => 'nullable|string',
@@ -146,55 +161,43 @@ class PdsController extends Controller
             'personal.citizenship' => 'nullable|string',
             'personal.citizenship_type' => 'nullable|string',
             'personal.citizenship_country' => 'nullable|string',
-            // Addresses
             'personal.res_house_no' => 'nullable|string',
             'personal.res_street' => 'nullable|string',
             'personal.res_subdivision' => 'nullable|string',
+            'personal.res_region' => 'nullable|string',
             'personal.res_barangay' => 'nullable|string',
             'personal.res_city' => 'nullable|string',
             'personal.res_province' => 'nullable|string',
             'personal.res_zip_code' => 'nullable|string',
-
             'personal.perm_house_no' => 'nullable|string',
             'personal.perm_street' => 'nullable|string',
             'personal.perm_subdivision' => 'nullable|string',
+            'personal.perm_region' => 'nullable|string',
             'personal.perm_barangay' => 'nullable|string',
             'personal.perm_city' => 'nullable|string',
             'personal.perm_province' => 'nullable|string',
             'personal.perm_zip_code' => 'nullable|string',
-
             'personal.telephone_no' => 'nullable|string',
             'personal.mobile_no' => 'nullable|string',
             'personal.email_address' => 'nullable|email',
-
-            // Family
             'family.spouse_surname' => 'nullable|string',
             'family.spouse_firstname' => 'nullable|string',
+            'family.spouse_extension' => 'nullable|string',
             'family.father_surname' => 'nullable|string',
             'family.mother_maiden_surname' => 'nullable|string',
-
-            // Multi-row handling (All made nullable to allow partial saves)
             'children.*.fullname' => 'nullable|string',
             'children.*.date_of_birth' => 'nullable|date',
-
             'education.*.level' => 'nullable|string',
             'education.*.school_name' => 'nullable|string',
-
             'eligibility.*.title' => 'nullable|string',
-
             'work_experience.*.position_title' => 'nullable|string',
             'work_experience.*.company' => 'nullable|string',
-
             'training.*.title' => 'nullable|string',
             'training.*.attachment' => 'nullable|file|mimes:pdf|max:5120',
-
             'others.*.type' => 'nullable|in:Skill,Distinction,Membership',
             'others.*.description' => 'nullable|string',
-
             'references.*.name' => 'nullable|string',
             'references.*.telephone_no' => 'nullable|string',
-
-            // Questionnaire...
             'questionnaire' => 'nullable|array',
             'gov_id.id_type' => 'nullable|string',
             'gov_id.id_no' => 'nullable|string',
@@ -204,25 +207,10 @@ class PdsController extends Controller
         ]);
 
         DB::transaction(function () use ($employee, $request) {
-            // Update Personal
-            $employee->pdsPersonal()->updateOrCreate(
-                ['employee_id' => $employee->id],
-                $request->input('personal', [])
-            );
+            $employee->pdsPersonal()->updateOrCreate(['employee_id' => $employee->id], $request->input('personal', []));
+            $employee->pdsFamily()->updateOrCreate(['employee_id' => $employee->id], $request->input('family', []));
+            $employee->pdsQuestionnaire()->updateOrCreate(['employee_id' => $employee->id], $request->input('questionnaire', []));
 
-            // Update Family
-            $employee->pdsFamily()->updateOrCreate(
-                ['employee_id' => $employee->id],
-                $request->input('family', [])
-            );
-
-            // Update Questionnaire
-            $employee->pdsQuestionnaire()->updateOrCreate(
-                ['employee_id' => $employee->id],
-                $request->input('questionnaire', [])
-            );
-
-            // Update official PDS photo without changing the printed photo-box dimensions.
             if ($request->hasFile('pds_photo')) {
                 if ($employee->profile_picture) {
                     Storage::disk('public_uploads')->delete($employee->profile_picture);
@@ -234,7 +222,6 @@ class PdsController extends Controller
                 ]);
             }
 
-            // Update Gov ID and signature asset used by the printable CS Form 212 page 4.
             $govIdData = $request->input('gov_id', []);
             if ($request->hasFile('pds_signature')) {
                 $existingSignature = $employee->pdsGovId?->signature_path;
@@ -250,101 +237,73 @@ class PdsController extends Controller
                 $employee->update(['e_signature_path' => $signaturePath]);
             }
 
-            $employee->pdsGovId()->updateOrCreate(
-                ['employee_id' => $employee->id],
-                $govIdData
-            );
+            $employee->pdsGovId()->updateOrCreate(['employee_id' => $employee->id], $govIdData);
 
-            // Handle Children (Sync)
             $employee->pdsChildren()->delete();
-            if ($request->has('children')) {
-                foreach ($request->children as $child) {
-                    if (! empty($child['fullname'])) {
-                        $employee->pdsChildren()->create($child);
-                    }
+            foreach ($request->input('children', []) as $child) {
+                if (! empty($child['fullname'])) {
+                    $employee->pdsChildren()->create($child);
                 }
             }
 
-            // Handle Education (Sync)
             $employee->pdsEducation()->delete();
-            if ($request->has('education')) {
-                foreach ($request->education as $edu) {
-                    if (! empty($edu['school_name'])) {
-                        $employee->pdsEducation()->create($edu);
-                    }
+            foreach ($request->input('education', []) as $edu) {
+                if (! empty($edu['school_name'])) {
+                    $employee->pdsEducation()->create($edu);
                 }
             }
 
-            // Handle Eligibilies (Sync)
             $employee->pdsEligibilities()->delete();
-            if ($request->has('eligibility')) {
-                foreach ($request->eligibility as $eli) {
-                    if (! empty($eli['title'])) {
-                        $employee->pdsEligibilities()->create($eli);
-                    }
+            foreach ($request->input('eligibility', []) as $eli) {
+                if (! empty($eli['title'])) {
+                    $employee->pdsEligibilities()->create($eli);
                 }
             }
 
-            // Handle Work Exp (Sync)
             $employee->pdsWorkExperiences()->delete();
-            if ($request->has('work_experience')) {
-                foreach ($request->work_experience as $work) {
-                    if (! empty($work['position_title'])) {
-                        $employee->pdsWorkExperiences()->create($work);
-                    }
+            foreach ($request->input('work_experience', []) as $work) {
+                if (! empty($work['position_title'])) {
+                    $employee->pdsWorkExperiences()->create($work);
                 }
             }
 
-            // Handle Training (Sync)
             $employee->pdsTrainings()->delete();
-            if ($request->has('training')) {
-                foreach ($request->training as $index => $train) {
-                    if (! empty($train['title'])) {
-                        // Change: training "Hours" was replaced by an attachment upload in the PDS form.
-                        if ($request->hasFile("training.$index.attachment")) {
-                            if (! empty($train['existing_attachment_path'])) {
-                                Storage::disk('public')->delete($train['existing_attachment_path']);
-                            }
-
-                            $train['attachment_path'] = $request->file("training.$index.attachment")->store('pds-training-attachments', 'public');
-                        } elseif (! empty($train['existing_attachment_path'])) {
-                            $train['attachment_path'] = $train['existing_attachment_path'];
+            foreach ($request->input('training', []) as $index => $train) {
+                if (! empty($train['title'])) {
+                    if ($request->hasFile("training.$index.attachment")) {
+                        if (! empty($train['existing_attachment_path'])) {
+                            Storage::disk('public')->delete($train['existing_attachment_path']);
                         }
 
-                        unset($train['attachment'], $train['existing_attachment_path']);
-
-                        $employee->pdsTrainings()->create($train);
+                        $train['attachment_path'] = $request->file("training.$index.attachment")->store('pds-training-attachments', 'public');
+                    } elseif (! empty($train['existing_attachment_path'])) {
+                        $train['attachment_path'] = $train['existing_attachment_path'];
                     }
+
+                    unset($train['attachment'], $train['existing_attachment_path']);
+
+                    $employee->pdsTrainings()->create($train);
                 }
             }
 
-            // Handle Voluntary Work (Sync)
             $employee->pdsVoluntaryWorks()->delete();
-            if ($request->has('voluntary')) {
-                foreach ($request->voluntary as $vol) {
-                    if (! empty($vol['organization_name'])) {
-                        $employee->pdsVoluntaryWorks()->create($vol);
-                    }
+            foreach ($request->input('voluntary', []) as $vol) {
+                if (! empty($vol['organization_name'])) {
+                    $employee->pdsVoluntaryWorks()->create($vol);
                 }
             }
 
-            // Handle Others (Sync)
             $employee->pdsOthers()->delete();
-            if ($request->has('others')) {
-                foreach ($request->others as $other) {
-                    if (! empty($other['description'])) {
-                        $employee->pdsOthers()->create($other);
-                    }
+            foreach ($request->input('others', []) as $other) {
+                if (! empty($other['description'])) {
+                    $employee->pdsOthers()->create($other);
                 }
             }
 
-            // Handle References (Sync)
             $employee->pdsReferences()->delete();
-            if ($request->has('references')) {
-                foreach ($request->references as $ref) {
-                    if (! empty($ref['name'])) {
-                        $employee->pdsReferences()->create($ref);
-                    }
+            foreach ($request->input('references', []) as $ref) {
+                if (! empty($ref['name'])) {
+                    $employee->pdsReferences()->create($ref);
                 }
             }
         });
@@ -352,4 +311,3 @@ class PdsController extends Controller
         return redirect()->route('pds.index')->with('success', 'Personal Data Sheet successfully updated.');
     }
 }
-

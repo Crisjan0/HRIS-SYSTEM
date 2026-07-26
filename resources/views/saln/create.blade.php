@@ -42,44 +42,58 @@
             text-transform: uppercase;
         }
 
+        /* Match the PDS field appearance without changing typography */
         .saln-entry-page input[type="text"],
         .saln-entry-page input[type="number"],
         .saln-entry-page input[type="date"],
         .saln-entry-page textarea,
         .saln-entry-page select {
-            border-color: #f3f4f6;
-            border-radius: .75rem;
+            border: 0 !important;
+            border-bottom: 1px dashed #94a3b8 !important;
+            border-radius: 6px !important;
+            background: #eef2ff !important;
+            box-shadow: none !important;
+            padding: .5rem .7rem !important;
             color: #475569;
             font-size: .875rem;
             font-weight: 700;
         }
 
+        .saln-entry-page input:focus,
+        .saln-entry-page textarea:focus,
+        .saln-entry-page select:focus {
+            border-bottom-color: #2b428f !important;
+            outline: 0 !important;
+            box-shadow: none !important;
+            --tw-ring-shadow: 0 0 #0000 !important;
+        }
+
+        .saln-entry-page input:disabled,
+        .saln-entry-page textarea:disabled,
+        .saln-entry-page select:disabled {
+            background: #f1f5f9 !important;
+            color: #94a3b8 !important;
+            cursor: not-allowed;
+        }
+
         .saln-entry-page label.block input,
         .saln-entry-page label.block textarea {
-            border-top: 0;
-            border-right: 0;
-            border-bottom: 1px dashed #94a3b8;
-            border-left: 0;
-            border-radius: 0;
-            background: #eef2ff !important;
-            padding: .25rem 0;
-            font-size: .875rem;
-            color: #64748b;
-            line-height: 1.35;
+            width: 100%;
+            line-height: 1.4;
             white-space: normal;
             overflow-wrap: anywhere;
         }
 
         .saln-entry-page label.block textarea {
-            height: 3.35rem;
-            min-height: 3.35rem;
-            resize: none;
+            min-height: 4rem;
+            resize: vertical;
         }
 
+        /* PDS-like field spacing */
         .saln-entry-page .saln-field-grid {
             display: grid;
             grid-template-columns: repeat(4, minmax(0, 1fr));
-            column-gap: 2.25rem;
+            column-gap: 1.5rem;
             row-gap: 1.75rem;
             align-items: end;
         }
@@ -108,32 +122,19 @@
             }
         }
 
-        .saln-entry-page table input,
-        .saln-entry-page table textarea {
-            border-top: 0;
-            border-right: 0;
-            border-bottom: 1px dashed #cbd5e1;
-            border-left: 0;
-            border-radius: 0;
-            background-color: #eef2ff !important;
-            padding: .25rem 0;
-            color: #475569;
-            font-size: .875rem;
-            font-weight: 700;
+        /* Consistent soft rounded panels */
+        .saln-entry-page .pds-paper {
+            border: 1px solid #e2e8f0;
+            border-radius: .5rem;
+            background: #fff;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, .06);
         }
 
-        .saln-entry-page table th {
-            padding-top: .75rem;
-            padding-bottom: .75rem;
-        }
-
-        .saln-entry-page table td {
-            padding-top: .85rem;
-            padding-bottom: .85rem;
-        }
-
-        .saln-entry-page table tbody tr:hover {
+        .saln-entry-page .saln-soft-panel {
+            border: 1px solid #e2e8f0;
+            border-radius: .75rem;
             background: #f8fafc;
+            padding: 1.5rem;
         }
 
         .saln-entry-page .saln-subsection-title {
@@ -144,11 +145,79 @@
             text-transform: uppercase;
         }
 
-        .saln-entry-page .saln-soft-panel {
+        /* Table containers */
+        .saln-entry-page .saln-table-box {
+            overflow: hidden;
             border: 1px solid #e2e8f0;
             border-radius: .75rem;
+            background: #fff;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+        }
+
+        .saln-entry-page .saln-table-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            border-bottom: 1px solid #e2e8f0;
             background: #f8fafc;
-            padding: 1.25rem;
+            padding: 1rem 1.25rem;
+        }
+
+        .saln-entry-page table {
+            border-collapse: collapse;
+        }
+
+        .saln-entry-page table th {
+            padding: .85rem 1rem;
+        }
+
+        .saln-entry-page table td {
+            padding: .85rem 1rem;
+        }
+
+        .saln-entry-page table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .saln-entry-page table input,
+        .saln-entry-page table textarea,
+        .saln-entry-page table select {
+            width: 100%;
+            min-width: 115px;
+            padding: .5rem .65rem !important;
+        }
+
+        /* More room for the Asset tables */
+        .saln-entry-page .saln-real-properties-table {
+            min-width: 1380px !important;
+        }
+
+        .saln-entry-page .saln-personal-properties-table,
+        .saln-entry-page .saln-liabilities-table {
+            min-width: 860px !important;
+        }
+
+        .saln-entry-page .saln-summary-box {
+            border-radius: .75rem;
+            background: #f8fafc;
+            padding: 1rem 1.25rem;
+        }
+
+        .saln-entry-page .saln-summary-box-primary {
+            border-radius: .75rem;
+            background: #eef2ff;
+            padding: 1rem 1.25rem;
+        }
+
+        .saln-entry-page .pds-form-body {
+            padding: 2rem !important;
+        }
+
+        @media (max-width: 640px) {
+            .saln-entry-page .pds-form-body {
+                padding: 1rem !important;
+            }
         }
     </style>
 
@@ -208,30 +277,28 @@
                 </form>
             </div>
 
-            <div class="pds-paper overflow-hidden rounded  bg-white shadow-sm">
-    <div class="flex flex-col gap-4 border-b border-slate-200 px-6 py-5 md:flex-row md:items-center">
-        
-        <div class="ml-auto flex flex-col items-stretch gap-3 sm:items-end">
-            <div class="flex flex-wrap items-center justify-end gap-2">
-                @if($selectedSaln)
-                    <a href="{{ route('salns.show', $selectedSaln) }}"
-                       class="inline-flex items-center rounded-lg bg-white px-4 py-2 text-xs font-black uppercase tracking-widest text-indigo-700 ring-1 ring-indigo-100 hover:bg-indigo-50">
-                        View {{ $selectedYear }} Copy
-                    </a>
-                @endif
+            <div class="pds-paper overflow-hidden rounded border border-slate-200 bg-white shadow-sm">
+                <div class="flex flex-col gap-4 border-b border-slate-200 px-6 py-5 md:flex-row md:items-center md:justify-between">
+                    <div>
+                        <h1 class="text-xl font-black tracking-tight text-slate-900">{{ $selectedYear }} SALN Form</h1>
+                        <p class="mt-1 text-xs font-medium text-slate-500">Per CSC Resolution No. 2500632 | As required by R.A. No. 6713</p>
+                    </div>
 
-                <button
-                    type="submit"
-                    form="salnForm"
-                    class="inline-flex items-center rounded-lg bg-indigo-700 px-4 py-2 text-xs font-black uppercase tracking-widest text-white hover:bg-indigo-800"
-                >
-                    Save SALN
-                </button>
-            </div>
-        </div>
-
-    </div>
-</div>
+                    <div class="flex flex-col items-stretch gap-3 sm:items-end">
+                        <div class="flex flex-wrap items-center justify-end gap-2">
+                            @if($selectedSaln)
+                                <a href="{{ route('salns.show', $selectedSaln) }}" class="inline-flex items-center rounded-lg bg-white px-4 py-2 text-xs font-black uppercase tracking-widest text-indigo-700 ring-1 ring-indigo-100 hover:bg-indigo-50">View {{ $selectedYear }} Copy</a>
+                            @endif
+                            <button
+                                type="submit"
+                                form="salnForm"
+                                class="inline-flex items-center rounded-lg bg-indigo-700 px-4 py-2 text-xs font-black uppercase tracking-widest text-white hover:bg-indigo-800"
+                            >
+                                Save SALN
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="border-b border-gray-200 bg-white">
                 <div class="flex items-center gap-5 overflow-x-auto px-6 pt-5">
@@ -360,8 +427,8 @@
                     </section>
 
                     <section x-show="activeTab === 'children'" x-cloak>
-                        <div class="overflow-hidden rounded-lg border border-slate-200">
-                            <div class="flex items-center justify-between bg-gray-50/60 px-4 py-3">
+                        <div class="saln-table-box">
+                            <div class="saln-table-heading">
                                 <h3 class="text-[10px] font-black uppercase tracking-widest text-slate-500">Unmarried Children Below 18</h3>
                                 <button type="button" @click="addChild()" class="rounded-lg bg-indigo-700 px-3 py-1.5 text-xs font-black uppercase tracking-widest text-white hover:bg-indigo-800">+ Add Row</button>
                             </div>
@@ -389,13 +456,13 @@
                     </section>
 
                     <section x-show="activeTab === 'assets'" x-cloak class="space-y-8">
-                        <div class="overflow-hidden rounded-lg border border-slate-200">
-                            <div class="flex items-center justify-between bg-gray-50/60 px-4 py-3">
+                        <div class="saln-table-box">
+                            <div class="saln-table-heading">
                                 <h3 class="saln-subsection-title">Real Properties</h3>
                                 <button type="button" @click="addRealProperty()" class="rounded-lg bg-indigo-700 px-3 py-1.5 text-xs font-black uppercase tracking-widest text-white hover:bg-indigo-800">+ Add Row</button>
                             </div>
                             <div class="overflow-x-auto">
-                                <table class="w-full min-w-[1180px] text-left text-sm">
+                                <table class="saln-real-properties-table w-full min-w-[1380px] text-left text-sm">
                                     <thead class="bg-white text-xs uppercase tracking-wide text-slate-500">
                                         <tr>
                                             <th class="px-4 py-3 font-semibold">Description</th>
@@ -413,12 +480,12 @@
                                         <template x-for="(row, index) in realProperties" :key="row._id">
                                             <tr>
                                                 <td class="px-4 py-3"><input :name="'real_properties['+index+'][description]'" x-model="row.description" class="w-full border-0 border-b border-dashed border-slate-300 bg-transparent px-0 py-1 outline-none focus:border-[#2b428f] focus:ring-0"></td>
-                                                <td class="px-4 py-3"><input :name="'real_properties['+index+'][kind]'" x-model="row.kind" class="w-full border-0 border-b border-dashed border-slate-300 bg-transparent px-0 py-1 outline-none focus:border-[#2b428f] focus:ring-0"></td>
+                                                <td class="px-4 py-3"><select :name="'real_properties['+index+'][kind]'" x-model="row.kind" class="w-full border-0 border-b border-dashed border-slate-300 bg-transparent px-0 py-1 outline-none focus:border-[#2b428f] focus:ring-0"><option value=""></option>@foreach($salnOptionSets['property_kinds'] as $option)<option value="{{ $option->value }}">{{ $option->label }}</option>@endforeach</select></td>
                                                 <td class="px-4 py-3"><input :name="'real_properties['+index+'][location]'" x-model="row.location" class="w-full border-0 border-b border-dashed border-slate-300 bg-transparent px-0 py-1 outline-none focus:border-[#2b428f] focus:ring-0"></td>
                                                 <td class="px-4 py-3"><input type="number" step="0.01" min="0" :name="'real_properties['+index+'][assessed_value]'" x-model="row.assessed_value" class="w-full border-0 border-b border-dashed border-slate-300 bg-transparent px-0 py-1 outline-none focus:border-[#2b428f] focus:ring-0"></td>
                                                 <td class="px-4 py-3"><input type="number" step="0.01" min="0" :name="'real_properties['+index+'][fair_market_value]'" x-model="row.fair_market_value" class="w-full border-0 border-b border-dashed border-slate-300 bg-transparent px-0 py-1 outline-none focus:border-[#2b428f] focus:ring-0"></td>
                                                 <td class="px-4 py-3"><input maxlength="4" :name="'real_properties['+index+'][acquisition_year]'" x-model="row.acquisition_year" class="w-full border-0 border-b border-dashed border-slate-300 bg-transparent px-0 py-1 outline-none focus:border-[#2b428f] focus:ring-0"></td>
-                                                <td class="px-4 py-3"><input :name="'real_properties['+index+'][acquisition_mode]'" x-model="row.acquisition_mode" class="w-full border-0 border-b border-dashed border-slate-300 bg-transparent px-0 py-1 outline-none focus:border-[#2b428f] focus:ring-0"></td>
+                                                <td class="px-4 py-3"><select :name="'real_properties['+index+'][acquisition_mode]'" x-model="row.acquisition_mode" class="w-full border-0 border-b border-dashed border-slate-300 bg-transparent px-0 py-1 outline-none focus:border-[#2b428f] focus:ring-0"><option value=""></option>@foreach($salnOptionSets['acquisition_modes'] as $option)<option value="{{ $option->value }}">{{ $option->label }}</option>@endforeach</select></td>
                                                 <td class="px-4 py-3"><input type="number" step="0.01" min="0" :name="'real_properties['+index+'][acquisition_cost]'" x-model="row.acquisition_cost" class="w-full border-0 border-b border-dashed border-slate-300 bg-transparent px-0 py-1 outline-none focus:border-[#2b428f] focus:ring-0"></td>
                                                 <td class="px-4 py-3 text-right"><button type="button" @click="removeRealProperty(index)" class="text-sm font-bold text-red-500">Remove</button></td>
                                             </tr>
@@ -429,13 +496,13 @@
                         </div>
                         <p class="mt-3 text-right text-sm font-bold text-slate-700">Real Property Total: <span x-text="currency(totalRealAssets)"></span></p>
 
-                        <div class="overflow-hidden rounded-lg border border-slate-200">
-                            <div class="flex items-center justify-between bg-gray-50/60 px-4 py-3">
+                        <div class="saln-table-box">
+                            <div class="saln-table-heading">
                                 <h3 class="saln-subsection-title">Personal Properties</h3>
                                 <button type="button" @click="addPersonalProperty()" class="rounded-lg bg-indigo-700 px-3 py-1.5 text-xs font-black uppercase tracking-widest text-white hover:bg-indigo-800">+ Add Row</button>
                             </div>
                             <div class="overflow-x-auto">
-                                <table class="w-full min-w-[760px] text-left text-sm">
+                                <table class="saln-personal-properties-table w-full min-w-[860px] text-left text-sm">
                                     <thead class="bg-white text-xs uppercase tracking-wide text-slate-500">
                                         <tr>
                                             <th class="px-4 py-3 font-semibold">Description</th>
@@ -458,20 +525,20 @@
                             </div>
                         </div>
                         <div class="grid gap-3 text-sm font-bold text-slate-700 sm:grid-cols-3">
-                            <p class="rounded-lg bg-slate-50 px-4 py-3">Real Property Total: <span class="text-indigo-700" x-text="currency(totalRealAssets)"></span></p>
-                            <p class="rounded-lg bg-slate-50 px-4 py-3">Personal Property Total: <span class="text-indigo-700" x-text="currency(totalPersonalAssets)"></span></p>
-                            <p class="rounded-lg bg-indigo-50 px-4 py-3">Total Assets: <span class="text-indigo-700" x-text="currency(totalAssets)"></span></p>
+                            <p class="saln-summary-box">Real Property Total: <span class="text-indigo-700" x-text="currency(totalRealAssets)"></span></p>
+                            <p class="saln-summary-box">Personal Property Total: <span class="text-indigo-700" x-text="currency(totalPersonalAssets)"></span></p>
+                            <p class="saln-summary-box-primary">Total Assets: <span class="text-indigo-700" x-text="currency(totalAssets)"></span></p>
                         </div>
                     </section>
 
                     <section x-show="activeTab === 'liabilities'" x-cloak>
-                        <div class="overflow-hidden rounded-lg border border-slate-200">
-                            <div class="flex items-center justify-between bg-gray-50/60 px-4 py-3">
+                        <div class="saln-table-box">
+                            <div class="saln-table-heading">
                                 <h3 class="text-[10px] font-black uppercase tracking-widest text-slate-500">Liabilities</h3>
                                 <button type="button" @click="addLiability()" class="rounded-lg bg-indigo-700 px-3 py-1.5 text-xs font-black uppercase tracking-widest text-white hover:bg-indigo-800">+ Add Row</button>
                             </div>
                             <div class="overflow-x-auto">
-                                <table class="w-full min-w-[760px] text-left text-sm">
+                                <table class="saln-liabilities-table w-full min-w-[860px] text-left text-sm">
                                     <thead class="bg-white text-xs uppercase tracking-wide text-slate-500">
                                         <tr>
                                             <th class="px-4 py-3 font-semibold">Nature</th>
@@ -506,7 +573,7 @@
                         </div>
                         <input type="hidden" name="has_business_interests" :value="noBusinessInterests ? 0 : 1">
                         <div x-show="!noBusinessInterests">
-                            <div class="overflow-hidden rounded-lg border border-slate-200">
+                            <div class="saln-table-box">
                                 <div class="overflow-x-auto">
                                     <table class="w-full min-w-[980px] text-left text-sm">
                                         <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
@@ -546,7 +613,7 @@
                         </div>
                         <input type="hidden" name="has_relatives_in_gov" :value="noRelativesInGov ? 0 : 1">
                         <div x-show="!noRelativesInGov">
-                            <div class="overflow-hidden rounded-lg border border-slate-200">
+                            <div class="saln-table-box">
                                 <div class="overflow-x-auto">
                                     <table class="w-full min-w-[980px] text-left text-sm">
                                         <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
@@ -562,7 +629,7 @@
                                             <template x-for="(row, index) in relatives" :key="row._id">
                                                 <tr>
                                                     <td class="px-4 py-3"><input :name="'relatives_in_gov['+index+'][name]'" x-model="row.name" class="w-full border-0 border-b border-dashed border-slate-300 bg-transparent px-0 py-1 outline-none focus:border-[#2b428f] focus:ring-0"></td>
-                                                    <td class="px-4 py-3"><input :name="'relatives_in_gov['+index+'][relationship]'" x-model="row.relationship" class="w-full border-0 border-b border-dashed border-slate-300 bg-transparent px-0 py-1 outline-none focus:border-[#2b428f] focus:ring-0"></td>
+                                                    <td class="px-4 py-3"><select :name="'relatives_in_gov['+index+'][relationship]'" x-model="row.relationship" class="w-full border-0 border-b border-dashed border-slate-300 bg-transparent px-0 py-1 outline-none focus:border-[#2b428f] focus:ring-0"><option value=""></option>@foreach($salnOptionSets['relationships'] as $option)<option value="{{ $option->value }}">{{ $option->label }}</option>@endforeach</select></td>
                                                     <td class="px-4 py-3"><input :name="'relatives_in_gov['+index+'][position]'" x-model="row.position" class="w-full border-0 border-b border-dashed border-slate-300 bg-transparent px-0 py-1 outline-none focus:border-[#2b428f] focus:ring-0"></td>
                                                     <td class="px-4 py-3"><input :name="'relatives_in_gov['+index+'][agency]'" x-model="row.agency" class="w-full border-0 border-b border-dashed border-slate-300 bg-transparent px-0 py-1 outline-none focus:border-[#2b428f] focus:ring-0"></td>
                                                     <td class="px-4 py-3 text-right"><button type="button" @click="removeRelative(index)" class="text-sm font-bold text-red-500">Remove</button></td>
@@ -585,7 +652,7 @@
                                 <p class="text-[10px] font-black uppercase tracking-widest text-slate-500">Declarant ID / Signature Details</p>
                                 <div class="grid gap-x-6 gap-y-7 sm:grid-cols-2">
                                     <label class="block"><span class="text-xs text-slate-400">Date Accomplished</span><input type="date" name="declarant_info[date_accomplished]" value="{{ old('declarant_info.date_accomplished', $declarantDefaults['date_accomplished'] ?? now()->toDateString()) }}" class="mt-1 w-full border-0 border-b border-dashed border-slate-400 bg-transparent px-0 py-1 text-sm text-slate-600 outline-none focus:border-[#2b428f] focus:ring-0"></label>
-                                    <label class="block"><span class="text-xs text-slate-400">Government Issued ID</span><input name="declarant_info[government_issued_id]" value="{{ old('declarant_info.government_issued_id', $declarantDefaults['government_issued_id'] ?? '') }}" class="mt-1 w-full border-0 border-b border-dashed border-slate-400 bg-transparent px-0 py-1 text-sm text-slate-600 outline-none focus:border-[#2b428f] focus:ring-0"></label>
+                                    <label class="block"><span class="text-xs text-slate-400">Government Issued ID</span><select name="declarant_info[government_issued_id]" class="mt-1 w-full border-0 border-b border-dashed border-slate-400 bg-transparent px-0 py-1 text-sm text-slate-600 outline-none focus:border-[#2b428f] focus:ring-0"><option value=""></option>@foreach($salnOptionSets['government_id_types'] as $option)<option value="{{ $option->value }}" {{ old('declarant_info.government_issued_id', $declarantDefaults['government_issued_id'] ?? '') == $option->value ? 'selected' : '' }}>{{ $option->label }}</option>@endforeach</select></label>
                                     <label class="block"><span class="text-xs text-slate-400">ID Number</span><input name="declarant_info[id_no]" value="{{ old('declarant_info.id_no', $declarantDefaults['id_no'] ?? '') }}" class="mt-1 w-full border-0 border-b border-dashed border-slate-400 bg-transparent px-0 py-1 text-sm text-slate-600 outline-none focus:border-[#2b428f] focus:ring-0"></label>
                                     <label class="block"><span class="text-xs text-slate-400">Date / Place Issued</span><input name="declarant_info[date_issued]" value="{{ old('declarant_info.date_issued', $declarantDefaults['date_issued'] ?? '') }}" class="mt-1 w-full border-0 border-b border-dashed border-slate-400 bg-transparent px-0 py-1 text-sm text-slate-600 outline-none focus:border-[#2b428f] focus:ring-0"></label>
                                 </div>
@@ -595,7 +662,7 @@
                                 <p class="text-[10px] font-black uppercase tracking-widest text-slate-500">Spouse ID / Signature Details</p>
                                 <div class="grid gap-x-6 gap-y-7 sm:grid-cols-2">
                                     <label class="block"><span class="text-xs text-slate-400">Date Accomplished</span><input type="date" name="spouse_info[date_accomplished]" value="{{ old('spouse_info.date_accomplished', $spouseDefaults['date_accomplished'] ?? '') }}" class="mt-1 w-full border-0 border-b border-dashed border-slate-400 bg-transparent px-0 py-1 text-sm text-slate-600 outline-none focus:border-[#2b428f] focus:ring-0"></label>
-                                    <label class="block"><span class="text-xs text-slate-400">Government Issued ID</span><input name="spouse_info[government_issued_id]" value="{{ old('spouse_info.government_issued_id', $spouseDefaults['government_issued_id'] ?? '') }}" class="mt-1 w-full border-0 border-b border-dashed border-slate-400 bg-transparent px-0 py-1 text-sm text-slate-600 outline-none focus:border-[#2b428f] focus:ring-0"></label>
+                                    <label class="block"><span class="text-xs text-slate-400">Government Issued ID</span><select name="spouse_info[government_issued_id]" class="mt-1 w-full border-0 border-b border-dashed border-slate-400 bg-transparent px-0 py-1 text-sm text-slate-600 outline-none focus:border-[#2b428f] focus:ring-0"><option value=""></option>@foreach($salnOptionSets['government_id_types'] as $option)<option value="{{ $option->value }}" {{ old('spouse_info.government_issued_id', $spouseDefaults['government_issued_id'] ?? '') == $option->value ? 'selected' : '' }}>{{ $option->label }}</option>@endforeach</select></label>
                                     <label class="block"><span class="text-xs text-slate-400">ID Number</span><input name="spouse_info[id_no]" value="{{ old('spouse_info.id_no', $spouseDefaults['id_no'] ?? '') }}" class="mt-1 w-full border-0 border-b border-dashed border-slate-400 bg-transparent px-0 py-1 text-sm text-slate-600 outline-none focus:border-[#2b428f] focus:ring-0"></label>
                                     <label class="block"><span class="text-xs text-slate-400">Date / Place Issued</span><input name="spouse_info[date_issued]" value="{{ old('spouse_info.date_issued', $spouseDefaults['date_issued'] ?? '') }}" class="mt-1 w-full border-0 border-b border-dashed border-slate-400 bg-transparent px-0 py-1 text-sm text-slate-600 outline-none focus:border-[#2b428f] focus:ring-0"></label>
                                 </div>

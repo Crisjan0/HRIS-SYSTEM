@@ -196,7 +196,7 @@
                         <select name="division" x-model="form.division"
                                 class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-800 transition duration-200 text-sm bg-white"
                                 id="reg-division">
-                            <option value="">— Select Division —</option>
+                            <option value="">â€” Select Division â€”</option>
                             <option value="Finance and Administrative Division">Finance and Administrative Division</option>
                             <option value="Migrant Workers Processing Division">Migrant Workers Processing Division</option>
                             <option value="Migrant Workers Protection Division">Migrant Workers Protection Division</option>
@@ -211,9 +211,10 @@
                         <select name="position" x-model="form.position"
                                 class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-800 transition duration-200 text-sm bg-white"
                                 id="reg-position">
-                            <option value="">— Select Position —</option>
+                            <option value="">â€” Select Position â€”</option>
                             <option value="EMPLOYEE">Employee</option>
                             <option value="HRSTAFF">HR Admin</option>
+                            <option value="RECORDOFFICER">Record Officer</option>
                             <option value="CHIEF">Chief</option>
                             <option value="REGIONALDIRECTOR">Regional Director</option>
                             <option value="ADMIN">Admin</option>
@@ -562,3 +563,4 @@
 
 </body>
 </html>
+

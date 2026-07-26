@@ -97,7 +97,7 @@ class EmployeeController extends Controller
     public function create(): View
     {
         $users = User::whereDoesntHave('employee')->get();
-        $roles = ['employee', 'hrstaff', 'chief', 'regionaldirector', 'admin'];
+        $roles = ['employee', 'hrstaff', 'recordofficer', 'chief', 'regionaldirector', 'admin'];
         $divisionOptions = self::DIVISIONS;
         $employmentStatuses = ['Regular', 'Job Order', 'Contract of Service'];
 
@@ -117,7 +117,7 @@ class EmployeeController extends Controller
             'notification_email' => 'nullable|required_with:account_email|email|max:255',
             'division' => 'required|string|in:'.implode(',', self::DIVISIONS),
             'position' => 'required|string|max:255',
-            'account_role' => 'required|string|in:employee,hrstaff,chief,regionaldirector,admin',
+            'account_role' => 'required|string|in:employee,hrstaff,recordofficer,chief,regionaldirector,admin',
             'employment_status' => 'nullable|string|in:Regular,Job Order,Contract of Service',
             'user_id' => 'nullable|exists:users,id|unique:employees,user_id',
             'account_email' => 'nullable|email|max:255|ends_with:@dmw.gov.ph|unique:users,email',
@@ -281,7 +281,7 @@ class EmployeeController extends Controller
         $users = User::whereDoesntHave('employee', function ($query) use ($employee) {
             $query->where('id', '!=', $employee->id);
         })->get();
-        $roles = ['employee', 'hrstaff', 'chief', 'regionaldirector', 'admin'];
+        $roles = ['employee', 'hrstaff', 'recordofficer', 'chief', 'regionaldirector', 'admin'];
         $divisionOptions = self::DIVISIONS;
         $employmentStatuses = ['Regular', 'Job Order', 'Contract of Service'];
 
@@ -301,7 +301,7 @@ class EmployeeController extends Controller
             'notification_email' => 'nullable|email|max:255',
             'division' => 'required|string|in:'.implode(',', self::DIVISIONS),
             'position' => 'required|string|max:255',
-            'account_role' => 'required|string|in:employee,hrstaff,chief,regionaldirector,admin',
+            'account_role' => 'required|string|in:employee,hrstaff,recordofficer,chief,regionaldirector,admin',
             'employment_status' => 'nullable|string|in:Regular,Job Order,Contract of Service',
             'user_id' => 'nullable|exists:users,id|unique:employees,user_id,' . $employee->id,
             'rfid_number' => 'nullable|string|max:255|unique:employees,rfid_number,' . $employee->id,
@@ -446,3 +446,4 @@ class EmployeeController extends Controller
         }
     }
 }
+

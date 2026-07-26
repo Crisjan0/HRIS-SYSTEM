@@ -32,7 +32,7 @@ class RegisterRequest extends FormRequest
 
             // Step 2: Division & Position
             'division' => ['required', 'string', 'in:Finance and Administrative Division,Migrant Workers Processing Division,Migrant Workers Protection Division,Welfare and Reintegration Division'],
-            'position' => ['required', 'string', 'in:EMPLOYEE,HRSTAFF,CHIEF,REGIONALDIRECTOR,ADMIN'],
+            'position' => ['required', 'string', 'in:EMPLOYEE,HRSTAFF,RECORDOFFICER,CHIEF,REGIONALDIRECTOR,ADMIN'],
 
             // Step 3: Credentials
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
@@ -65,3 +65,4 @@ class RegisterRequest extends FormRequest
         ];
     }
 }
+

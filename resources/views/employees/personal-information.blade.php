@@ -72,6 +72,22 @@
                                 </div>
                             </div>
 
+                            <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100 transition-all hover:border-slate-200">
+                                <div class="flex items-center gap-3.5 min-w-0">
+                                    <div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600 shrink-0">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">{{ __('Employment Status') }}</span>
+                                        <span class="text-sm font-semibold text-slate-700 block mt-0.5">
+                                            {{ $employee->employment_status ?: __('N/A') }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Email Row -->
                             <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100 transition-all hover:border-slate-200">
                                 <div class="flex items-center gap-3.5 min-w-0">

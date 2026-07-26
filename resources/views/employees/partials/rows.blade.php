@@ -3,6 +3,7 @@
         $roleLabels = [
             'employee' => 'Employee',
             'hrstaff' => 'HR Admin',
+            'recordofficer' => 'Record Officer',
             'chief' => 'Chief',
             'regionaldirector' => 'Regional Director',
             'admin' => 'Admin',
@@ -48,8 +49,17 @@
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-red-700 hover:bg-red-50 hover:text-red-900 transition-colors duration-200" title="{{ __('Archive') }}" aria-label="{{ __('Archive') }}">
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" d="M3.75 7.5h16.5M6 7.5V19a1.5 1.5 0 001.5 1.5h9A1.5 1.5 0 0018 19V7.5M8.25 7.5V5A1.5 1.5 0 019.75 3.5h4.5A1.5 1.5 0 0115.75 5v2.5M9.25 12h5.5" />
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"
+     stroke-linecap="round"
+    stroke-linejoin="round">
+                              <path d="M4 7.5h16v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" />
+
+    <!-- Box cover -->
+    <path d="M3 4.5h18v3H3z" />
+
+    <!-- Down arrow -->
+    <path d="M12 10v6" />
+    <path d="m9.5 13.5 2.5 2.5 2.5-2.5" />
                         </svg>
                         <span class="sr-only">{{ __('Archive') }}</span>
                     </button>
@@ -70,3 +80,4 @@
         </td>
     </tr>
 @endforelse
+

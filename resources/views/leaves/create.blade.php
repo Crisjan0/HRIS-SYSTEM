@@ -1,12 +1,213 @@
 <x-app-layout>
+    @if(request()->boolean('modal'))
+        <style>
+            html,
+            body {
+                margin: 0 !important;
+                min-height: 100% !important;
+                background: #ffffff !important;
+            }
+
+            body > .flex.h-screen.overflow-hidden > aside,
+            body > .flex.h-screen.overflow-hidden header {
+                display: none !important;
+            }
+
+            body > .flex.h-screen.overflow-hidden,
+            body > .flex.h-screen.overflow-hidden > .flex,
+            body > .flex.h-screen.overflow-hidden main {
+                width: 100% !important;
+                height: auto !important;
+                min-height: 100vh !important;
+                overflow: visible !important;
+                background: #ffffff !important;
+            }
+
+            body > .flex.h-screen.overflow-hidden main {
+                padding: 0 !important;
+            }
+
+            body > .flex.h-screen.overflow-hidden main > div,
+            body > .flex.h-screen.overflow-hidden main > div > div {
+                width: 100% !important;
+                max-width: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: visible !important;
+                border: 0 !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+            }
+
+            .modal-form-shell {
+                width: 100% !important;
+                padding: 0 !important;
+                background: #ffffff !important;
+            }
+
+            .modal-form-shell > div {
+                width: 100% !important;
+                max-width: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .modal-form-shell .modal-page-back,
+            .modal-form-shell .modal-form-title {
+                display: none !important;
+            }
+
+            .modal-form-shell .modal-form-card {
+                width: 100% !important;
+                overflow: visible !important;
+                border: 0 !important;
+                border-radius: 0 !important;
+                background: transparent !important;
+                box-shadow: none !important;
+            }
+
+            .modal-form-shell .modal-form-card > div {
+                padding: 1rem 1.1rem 1.25rem !important;
+            }
+
+            @media (min-width: 640px) {
+                .modal-form-shell .modal-form-card > div {
+                    padding: 1.25rem 1.5rem 1.5rem !important;
+                }
+            }
+
+
+            .modal-form-shell form {
+                max-width: 100% !important;
+            }
+
+            .modal-form-shell input,
+            .modal-form-shell textarea,
+            .modal-form-shell button,
+            .modal-form-shell label {
+                font-size: 0.875rem;
+            }
+
+            @media (min-width: 768px) {
+                .modal-form-shell .modal-form-card > div {
+                    padding: 1.25rem 1.75rem 1.5rem !important;
+                }
+            }
+
+            /*
+             * Fixed modal layout:
+             * - the iframe/page itself does not scroll
+             * - only .leave-form-body scrolls
+             * - .leave-form-footer stays fixed at the bottom
+             */
+            html,
+            body {
+                height: 100% !important;
+                overflow: hidden !important;
+            }
+
+            body > .flex.h-screen.overflow-hidden,
+            body > .flex.h-screen.overflow-hidden > .flex,
+            body > .flex.h-screen.overflow-hidden main,
+            body > .flex.h-screen.overflow-hidden main > div,
+            body > .flex.h-screen.overflow-hidden main > div > div,
+            .modal-form-shell,
+            .modal-form-shell > div,
+            .modal-form-shell .modal-form-card,
+            .modal-form-shell .modal-form-card > div {
+                height: 100% !important;
+                min-height: 0 !important;
+            }
+
+            body > .flex.h-screen.overflow-hidden,
+            body > .flex.h-screen.overflow-hidden > .flex,
+            body > .flex.h-screen.overflow-hidden main {
+                overflow: hidden !important;
+            }
+
+            .modal-form-shell {
+                height: 100vh !important;
+                height: 100dvh !important;
+                overflow: hidden !important;
+            }
+
+            .modal-form-shell .modal-form-card {
+                display: flex !important;
+                flex-direction: column !important;
+                overflow: hidden !important;
+            }
+
+            .modal-form-shell .modal-form-card > div {
+                display: flex !important;
+                flex: 1 1 auto !important;
+                flex-direction: column !important;
+                overflow: hidden !important;
+                padding: 0 !important;
+            }
+
+            .leave-modal-form {
+                display: flex;
+                flex: 1 1 auto;
+                flex-direction: column;
+                width: 100%;
+                height: 100%;
+                min-height: 0;
+                max-width: 100% !important;
+                overflow: hidden;
+            }
+
+            .leave-form-body {
+                flex: 1 1 auto;
+                min-height: 0;
+                overflow-y: auto;
+                overscroll-behavior: contain;
+                padding: 1.25rem 1.75rem;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .leave-form-footer {
+                position: relative;
+                z-index: 20;
+                flex: 0 0 auto;
+            }
+
+            @media (max-width: 639px) {
+                .leave-form-body {
+                    padding: 1rem 1.1rem;
+                }
+
+                .leave-form-footer {
+                    padding-left: 1rem;
+                    padding-right: 1rem;
+                }
+            }
+
+            body::-webkit-scrollbar {
+                width: 8px;
+            }
+
+            body::-webkit-scrollbar-track {
+                background: #f1f5f9;
+            }
+
+            body::-webkit-scrollbar-thumb {
+                border: 2px solid #f1f5f9;
+                border-radius: 999px;
+                background: #cbd5e1;
+            }
+        </style>
+    @endif
     <x-slot name="title">{{ __('File New Leave Request') }}</x-slot>
 
-    <div class="py-12">
-        <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-2xl sm:rounded-2xl border border-gray-100 ring-1 ring-black/5">
-                <div class="p-8">
-                    <form method="POST" action="{{ route('leaves.store') }}" class="space-y-8" enctype="multipart/form-data" x-data="leaveDateForm('{{ old('start_date') }}', '{{ old('end_date') }}', '{{ now()->toDateString() }}', {{ Js::from($holidayDates) }})">
+    <div class="modal-form-shell">
+        <div class="mx-auto w-full max-w-5xl">
+            <div class="bg-white overflow-hidden shadow-2xl sm:rounded-2xl border border-gray-100 ring-1 ring-black/5 modal-form-card">
+                <div>
+                    <form method="POST" action="{{ route('leaves.store') }}" class="leave-modal-form" enctype="multipart/form-data" x-data="leaveDateForm('{{ old('start_date') }}', '{{ old('end_date') }}', '{{ now()->toDateString() }}', {{ Js::from($holidayDates) }})">
                         @csrf
+
+                        {{-- Only this section scrolls inside the modal --}}
+                        <div class="leave-form-body space-y-5">
 
                         <!-- Leave Type -->
                         @php
@@ -59,25 +260,46 @@
                                 this.$nextTick(() => this.applySelectedPolicy());
                             }
                         }" @click.outside="open = false" class="relative">
-                            <x-input-label for="leave_type_id" :value="__('Type of Leave')" class="text-[10px] font-black uppercase text-indigo-600 tracking-[0.2em] mb-2" />
+                            <x-input-label for="leave_type_id" :value="__('Type of Leave')" class="mb-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-slate-600" />
                             <input type="hidden" name="leave_type_id" :value="selectedId" required>
 
-                            <!-- Searchable Field -->
-                            <div class="relative">
-                                <input type="search"
-                                    x-model="query"
-                                    @focus="open = true; $event.target.select()"
-                                    @input="open = true; clearSelectionIfSearching()"
-                                    @keydown.escape.prevent="open = false"
-                                    placeholder="{{ __('Select or search leave type') }}"
-                                    class="mt-1 w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 pr-11 text-sm font-bold text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    :class="open && 'border-indigo-500 ring-2 ring-indigo-500'">
-                                <svg class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 transition-transform" :class="open && 'rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                            </div>
+                            {{-- Searchable Leave Type field --}}
+<div class="relative mt-1">
+    <input
+        type="search"
+        x-model="query"
+        @focus="open = true; $event.target.select()"
+        @input="open = true; clearSelectionIfSearching()"
+        @keydown.escape.prevent="open = false"
+        placeholder="{{ __('Select or search leave type') }}"
+        class="block h-11 w-full appearance-none rounded-xl border border-slate-200 bg-white py-2.5 pl-3.5 pr-12 text-sm font-semibold text-slate-800 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+        :class="open ? 'border-indigo-500 ring-2 ring-indigo-100' : ''"
+    >
+
+    <span
+        class="pointer-events-none absolute inset-y-0 right-0 flex w-11 items-center justify-center"
+    >
+        <svg
+            class="h-4 w-4 text-slate-400 transition-transform duration-200"
+            :class="open ? 'rotate-180 text-indigo-600' : ''"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+        >
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2.25"
+                d="m7 10 5 5 5-5"
+            />
+        </svg>
+    </span>
+</div>
                             <x-input-error class="mt-2" :messages="$errors->get('leave_type_id')" />
 
                             <!-- Dropdown List -->
-                            <div x-show="open" x-transition.opacity.duration.150ms x-cloak class="absolute z-50 mt-1 w-full bg-white rounded-xl shadow-lg border border-gray-200 max-h-[400px] overflow-y-auto">
+                            <div x-show="open" x-transition.opacity.duration.150ms x-cloak class="absolute z-50 mt-1 w-full bg-white rounded-xl shadow-lg border border-gray-200 max-h-64 overflow-y-auto">
                                 @foreach($leaveGroups as $group => $names)
                                     @php $groupTypes = $leaveTypes->filter(fn($t) => in_array($t->name, $names)); @endphp
                                     @if($groupTypes->isNotEmpty())
@@ -127,13 +349,13 @@
                         </div>
 
                         <!-- Date Range -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <x-weekday-date-picker field="start_date" :label="__('Start Date')" model="startDate" />
                             <x-weekday-date-picker field="end_date" :label="__('End Date')" model="endDate" />
                         </div>
-                        <div class="rounded-xl border border-indigo-100 bg-indigo-50/60 px-4 py-3">
-                            <p class="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600">{{ __('Leave Days') }}</p>
-                            <p class="mt-1 text-sm font-bold text-gray-700">
+                        <div class="rounded-xl border border-blue-100 bg-blue-50/70 px-4 py-3">
+                            <p class="text-[11px] font-bold uppercase tracking-[0.08em] text-blue-700">{{ __('Leave Days') }}</p>
+                            <p class="mt-1 text-sm font-semibold text-slate-700">
                                 <span x-text="leaveDays"></span>
                                 <span x-text="leaveDays === 1 ? 'weekday counted' : 'weekdays counted'"></span>
                             </p>
@@ -141,14 +363,14 @@
 
                         <!-- Pay Option -->
                         <div>
-                            <span class="block text-sm font-medium text-gray-700">{{ __('Pay Option') }}</span>
+                            <span class="block text-[11px] font-bold uppercase tracking-[0.08em] text-slate-600">{{ __('Pay Option') }}</span>
                             @php($payOption = old('is_paid', '1'))
-                            <div class="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700 transition hover:border-indigo-300">
+                            <div class="mt-2 grid grid-cols-2 gap-3">
+                                <label class="flex cursor-pointer items-center gap-2.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:bg-blue-50/40">
                                     <input type="radio" name="is_paid" value="1" class="border-gray-300 text-indigo-600 focus:ring-indigo-500" {{ (string) $payOption === '1' ? 'checked' : '' }}>
                                     {{ __('With Pay') }}
                                 </label>
-                                <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700 transition hover:border-indigo-300">
+                                <label class="flex cursor-pointer items-center gap-2.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:bg-blue-50/40">
                                     <input type="radio" name="is_paid" value="0" class="border-gray-300 text-indigo-600 focus:ring-indigo-500" {{ (string) $payOption === '0' ? 'checked' : '' }}>
                                     {{ __('Without Pay') }}
                                 </label>
@@ -158,12 +380,12 @@
 
                         <!-- Reason -->
                         <div>
-                            <x-input-label for="reason" :value="__('Reason for Leave')" class="text-[10px] font-black uppercase text-indigo-600 tracking-[0.2em] mb-2" />
-                            <textarea id="reason" name="reason" class="mt-1 block w-full border-gray-100 focus:border-indigo-500 focus:ring-indigo-500 rounded-xl shadow-sm text-sm font-bold py-3 px-4 bg-gray-50/50" rows="5" required placeholder="{{ __('Please provide a detailed reason for your leave request...') }}">{{ old('reason') }}</textarea>
+                            <x-input-label for="reason" :value="__('Reason for Leave')" class="mb-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-slate-600" />
+                            <textarea id="reason" name="reason" class="mt-1 block w-full rounded-xl border-slate-200 bg-white px-3.5 py-3 text-sm font-medium text-slate-800 shadow-sm focus:border-blue-500 focus:ring-blue-100" rows="4" required placeholder="{{ __('Please provide a detailed reason for your leave request...') }}">{{ old('reason') }}</textarea>
                             <x-input-error class="mt-2" :messages="$errors->get('reason')" />
                         </div>
-                        <div class="mt-6" x-data="{ fileName: '' }">
-                            <x-input-label for="attachment" :value="__('Supporting Documents (Optional)')" class="text-[10px] font-black uppercase text-indigo-600 tracking-[0.2em] mb-2" />
+                        <div x-data="{ fileName: '' }">
+                            <x-input-label for="attachment" :value="__('Supporting Documents (Optional)')" class="mb-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-slate-600" />
                             
                             <div class="relative group">
                                 <input type="file" 
@@ -175,7 +397,7 @@
                                     accept=".pdf,application/pdf">
                                 
                                 <label for="attachment" 
-                                    class="flex items-center justify-between w-full border-2 border-dashed border-gray-200 group-hover:border-indigo-400 rounded-xl p-4 bg-gray-50/50 cursor-pointer transition-all duration-300">
+                                    class="flex w-full cursor-pointer items-center justify-between rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/70 p-3.5 transition-all duration-200 group-hover:border-blue-400 group-hover:bg-blue-50/40">
                                     <div class="flex items-center gap-3">
                                         <div class="p-2 bg-indigo-100 rounded-lg text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -200,11 +422,27 @@
                             <x-input-error class="mt-2" :messages="$errors->get('attachment')" />
                         </div>
 
-                        <div class="flex items-center justify-end gap-6 pt-6 border-t border-gray-50">
-                            <a href="{{ route('leaves.index') }}" class="text-sm font-black text-gray-400 hover:text-indigo-600 transition-colors duration-300 uppercase tracking-widest">
-                                {{ __('Cancel') }}
-                            </a>
-                            <x-primary-button class="bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-900 border-none shadow-xl shadow-indigo-200/50 px-8 py-3 rounded-xl transition-all duration-300 transform hover:-translate-y-1">
+                        </div>
+
+                        {{-- Fixed footer: remains visible while the form body scrolls --}}
+                        <div class="leave-form-footer flex shrink-0 items-center justify-end gap-3 border-t border-slate-200 bg-white px-5 py-3 shadow-[0_-8px_24px_rgba(15,23,42,0.06)]">
+                        @if(request()->boolean('modal'))
+    <button
+        type="button"
+        onclick="window.parent.postMessage('close-create-request-modal', '*')"
+        class="inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
+    >
+        {{ __('Cancel') }}
+    </button>
+@else
+    <a
+        href="{{ route('leaves.index') }}"
+        class="inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
+    >
+        {{ __('Cancel') }}
+    </a>
+@endif
+                            <x-primary-button class="h-10 rounded-xl border-none bg-blue-800 px-6 text-sm font-semibold shadow-lg shadow-blue-900/15 transition hover:bg-blue-900 active:bg-blue-950">
                                 {{ __('Submit Request') }}
                             </x-primary-button>
                         </div>
@@ -322,4 +560,4 @@
             };
         }
     </script>
-</x-app-layout>
+</x-app-layout>`

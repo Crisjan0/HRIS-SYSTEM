@@ -5,6 +5,7 @@
         $roleLabels = [
             'employee' => 'Employee',
             'hrstaff' => 'HR Admin',
+            'recordofficer' => 'Record Officer',
             'chief' => 'Chief',
             'regionaldirector' => 'Regional Director',
             'admin' => 'Admin',
@@ -164,6 +165,7 @@
                                         <option value="">-- Select Role to Approve --</option>
                                         <option value="employee" {{ $user->employee?->account_role === 'employee' ? 'selected' : '' }}>Employee</option>
                                         <option value="hrstaff" {{ $user->employee?->account_role === 'hrstaff' ? 'selected' : '' }}>HR Admin</option>
+                                        <option value="recordofficer" {{ $user->employee?->account_role === 'recordofficer' ? 'selected' : '' }}>Record Officer</option>
                                         <option value="chief" {{ $user->employee?->account_role === 'chief' ? 'selected' : '' }}>Chief</option>
                                         <option value="regionaldirector" {{ $user->employee?->account_role === 'regionaldirector' ? 'selected' : '' }}>Regional Director</option>
                                         <option value="admin" {{ $user->employee?->account_role === 'admin' ? 'selected' : '' }}>Admin</option>
@@ -182,3 +184,5 @@
         </div>
     </div>
 </x-app-layout>
+
+

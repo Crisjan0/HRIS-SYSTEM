@@ -5,6 +5,7 @@
         $roleLabels = [
             'employee' => 'Employee',
             'hrstaff' => 'HR Admin',
+            'recordofficer' => 'Record Officer',
             'chief' => 'Chief',
             'regionaldirector' => 'Regional Director',
             'admin' => 'Admin',
@@ -106,7 +107,7 @@
                                     <th class="w-[18%] px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('RFID Number') }}</th>
                                     <th class="w-[27%] px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('Division') }}</th>
                                     <th class="w-[15%] px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('Role') }}</th>
-                                    <th class="w-[12%] px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('Actions') }}</th>
+                                    <th class="w-[12%] px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('Actions') }}</th>
                                 </tr>
                             </thead>
                             <tbody id="employeeTableBody" class="bg-white divide-y divide-gray-200">
@@ -183,18 +184,18 @@
         title="{{ __('Restore') }}"
         aria-label="{{ __('Restore') }}">
 
-     <svg xmlns="http://www.w3.org/2000/svg"
-         class="h-6 w-6"
+    <svg xmlns="http://www.w3.org/2000/svg"
+         class="h-5 w-5"
          viewBox="0 0 24 24"
          fill="none"
          stroke="currentColor"
-         stroke-width="2"
+         stroke-width="2.2"
          stroke-linecap="round"
          stroke-linejoin="round">
-        <circle cx="12" cy="12" r="9" />
-        <path d="M12 8v8" />
-        <path d="M8 12h8" />
+        <path d="M4.5 9A8 8 0 1 1 4 14" />
+        <path d="M4.5 4.5V9H9" />
     </svg>
+
 
     <span class="sr-only">{{ __('Restore') }}</span>
 </button>
@@ -458,6 +459,7 @@
                         <option value="">-- Select Role --</option>
                         <option value="employee">Employee</option>
                         <option value="hrstaff">HR Admin</option>
+                        <option value="recordofficer">Record Officer</option>
                         <option value="chief">Chief</option>
                         <option value="regionaldirector">Regional Director</option>
                         <option value="admin">Admin</option>
@@ -604,3 +606,5 @@
         }
     </script>
 </x-app-layout>
+
+

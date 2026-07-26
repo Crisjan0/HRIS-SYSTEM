@@ -18,6 +18,7 @@ class LocatorSlip extends Model
         'time_from',
         'time_to',
         'status',
+        'chief_remarks',
         'recommending_approval_id',
         'approved_by_id',
     ];
@@ -37,3 +38,4 @@ class LocatorSlip extends Model
         return $this->belongsTo(User::class, 'approved_by_id');
     }
 }
+

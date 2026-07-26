@@ -1,56 +1,41 @@
 <x-app-layout>
     <div
-    class="p-4 sm:p-6 lg:p-8"
-    x-data="myLocatorSlipTable()"
-    x-init="init()"
->
-    {{-- Year filter outside the container --}}
-    <div class="mb-4 flex items-center justify-between">
-        <div>
-            <h1 class="text-lg font-bold text-gray-800">
-                Locator Slips
-            </h1>
+        class="p-4 sm:p-6 lg:p-8"
+        x-data="myLocatorSlipTable()"
+        x-init="init()"
+    >
+        <div class="mb-4 flex items-center justify-between">
+            <div>
+                <h1 class="text-lg font-bold text-gray-800">Locator Slips</h1>
+                <p class="text-sm text-gray-500">View your locator slips.</p>
+            </div>
 
-            <p class="text-sm text-gray-500">
-                View your locator slips.
-            </p>
+            <div class="flex items-center gap-2">
+                <label for="locator_year" class="text-sm font-semibold text-gray-700">Year</label>
+                @php
+                    $currentYear = now()->year;
+                @endphp
+                <select
+                    id="locator_year"
+                    x-model="year"
+                    @change="applyFilters()"
+                    class="h-10 w-28 rounded-lg border-gray-300 bg-white pl-4 pr-10 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                >
+                    @for ($yearOption = $currentYear; $yearOption >= $currentYear - 4; $yearOption--)
+                        <option value="{{ $yearOption }}">{{ $yearOption }}</option>
+                    @endfor
+                </select>
+            </div>
         </div>
 
-        <div class="flex items-center gap-2">
-            <label
-                for="locator_year"
-                class="text-sm font-semibold text-gray-700"
-            >
-                Year
-            </label>
-    @php
-    $currentYear = now()->year;
-    @endphp
-
-            <select
-                id="locator_year"
-                x-model="year"
-                @change="applyFilters()"
-               class="h-10 w-28 appearance-auto rounded-lg border-gray-300 bg-white pl-4 pr-10 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-            >
-                @for ($yearOption = $currentYear; $yearOption >= $currentYear - 4; $yearOption--)
-            <option value="{{ $yearOption }}">
-                {{ $yearOption }}
-            </option>
-        @endfor
-    </select>
-        </div>
-    </div>
-
-    {{-- Main locator slip container --}}
-    <div class="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-            <div class="p-6 flex justify-end items-center border-b border-gray-100">
-                <a href="{{ route('locator-slips.create') }}" class="inline-flex items-center gap-2 rounded-xl bg-blue-900 px-4 py-2.5 text-xs font-black uppercase tracking-widest text-white shadow-sm transition hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+        <div class="overflow-hidden rounded-2xl border border-gray-100 bg-white/80 shadow-lg backdrop-blur-xl">
+            <div class="flex items-center justify-end border-b border-gray-100 p-6">
+                <button type="button" @click="$dispatch('open-create-locator-slip-modal')" class="inline-flex items-center gap-2 rounded-xl bg-blue-900 px-4 py-2.5 text-xs font-black uppercase tracking-widest text-white shadow-sm transition hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
                     Create Locator Slip
-                </a>
+                </button>
             </div>
 
             <div class="border-b border-gray-100 bg-gray-50/70 p-2">
@@ -58,32 +43,15 @@
                     <div class="relative min-w-0 sm:flex-1">
                         <label for="my_locator_search" class="sr-only">{{ __('Search locator slip') }}</label>
                         <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-        <svg
-            class="h-4 w-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-        >
-            <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="m21 21-4.35-4.35m1.35-5.65a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"
-            />
-        </svg>
-    </span>
-                        <input id="my_locator_search" type="search" x-model="search" @input.debounce.200ms="applyFilters()" placeholder="{{ __('Search date, type, status, destination, or purpose...') }}" class="block h-9 w-full rounded-lg border-gray-300 pl-10 pr-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-4.35-4.35m1.35-5.65a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" />
+                            </svg>
+                        </span>
+                        <input id="my_locator_search" type="search" x-model="search" @input.debounce.200ms="applyFilters()" placeholder="{{ __('Search date, type, status, destination, or purpose...') }}" class="block h-9 w-full rounded-lg border-gray-300 pl-10 pr-3 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500" />
                     </div>
-                    <select x-model="status" @change="applyFilters()" class="block h-9 rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:w-40">
-                        <option value="">{{ __('All Statuses') }}</option>
-                        <option value="pending">{{ __('Pending') }}</option>
-                        <option value="approved">{{ __('Approved') }}</option>
-                        <option value="rejected">{{ __('Rejected') }}</option>
-                    </select>
 
-                    <select x-model="type" @change="applyFilters()" class="block h-9 rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:w-40">
-                        <option value="">{{ __('All Types') }}</option>
+                    <select x-model="type" @change="applyFilters()" class="block h-9 rounded-lg border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:w-40">
+                        <option value="">{{ __('Types') }}</option>
                         @foreach(
                             $locatorSlips
                                 ->map(fn ($slip) => ($slip->type ?? '') === 'Personal' ? 'Pass Slip' : ($slip->type ?? ''))
@@ -95,6 +63,15 @@
                             <option value="{{ Str::lower($typeOption) }}">{{ $typeOption }}</option>
                         @endforeach
                     </select>
+
+
+                    <select x-model="status" @change="applyFilters()" class="block h-9 rounded-lg border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:w-40">
+                        <option value="">{{ __('Status') }}</option>
+                        <option value="pending">{{ __('Pending') }}</option>
+                        <option value="approved">{{ __('Approved') }}</option>
+                        <option value="rejected">{{ __('Rejected') }}</option>
+                    </select>
+                    
                     <button type="button" @click="reset()" class="inline-flex h-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-xs font-bold uppercase tracking-wider text-gray-700 transition hover:bg-gray-50">
                         {{ __('Reset') }}
                     </button>
@@ -102,14 +79,14 @@
             </div>
 
             <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead class="bg-gray-50">
+                <table class="w-full border-collapse text-left">
+                     <thead class="bg-gray-50">
                         <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Date Covered</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Approval</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Type</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Status</th>
-                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Actions</th>
+                            <th scope="col" class="whitespace-nowrap px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Date Covered</th>
+                            <th scope="col" class="whitespace-nowrap px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Approval</th>
+                            <th scope="col" class="whitespace-nowrap px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Type</th>
+                            <th scope="col" class="whitespace-nowrap px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Status</th>
+                            <th scope="col" class="whitespace-nowrap px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="myLocatorSlipTableBody" class="divide-y divide-gray-100 bg-white">
@@ -130,36 +107,69 @@
                                     'rejected' => 'bg-red-500',
                                     default => 'bg-gray-300',
                                 };
+                                $previewPayload = [
+                                    'title' => $displayType ?: 'Locator Slip',
+                                    'date' => \Carbon\Carbon::parse($slip->date_covered)->format('M d, Y'),
+                                    'status' => $displayStatus,
+                                    'remarks' => $slip->chief_remarks ?: 'No remarks available.',
+                                    'printUrl' => route('locator-slips.print', ['locatorSlip' => $slip->id, 'preview' => 1]),
+                                    'directPrintUrl' => route('locator-slips.print', $slip->id),
+                                ];
+                                $qrPayload = [
+                                    'title' => $displayType ?: 'Locator Slip',
+                                    'employee' => trim(($slip->employee?->firstname ?? '') . ' ' . ($slip->employee?->lastname ?? '')),
+                                    'date' => \Carbon\Carbon::parse($slip->date_covered)->format('M d, Y'),
+                                    'svg' => base64_encode((string) $slip->qr_svg),
+                                ];
                             @endphp
                             <tr
-                                class="hover:bg-gray-50 transition-colors duration-150"
+                                class="transition-colors duration-150 hover:bg-gray-50"
                                 data-locator-row
                                 data-search="{{ $searchText }}"
                                 data-type="{{ Str::lower($displayType) }}"
                                 data-status="{{ $displayStatus }}"
                                 data-year="{{ \Carbon\Carbon::parse($slip->date_covered)->year }}"
                             >
-                                <td class="py-4 px-6 text-sm font-bold text-gray-900 whitespace-nowrap">
+                                <td class="whitespace-nowrap px-6 py-4 text-sm font-bold text-gray-900">
                                     {{ \Carbon\Carbon::parse($slip->date_covered)->format('M d, Y') }}
                                 </td>
-                                <td class="py-4 px-6 text-sm text-gray-700 whitespace-nowrap">
+                                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700">
                                     <div class="flex items-center gap-2">
                                         <span class="h-2.5 w-2.5 rounded-full {{ $approvalDotClass }}"></span>
                                         <span class="text-xs font-medium text-gray-500">Chief</span>
                                     </div>
                                 </td>
-                                <td class="py-4 px-6 text-sm text-gray-700 whitespace-nowrap">
+                                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700">
                                     {{ $displayType ?: 'N/A' }}
                                 </td>
-                                <td class="py-4 px-6 text-sm whitespace-nowrap">
-                                    <span class="px-4 py-1 inline-flex text-xs leading-5 font-semibold rounded-full shadow-sm {{ $statusClass }}">
+                                <td class="whitespace-nowrap px-6 py-4 text-sm">
+                                    <span class="inline-flex rounded-full px-4 py-1 text-xs font-semibold leading-5 shadow-sm {{ $statusClass }}">
                                         {{ ucfirst($displayStatus) }}
                                     </span>
                                 </td>
-                                <td class="py-4 px-6 text-right whitespace-nowrap">
-                                    <a href="{{ route('locator-slips.show', $slip) }}" class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-indigo-700 transition-colors hover:bg-indigo-50 hover:text-indigo-900" title="{{ __('View details') }}" aria-label="{{ __('View details') }}">
-                                        <i class="fa-solid fa-eye"></i>
-                                    </a>
+                                <td class="whitespace-nowrap px-6 py-4 text-right">
+                                    <div class="inline-flex items-center gap-1">
+                                        @if($slip->qr_svg)
+                                            <button
+                                                type="button"
+                                                @click="openQrModal(@js($qrPayload))"
+                                                class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-emerald-700 transition-colors hover:bg-emerald-50 hover:text-emerald-900"
+                                                title="{{ __('QR code') }}"
+                                                aria-label="{{ __('QR code') }}"
+                                            >
+                                                <i class="fa-solid fa-qrcode"></i>
+                                            </button>
+                                        @endif
+
+                                        <a
+                                            href="{{ route('locator-slips.show', $slip) }}"
+                                            class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-blue-700 transition-colors hover:bg-blue-50 hover:text-blue-900"
+                                            title="{{ __('View details') }}"
+                                            aria-label="{{ __('View details') }}"
+                                        >
+                                            <i class="fa-solid fa-eye"></i>
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         @empty
@@ -169,6 +179,7 @@
                                 </td>
                             </tr>
                         @endforelse
+
                         @if($locatorSlips->isNotEmpty())
                             <tr x-show="noResults" style="display: none;">
                                 <td colspan="5" class="py-8 text-center text-gray-500">
@@ -180,7 +191,245 @@
                 </table>
             </div>
         </div>
+
+        <template x-teleport="body">
+        <div
+            x-show="previewModalOpen"
+            x-cloak
+            class="fixed inset-0 z-[100000] flex items-center justify-center p-5 sm:p-8"
+            style="display: none;"
+            @keydown.escape.window="closePreviewModal()"
+        >
+            <div
+                class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+                @click="closePreviewModal()"
+            ></div>
+
+            <div
+                class="relative z-10 flex w-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
+                style="width: min(90vw, 620px); height: min(78vh, 610px); max-height: calc(100dvh - 80px);"
+                @click.stop
+            >
+                {{-- Preview Header --}}
+                <div class="flex shrink-0 items-center justify-between border-b border-blue-950 bg-blue-900 px-4 py-2.5 sm:px-5">
+                    <div class="min-w-0">
+                        <p class="text-[9px] font-bold uppercase tracking-[0.18em] text-blue-200">
+                            Locator Slip Preview
+                        </p>
+
+                        <div class="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
+                            <h2 class="truncate text-sm font-bold text-white" x-text="previewData.title"></h2>
+
+                            <span class="hidden text-blue-300 sm:inline">&bull;</span>
+
+                            <p class="text-[10px] font-medium text-blue-100">
+                                <span x-text="previewData.date"></span>
+                                <span class="mx-1">|</span>
+                                <span class="capitalize" x-text="previewData.status"></span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <button
+                        type="button"
+                        @click="closePreviewModal()"
+                        class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white transition hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-white/70"
+                        aria-label="{{ __('Close preview') }}"
+                        title="{{ __('Close preview') }}"
+                    >
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                {{-- Preview Document --}}
+                <div class="min-h-0 flex-1 overflow-auto bg-slate-100 p-3">
+                    <div class="mx-auto h-full max-w-[390px] overflow-hidden rounded-lg border border-slate-300 bg-white shadow-sm">
+                        <iframe
+                            x-ref="previewFrame"
+                            :src="previewData.printUrl"
+                            class="h-full min-h-[430px] w-full border-0 bg-white"
+                            title="Locator Slip Print Preview"
+                        ></iframe>
+                    </div>
+                </div>
+
+                {{-- Preview Footer --}}
+                <div class="flex shrink-0 flex-col gap-2 border-t border-slate-200 bg-white px-4 py-2.5 sm:flex-row sm:items-center sm:justify-between">
+                    {{-- Left: Remarks --}}
+                    <div class="min-w-0 flex-1">
+                        <button
+                            type="button"
+                            @click="toggleRemarks()"
+                            class="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-2 sm:w-auto"
+                        >
+                            
+                            <span x-text="showRemarks ? 'Hide Remarks' : 'Remarks'"></span>
+                        </button>
+
+                        <template x-if="showRemarks">
+                            <div
+                                class="mt-2 max-h-20 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-700"
+                                x-text="previewData.remarks"
+                            ></div>
+                        </template>
+                    </div>
+
+                    {{-- Right: Cancel and Print --}}
+                    <div class="flex shrink-0 gap-2 sm:justify-end">
+                        <button
+                            type="button"
+                            @click="closePreviewModal()"
+                            class="inline-flex flex-1 items-center justify-center rounded-lg border border-red-300 bg-white px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-red-600 transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2 sm:flex-none"
+                        >
+                            Cancel
+                        </button>
+
+                        <a
+                            :href="previewData.directPrintUrl"
+                            target="_blank"
+                            data-no-transition
+                            class="inline-flex flex-1 items-center justify-center rounded-lg bg-blue-900 px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-white transition hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:flex-none"
+                        >
+                            Print
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </template>
+
+        {{-- Locator Slip QR modal --}}
+        <template x-teleport="body">
+            <div
+                x-show="qrModalOpen"
+                x-cloak
+                class="fixed inset-0 flex items-center justify-center p-4 sm:p-6"
+                style="
+                    display: none;
+                    z-index: 99999;
+                    isolation: isolate;
+                "
+                @keydown.escape.window="qrModalOpen && closeQrModal()"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="locator-qr-modal-title"
+            >
+                {{-- Same overlay as Leave and Travel Authority --}}
+                <div
+                    class="absolute inset-0"
+                    style="
+                        z-index: 0;
+                        background-color: rgba(15, 23, 42, 0.62);
+                    "
+                    @click="closeQrModal()"
+                    aria-hidden="true"
+                ></div>
+
+                {{-- QR modal card --}}
+                <div
+                    class="relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
+                    style="
+                        z-index: 10;
+                        width: min(92vw, 620px);
+                        height: min(84dvh, 720px);
+                        max-height: calc(100dvh - 40px);
+                    "
+                    @click.stop
+                >
+                    <div class="flex shrink-0 items-center justify-between bg-blue-900 px-5 py-4 text-white">
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-black uppercase tracking-[0.20em] text-blue-200">
+                                {{ __('Locator Slip QR') }}
+                            </p>
+
+                            <h2
+                                id="locator-qr-modal-title"
+                                class="mt-1 truncate text-xl font-black tracking-tight"
+                                x-text="qrData.title"
+                            ></h2>
+                        </div>
+
+                        <button
+                            type="button"
+                            @click="closeQrModal()"
+                            class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white transition hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-white/70"
+                            aria-label="{{ __('Close QR modal') }}"
+                            title="{{ __('Close') }}"
+                        >
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="min-h-0 flex-1 overflow-y-auto bg-white px-5 py-4">
+                        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                            <div class="min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                                <p class="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">
+                                    {{ __('Employee') }}
+                                </p>
+                                <p class="mt-1 truncate text-sm font-bold text-slate-800" x-text="qrData.employee || 'N/A'"></p>
+                            </div>
+
+                            <div class="min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                                <p class="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">
+                                    {{ __('Date Covered') }}
+                                </p>
+                                <p class="mt-1 text-sm font-bold text-slate-800" x-text="qrData.date || 'N/A'"></p>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-center">
+                            <div
+                                class="qr-code-wrapper mx-auto flex items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-white p-3 shadow-sm"
+                                style="width: min(100%, 340px); aspect-ratio: 1 / 1;"
+                            >
+                                <div
+                                    class="qr-code-content flex h-full w-full items-center justify-center overflow-hidden"
+                                    x-html="qrData.svg"
+                                ></div>
+                            </div>
+
+                            <p class="mx-auto mt-3 max-w-md text-xs font-medium leading-5 text-slate-500">
+                                {{ __('Scan once to record OUT time, then scan again to record IN time.') }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex shrink-0 justify-end border-t border-slate-200 bg-white px-5 py-3">
+                        <button
+                            type="button"
+                            @click="closeQrModal()"
+                            class="inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
+                        >
+                            {{ __('Close') }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </template>
     </div>
+
+    <style>
+        .qr-code-content svg,
+        .qr-code-content img {
+            display: block !important;
+            width: 100% !important;
+            height: 100% !important;
+            max-width: 100% !important;
+            max-height: 100% !important;
+            object-fit: contain;
+        }
+
+        @media (max-width: 640px) {
+            .qr-code-wrapper {
+                max-width: 300px;
+            }
+        }
+    </style>
+
     <script>
         function myLocatorSlipTable() {
             return {
@@ -190,27 +439,53 @@
                 year: '{{ now()->year }}',
                 rows: [],
                 noResults: false,
+                qrModalOpen: false,
+                previewModalOpen: false,
+                showRemarks: false,
+                qrData: {
+                    title: '',
+                    employee: '',
+                    date: '',
+                    out: '',
+                    in: '',
+                    url: '',
+                    svg: '',
+                },
+                previewData: {
+                    title: '',
+                    date: '',
+                    status: '',
+                    remarks: '',
+                    printUrl: '',
+                    directPrintUrl: '',
+                },
+
                 init() {
                     this.rows = Array.from(document.querySelectorAll('[data-locator-row]'));
                     this.applyFilters();
                 },
+
                 applyFilters() {
                     const search = this.search.trim().toLowerCase();
                     let visibleCount = 0;
 
                     this.rows.forEach((row) => {
                         const visible =
-    (!search || row.dataset.search.includes(search))
-    && (!this.type || row.dataset.type === this.type)
-    && (!this.status || row.dataset.status === this.status)
-    && (!this.year || row.dataset.year === this.year);
+                            (!search || row.dataset.search.includes(search)) &&
+                            (!this.type || row.dataset.type === this.type) &&
+                            (!this.status || row.dataset.status === this.status) &&
+                            (!this.year || row.dataset.year === this.year);
 
                         row.classList.toggle('hidden', !visible);
-                        if (visible) visibleCount++;
+
+                        if (visible) {
+                            visibleCount++;
+                        }
                     });
 
                     this.noResults = this.rows.length > 0 && visibleCount === 0;
                 },
+
                 reset() {
                     this.search = '';
                     this.type = '';
@@ -218,7 +493,51 @@
                     this.year = '{{ now()->year }}';
                     this.applyFilters();
                 },
+
+                openQrModal(payload) {
+                    this.qrData = {
+                        ...payload,
+                        svg: payload.svg ? atob(payload.svg) : '',
+                    };
+                    this.qrModalOpen = true;
+                    document.documentElement.classList.add('overflow-hidden');
+                    document.body.classList.add('overflow-hidden');
+                },
+
+                closeQrModal() {
+                    this.qrModalOpen = false;
+                    document.documentElement.classList.remove('overflow-hidden');
+                    document.body.classList.remove('overflow-hidden');
+                },
+
+                openPreviewModal(payload) {
+                    this.previewData = payload;
+                    this.showRemarks = false;
+                    this.previewModalOpen = true;
+                    document.documentElement.classList.add('overflow-hidden');
+                    document.body.classList.add('overflow-hidden');
+                    this.$nextTick(() => {
+                        if (this.$refs.previewFrame) {
+                            this.$refs.previewFrame.src = payload.printUrl;
+                        }
+                    });
+                },
+
+                closePreviewModal() {
+                    this.previewModalOpen = false;
+                    this.showRemarks = false;
+                    if (!this.qrModalOpen) {
+                        document.documentElement.classList.remove('overflow-hidden');
+                        document.body.classList.remove('overflow-hidden');
+                    }
+                },
+
+                toggleRemarks() {
+                    this.showRemarks = !this.showRemarks;
+                },
             };
         }
     </script>
 </x-app-layout>
+
+@include('locator-slip.create')

@@ -71,7 +71,7 @@ class EmployeeAccountController extends Controller
     public function approve(Request $request, User $user): RedirectResponse
     {
         $validated = $request->validate([
-            'account_role' => ['required', 'string', 'in:employee,hrstaff,chief,regionaldirector,admin'],
+            'account_role' => ['required', 'string', 'in:employee,hrstaff,recordofficer,chief,regionaldirector,admin'],
         ]);
 
         if (! $user->employee) {
@@ -107,3 +107,4 @@ class EmployeeAccountController extends Controller
         return back()->with('success', 'Account for '.$displayName.' has been rejected and removed.');
     }
 }
+

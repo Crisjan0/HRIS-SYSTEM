@@ -25,14 +25,14 @@ class CtoController extends Controller
         $sort = $request->query('sort', 'latest');
 
         $allCtoRequests = $this->sortCtoRequests($this->filterCtoRequests(
-            CtoRequest::with('employee')->whereIn('status', ['approved', 'rejected']),
+            CtoRequest::with(['employee', 'chief', 'hrstaff', 'regionalDirector'])->whereIn('status', ['approved', 'rejected']),
             $search,
             $type
         ), $sort)
             ->get();
 
         $pendingCtoRequests = $this->sortCtoRequests($this->filterCtoRequests(
-            CtoRequest::with('employee')
+            CtoRequest::with(['employee', 'chief', 'hrstaff', 'regionalDirector'])
                 ->where('status', 'pending')
                 ->when($isHR, fn ($query) => $query->where('hrstaff_status', 'pending'))
                 ->when($isChief, fn ($query) => $query
@@ -93,13 +93,9 @@ class CtoController extends Controller
         $employeeId = auth()->user()->employee?->id;
         $isHR = in_array($role, ['admin', 'hrstaff', 'hr staff'], true);
 
-        $rules = [
+        $validated = $request->validate([
             'status' => 'required|in:approved,rejected',
-            'remarks' => ($isHR && $request->input('status') === 'rejected') ? 'required|string' : 'nullable|string',
-        ];
-
-        $validated = $request->validate($rules, [
-            'remarks.required' => 'Remarks are required when rejecting a request.',
+            'remarks' => 'nullable|string',
         ]);
 
         $remarks = $validated['remarks'] ?? null;

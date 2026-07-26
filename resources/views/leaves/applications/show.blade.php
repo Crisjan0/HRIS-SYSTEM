@@ -1,226 +1,324 @@
 <x-app-layout>
     <x-slot name="title">{{ __('Review Leave Application') }}</x-slot>
 
-    <div class="py-12">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+    <div class="py-10">
+        <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
             @php
                 $backRoute = $leaveApplication->status === 'pending'
                     ? route('leave-applications.index')
                     : route('leave-applications.all');
-                $backLabel = __('Back');
+
+                $trackedLeavePayload = [
+                    'id' => (string) $leaveApplication->id,
+                    'title' => (string) \Illuminate\Support\Str::of($leaveApplication->leaveType?->name ?? 'Leave')->replaceMatches('/\s+Leave\b/i', '')->trim(),
+                    'type' => (string) \Illuminate\Support\Str::of($leaveApplication->leaveType?->name ?? 'Leave')->replaceMatches('/\s+Leave\b/i', '')->trim(),
+                    'employee' => trim(($leaveApplication->employee?->firstname ?? '') . ' ' . ($leaveApplication->employee?->lastname ?? '')),
+                    'stages' => [
+                        ['label' => 'HR', 'status' => $leaveApplication->hrstaff_status ?: 'pending'],
+                        ['label' => 'Chief', 'status' => $leaveApplication->chief_status ?: 'pending'],
+                        ['label' => 'Regional Director', 'status' => $leaveApplication->rd_status ?: 'pending'],
+                    ],
+                ];
+
+                $role = strtolower(auth()->user()->role ?? '');
+                $isChief = $role === 'chief';
+                $isHR = in_array($role, ['hrstaff', 'hr staff', 'admin'], true);
+                $isDirector = in_array($role, ['regional director', 'regionaldirector', 'director'], true);
+
+                $isMyTurn = false;
+                $waitingMessage = '';
+
+                if ($leaveApplication->status === 'pending') {
+                    if ($isHR && $leaveApplication->hrstaff_status === 'pending') {
+                        $isMyTurn = true;
+                    } elseif ($isChief && $leaveApplication->chief_status === 'pending') {
+                        if (in_array($leaveApplication->hrstaff_status, ['approved', 'rejected'], true)) {
+                            $isMyTurn = true;
+                        } else {
+                            $waitingMessage = 'Waiting for HR Admin verification.';
+                        }
+                    } elseif ($isDirector && $leaveApplication->rd_status === 'pending') {
+                        if ($leaveApplication->chief_status === 'approved') {
+                            $isMyTurn = true;
+                        } else {
+                            $waitingMessage = 'Waiting for Division Chief approval.';
+                        }
+                    }
+                }
             @endphp
 
-            <div class="mb-4 flex items-center justify-between gap-3">
+            <div class="mb-5 flex items-center justify-between gap-3">
                 <a href="{{ $backRoute }}" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50">
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
-                    {{ $backLabel }}
+                    {{ __('Back') }}
                 </a>
                 <a href="{{ route('leave-applications.print', $leaveApplication) }}" target="_blank" data-no-transition class="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700">
                     {{ __('Print Leave Form') }}
                 </a>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <!-- Left Column: Details -->
-                <div class="lg:col-span-2 space-y-8">
-                    <div class="bg-white overflow-hidden shadow-sm rounded-3xl border border-gray-100 p-8 md:p-10">
-                        <!-- Employee Header -->
-                        <div class="flex items-center gap-4 mb-8 pb-8 border-b border-gray-50">
-                            <x-profile-avatar :employee="$leaveApplication->employee" size="xl" variant="indigo" rounded="2xl" />
+            <x-approval-tracker :payload="$trackedLeavePayload" event="leave-selected" empty="No leave approval process to track yet." />
+
+            @if($leaveApplication->hrstaff_remarks || $leaveApplication->chief_remarks || $leaveApplication->rd_remarks)
+                <div class="mb-6 bg-white overflow-hidden shadow-sm rounded-3xl border border-gray-100 p-6 md:p-8">
+                    <div class="text-xs font-black text-indigo-500 uppercase tracking-widest mb-6 inline-block border-b-2 border-indigo-100 pb-1">Approver Remarks</div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        @if($leaveApplication->hrstaff_remarks)
+                            <div class="p-5 rounded-2xl bg-gray-50 border border-gray-100">
+                                <span class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">HR Staff</span>
+                                <p class="text-sm font-semibold text-gray-700 leading-relaxed italic">"{{ $leaveApplication->hrstaff_remarks }}"</p>
+                            </div>
+                        @endif
+                        @if($leaveApplication->chief_remarks)
+                            <div class="p-5 rounded-2xl bg-gray-50 border border-gray-100">
+                                <span class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Chief</span>
+                                <p class="text-sm font-semibold text-gray-700 leading-relaxed italic">"{{ $leaveApplication->chief_remarks }}"</p>
+                            </div>
+                        @endif
+                        @if($leaveApplication->rd_remarks)
+                            <div class="p-5 rounded-2xl bg-gray-50 border border-gray-100">
+                                <span class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Regional Director</span>
+                                <p class="text-sm font-semibold text-gray-700 leading-relaxed italic">"{{ $leaveApplication->rd_remarks }}"</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            @endif
+
+            {{-- Review Action Above Form --}}
+            <section class="mt-8 rounded-3xl border border-gray-100 bg-white p-5 shadow-sm sm:p-7">
+                @if($isMyTurn)
+                    <div class="mb-6 flex flex-col gap-3 border-b border-gray-100 pb-5 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                            <p class="text-[10px] font-black uppercase tracking-[0.18em] text-indigo-500">
+                                {{ __('Current Review Stage') }}
+                            </p>
+
+                            <h3 class="mt-1 text-xl font-black text-gray-900">
+                                {{ $isHR
+                                    ? __('Verify Leave Application')
+                                    : __('Review Leave Application') }}
+                            </h3>
+
+                            <p class="mt-2 max-w-2xl text-sm leading-6 text-gray-500">
+                                {{ __('Enter your remarks, then approve or reject the application. Review the complete form below before submitting your decision.') }}
+                            </p>
+                        </div>
+
+                        <div class="inline-flex shrink-0 items-center gap-2 rounded-full bg-orange-50 px-3 py-2">
+                            <span class="h-2.5 w-2.5 animate-pulse rounded-full bg-orange-400"></span>
+
+                            <span class="text-[10px] font-black uppercase tracking-widest text-orange-600">
+                                {{ __('Your Review Needed') }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <form
+                        action="{{ route('leave-applications.update', $leaveApplication->id) }}"
+                        id="leaveStatusForm"
+                        method="POST"
+                    >
+                        @csrf
+                        @method('PUT')
+
+                        {{-- Remarks --}}
+                        <div>
+                            <label
+                                for="leaveRemarks"
+                                class="mb-2 block text-xs font-black uppercase tracking-widest text-gray-600"
+                            >
+                                {{ __('Remarks / Notes') }}
+                            </label>
+
+                            <textarea
+                                id="leaveRemarks"
+                                name="remarks"
+                                rows="4"
+                                placeholder="{{ __('Enter remarks or notes here...') }}"
+                                class="block w-full resize-y rounded-2xl border-gray-300 bg-gray-50 text-sm text-gray-800 shadow-sm transition focus:border-indigo-500 focus:bg-white focus:ring-indigo-500"
+                            ></textarea>
+
+                            <div class="mt-2 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                                <p class="text-xs text-gray-400">
+                                    {{ __('Remarks are required when rejecting the application.') }}
+                                </p>
+
+                                <span
+                                    id="leaveRemarksError"
+                                    class="hidden text-xs font-semibold text-red-600"
+                                ></span>
+                            </div>
+                        </div>
+
+                        {{-- Action Buttons --}}
+                        <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                            <button
+                                type="submit"
+                                name="status"
+                                value="rejected"
+                                class="inline-flex min-w-44 items-center justify-center rounded-xl border border-red-300 bg-white px-6 py-3 text-xs font-black uppercase tracking-widest text-red-600 transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2"
+                            >
+                                <i class="fa-solid fa-xmark mr-2"></i>
+                                {{ __('Reject Request') }}
+                            </button>
+
+                            <button
+                                type="submit"
+                                name="status"
+                                value="approved"
+                                class="inline-flex min-w-44 items-center justify-center rounded-xl bg-indigo-600 px-6 py-3 text-xs font-black uppercase tracking-widest text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                            >
+                                <i class="fa-solid fa-check mr-2"></i>
+
+                                {{ $isHR
+                                    ? __('Verify Request')
+                                    : __('Approve Request') }}
+                            </button>
+                        </div>
+                    </form>
+                @else
+                    <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                        <div class="flex items-start gap-4">
+                            <div class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-400">
+                                <i class="fa-solid fa-lock"></i>
+                            </div>
+
                             <div>
-                                <h1 class="text-2xl font-black text-gray-900">{{ $leaveApplication->employee->firstname }} {{ $leaveApplication->employee->lastname }}</h1>
-                                <div class="flex items-center gap-2">
-                                    <p class="text-gray-400 font-bold uppercase tracking-widest text-[10px]">
-                                        {{ $leaveApplication->employee->position ?: __('No position') }}
-                                        <span class="mx-1 text-gray-300">|</span>
-                                        {{ $leaveApplication->employee->division ?: __('No division') }}
-                                    </p>
-                                    @if($leaveApplication->status !== 'pending')
-                                        <span class="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded border {{ $leaveApplication->is_paid ? 'text-green-600 bg-green-50 border-green-100' : 'text-indigo-600 bg-indigo-50 border-indigo-100' }}">
-                                            {{ $leaveApplication->status_label }}
-                                        </span>
+                                <h3 class="text-sm font-black uppercase tracking-widest text-gray-700">
+                                    {{ __('Review Action Unavailable') }}
+                                </h3>
+
+                                <p class="mt-2 max-w-2xl text-sm leading-6 text-gray-500">
+                                    @if($waitingMessage)
+                                        {{ $waitingMessage }}
+                                    @else
+                                        {{ __('This application has already been processed or is currently assigned to another approval stage.') }}
                                     @endif
-                                </div>
+                                </p>
                             </div>
                         </div>
 
-                        <!-- Leave Info -->
-                        <div class="space-y-8">
-                            <div class="flex flex-col items-center justify-center py-6 bg-gray-50/50 rounded-2xl border border-gray-100">
-                                <span class="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400 mb-2">Requested Leave</span>
-                                <h2 class="text-2xl font-black text-gray-800">{{ $leaveApplication->leaveType->name }}</h2>
-                            </div>
+                        <div class="inline-flex shrink-0 items-center gap-2 rounded-full px-3 py-2
+                            {{ $waitingMessage ? 'bg-yellow-50' : 'bg-green-50' }}">
+                            @if($waitingMessage)
+                                <span class="h-2.5 w-2.5 animate-pulse rounded-full bg-yellow-400"></span>
 
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div class="space-y-1">
-                                    <span class="text-[10px] font-black uppercase tracking-widest text-gray-400 italic">Schedule</span>
-                                    <div class="text-xl font-bold text-gray-700">
-                                        {{ \Carbon\Carbon::parse($leaveApplication->start_date)->format('M d, Y') }} - {{ \Carbon\Carbon::parse($leaveApplication->end_date)->format('M d, Y') }}
-                                    </div>
-                                    <div class="text-[10px] font-black text-indigo-500 uppercase">Total of {{ $leaveApplication->duration }} {{ Str::plural('Day', $leaveApplication->duration) }}</div>
-                                </div>
-                                <div class="space-y-1">
-                                    <span class="text-[10px] font-black uppercase tracking-widest text-gray-400 italic">Date Filed</span>
-                                    <div class="text-xl font-bold text-gray-700">
-                                        {{ \Carbon\Carbon::parse($leaveApplication->date_filed)->format('M d, Y h:i A') }}
-                                    </div>
-                                </div>
-                                <div class="space-y-1">
-                                    <span class="text-[10px] font-black uppercase tracking-widest text-gray-400 italic">Credits Left</span>
-                                    <div class="text-xl font-bold text-gray-700">
-                                        {{ number_format($leaveCredit?->balance ?? 0, 1) }} {{ Str::plural('day', $leaveCredit?->balance ?? 0) }}
-                                    </div>
-                                    <div class="text-[10px] font-black text-indigo-500 uppercase">{{ $leaveApplication->leaveType->name }}</div>
-                                </div>
-                            </div>
-
-                            <div class="relative pl-6 border-l-4 border-indigo-100 py-2">
-                                <span class="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2">Reason for Leave</span>
-                                <p class="text-gray-700 font-medium leading-relaxed italic">"{{ $leaveApplication->reason }}"</p>
-                            </div>
-
-                            {{-- Attachment --}}
-                            @if($leaveApplication->attachment_path)
-                                <div class="mt-4">
-                                    <span class="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-3">Attachment</span>
-                                    <div class="flex items-center gap-4 p-4 bg-gray-50/50 rounded-2xl border border-gray-100">
-                                        <div class="bg-indigo-100 p-3 rounded-xl">
-                                            <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
-                                        </div>
-                                        <div class="flex-1 min-w-0">
-                                            <p class="text-sm font-bold text-gray-900 truncate">{{ basename($leaveApplication->attachment_path) }}</p>
-                                            <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">{{ strtoupper(pathinfo($leaveApplication->attachment_path, PATHINFO_EXTENSION)) }} File</p>
-                                        </div>
-                                        <a href="{{ asset('storage/' . $leaveApplication->attachment_path) }}" target="_blank" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-md hover:-translate-y-0.5 flex items-center gap-2">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                                            View
-                                        </a>
-                                    </div>
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-
-                </div>
-
-                @php
-                    $role = strtolower(auth()->user()->role ?? '');
-                    $isChief = $role === 'chief';
-                    $isHR = in_array($role, ['hrstaff', 'hr staff', 'admin']);
-                    $isDirector = in_array($role, ['regional director', 'regionaldirector', 'director']);
-
-                    $isMyTurn = false;
-                    $waitingMessage = '';
-
-                    if ($leaveApplication->status === 'pending') {
-                        if ($isHR && $leaveApplication->hrstaff_status === 'pending') {
-                            $isMyTurn = true;
-                        } elseif ($isChief && $leaveApplication->chief_status === 'pending') {
-                            if (in_array($leaveApplication->hrstaff_status, ['approved', 'rejected'], true)) {
-                                $isMyTurn = true;
-                            } else {
-                                $waitingMessage = 'Waiting for HR Admin verification.';
-                            }
-                        } elseif ($isDirector && $leaveApplication->rd_status === 'pending') {
-                            if ($leaveApplication->chief_status === 'approved') {
-                                $isMyTurn = true;
-                            } else {
-                                $waitingMessage = 'Waiting for Division Chief approval.';
-                            }
-                        }
-                    }
-                @endphp
-
-                <!-- Right Column: Action Card -->
-                <div class="space-y-8">
-                    @if($isMyTurn)
-                    <div class="bg-indigo-600 rounded-3xl p-8 text-white shadow-2xl shadow-indigo-200 sticky top-12 animate-in fade-in zoom-in duration-500">
-                        <div class="mb-8">
-                            <h3 class="text-xl font-black uppercase tracking-widest mb-2">Review Action</h3>
-                            <p class="text-indigo-200 text-xs font-medium">Please provide your decision and remarks for this application.</p>
-                        </div>
-
-                        <form action="{{ route('leave-applications.update', $leaveApplication->id) }}" id="leaveStatusForm" method="POST" class="space-y-6">
-                            @csrf
-                            @method('PUT')
-                            
-                            <div>
-                                <label class="block text-[10px] font-black uppercase tracking-widest text-indigo-200 mb-2">{{ __('Remarks / Notes') }}</label>
-                                <textarea name="remarks" class="w-full border-transparent rounded-2xl bg-indigo-500/50 text-sm font-medium focus:ring-white focus:border-white text-white placeholder-indigo-300 transition duration-200" rows="4" placeholder="Add some notes here..."></textarea>
-                                <span id="leaveRemarksError" class="mt-2 hidden text-xs font-semibold text-red-200 block"></span>
-                            </div>
-
-                            <div class="space-y-3 pt-4">
-                                <button type="submit" name="status" value="approved" class="w-full bg-white text-indigo-600 hover:bg-indigo-50 px-6 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg transform hover:-translate-y-1">
-                                    {{ $isHR ? __('Verify Request') : __('Approve Request') }}
-                                </button>
-                                <button type="submit" name="status" value="rejected" class="w-full bg-indigo-500/50 border-2 border-indigo-400 text-white hover:bg-indigo-500 px-6 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all">
-                                    {{ __('Reject Request') }}
-                                </button>
-                            </div>
-                        </form>
-                        <script>
-                            (function() {
-                                const form = document.getElementById('leaveStatusForm');
-                                const remarksField = form?.querySelector('textarea[name="remarks"]');
-                                const errorSpan = document.getElementById('leaveRemarksError');
-
-                                remarksField?.addEventListener('input', function() {
-                                    remarksField.classList.remove('ring-2', 'ring-red-500', 'border-red-500');
-                                    if (errorSpan) {
-                                        errorSpan.classList.add('hidden');
-                                        errorSpan.textContent = '';
-                                    }
-                                });
-
-                                form?.addEventListener('submit', function(e) {
-                                    const action = document.activeElement ? document.activeElement.getAttribute('value') : null;
-                                    const remarks = remarksField.value.trim();
-                                    const isHR = @js($isHR);
-
-                                    if (action === 'rejected' && isHR && !remarks) {
-                                        e.preventDefault();
-                                        remarksField.classList.add('ring-2', 'ring-red-500', 'border-red-500');
-                                        if (errorSpan) {
-                                            errorSpan.textContent = 'Remarks are required when rejecting this application.';
-                                            errorSpan.classList.remove('hidden');
-                                        }
-                                        remarksField.focus();
-                                    }
-                                });
-                            })();
-                        </script>
-                    </div>
-                    @endif
-                    
-                    <div class="bg-gray-50 rounded-2xl p-6 border border-gray-100">
-                        <div class="flex items-center gap-2 mb-4">
-                            @if($isMyTurn)
-                                <div class="w-2 h-2 bg-orange-400 rounded-full animate-ping"></div>
-                                <span class="text-[10px] font-black uppercase text-gray-400 tracking-widest">Your Review Needed</span>
-                            @elseif($waitingMessage)
-                                <div class="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
-                                <span class="text-[10px] font-black uppercase text-yellow-600 tracking-widest">In Progress</span>
+                                <span class="text-[10px] font-black uppercase tracking-widest text-yellow-600">
+                                    {{ __('In Progress') }}
+                                </span>
                             @else
-                                <div class="w-2 h-2 bg-green-400 rounded-full"></div>
-                                <span class="text-[10px] font-black uppercase text-green-500 tracking-widest">Application Processed</span>
+                                <span class="h-2.5 w-2.5 rounded-full bg-green-500"></span>
+
+                                <span class="text-[10px] font-black uppercase tracking-widest text-green-600">
+                                    {{ __('Application Processed') }}
+                                </span>
                             @endif
                         </div>
-                        <p class="text-[10px] text-gray-500 leading-relaxed font-medium">
-                            @if($isMyTurn)
-                                As the current reviewer, your decision will move this application to the next stage. Please verify all details before confirming.
-                            @elseif($waitingMessage)
-                                {{ $waitingMessage }} This application must be approved by the previous stage before you can take action.
-                            @else
-                                This leave request has already been finalized or is awaiting action in a different stage of the approval process.
-                            @endif
-                        </p>
                     </div>
-                </div>
+                @endif
+            </section>
+
+            {{-- Full Leave Form Preview at Bottom --}}
+            <section class="mt-6 overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
+               
+
+                <div class="bg-slate-100 p-3 sm:p-5">
+    <div class="mx-auto w-full max-w-[1100px] overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+        <iframe
+            id="leaveFormPreview"
+            src="{{ route('leave-applications.print', [
+                'leaveApplication' => $leaveApplication->id,
+                'preview' => 1
+            ]) }}"
+            class="block w-full border-0 bg-white"
+            style="height: 1300px;"
+            scrolling="no"
+            title="{{ __('Leave form print preview') }}"
+        ></iframe>
+    </div>
+</div>
+            </section>
             </div>
         </div>
     </div>
-</x-app-layout>
 
+    <script>
+        (function() {
+            const form = document.getElementById('leaveStatusForm');
+            const remarksField = form?.querySelector('textarea[name="remarks"]');
+            const errorSpan = document.getElementById('leaveRemarksError');
+
+            remarksField?.addEventListener('input', function() {
+                remarksField.classList.remove('ring-2', 'ring-red-500', 'border-red-500');
+                if (errorSpan) {
+                    errorSpan.classList.add('hidden');
+                    errorSpan.textContent = '';
+                }
+            });
+
+            form?.addEventListener('submit', function(e) {
+                const action = document.activeElement ? document.activeElement.getAttribute('value') : null;
+                const remarks = remarksField.value.trim();
+                if (action === 'rejected' && !remarks) {
+                    e.preventDefault();
+                    remarksField.classList.add('ring-2', 'ring-red-500', 'border-red-500');
+                    if (errorSpan) {
+                        errorSpan.textContent = 'Remarks are required when rejecting this application.';
+                        errorSpan.classList.remove('hidden');
+                    }
+                    remarksField.focus();
+                }
+            });
+        })();
+    </script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const iframe = document.getElementById('leaveFormPreview');
+
+        if (!iframe) {
+            return;
+        }
+
+        function resizeLeaveFormPreview() {
+            try {
+                const iframeDocument =
+                    iframe.contentDocument ||
+                    iframe.contentWindow.document;
+
+                if (!iframeDocument) {
+                    return;
+                }
+
+                const bodyHeight =
+                    iframeDocument.body?.scrollHeight || 0;
+
+                const documentHeight =
+                    iframeDocument.documentElement?.scrollHeight || 0;
+
+                iframe.style.height =
+                    Math.max(bodyHeight, documentHeight, 1300) + 'px';
+            } catch (error) {
+                console.warn(
+                    'Unable to resize leave form preview.',
+                    error
+                );
+            }
+        }
+
+        iframe.addEventListener('load', function () {
+            resizeLeaveFormPreview();
+
+            setTimeout(resizeLeaveFaormPreview, 300);
+            setTimeout(resizeLeaveFormPreview, 800);
+        });
+
+        window.addEventListener(
+            'resize',
+            resizeLeaveFormPreview
+        );
+    });
+</script>
+</x-app-layout>

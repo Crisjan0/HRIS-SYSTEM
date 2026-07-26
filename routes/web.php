@@ -17,11 +17,14 @@ use App\Http\Controllers\PdsSectionReviewController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SalnController;
 use App\Http\Controllers\TravelOrderController;
+use App\Http\Controllers\UtilityController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return redirect()->route('login');
 });
+
+Route::get('/locator-slips/{locatorSlip}/scan', [LocatorSlipController::class, 'scan'])->name('locator-slips.scan')->middleware('signed');
 
 Route::middleware(['auth', 'account.active', 'password.changed'])->group(function () {
     Route::get('/personal-information', [EmployeeController::class, 'myRecord'])->name('personal-information.show');
@@ -59,6 +62,10 @@ Route::middleware(['auth', 'account.active', 'approved', 'password.changed'])->g
     Route::delete('employee-accounts/{user}/reject', [EmployeeAccountController::class, 'reject'])->name('employee-accounts.reject')->middleware('role:ADMIN,HRSTAFF,REGIONALDIRECTOR');
     Route::resource('leave-types', LeaveTypeController::class)->middleware('role:ADMIN,HRSTAFF,REGIONALDIRECTOR');
     Route::resource('holidays', HolidayController::class)->middleware('role:ADMIN,HRSTAFF,REGIONALDIRECTOR');
+    Route::get('/utilities', [UtilityController::class, 'index'])->name('utilities.index')->middleware('role:ADMIN,HRSTAFF,REGIONALDIRECTOR');
+    Route::post('/utilities/options', [UtilityController::class, 'storeOption'])->name('utilities.options.store')->middleware('role:ADMIN,HRSTAFF,REGIONALDIRECTOR');
+    Route::put('/utilities/options/{utilityOption}', [UtilityController::class, 'updateOption'])->name('utilities.options.update')->middleware('role:ADMIN,HRSTAFF,REGIONALDIRECTOR');
+    Route::delete('/utilities/options/{utilityOption}', [UtilityController::class, 'destroyOption'])->name('utilities.options.destroy')->middleware('role:ADMIN,HRSTAFF,REGIONALDIRECTOR');
     Route::resource('leaves', MyLeaveController::class);
     Route::get('leaves/{leaf}/print', [MyLeaveController::class, 'print'])->name('leaves.print');
     Route::get('leave-applications/filter', [LeaveApplicationController::class, 'filter'])->name('leave-applications.filter')->middleware('role:ADMIN,HRSTAFF,CHIEF,REGIONALDIRECTOR');
@@ -85,14 +92,14 @@ Route::middleware(['auth', 'account.active', 'approved', 'password.changed'])->g
     Route::get('my-cto/{ctoRequest}', [MyCtoController::class, 'show'])->name('my-cto.show');
     Route::resource('dtr', DtrController::class)->only(['index', 'show']);
     Route::post('/dtr/import', [DtrController::class, 'syncFromFile'])->name('dtr.import');
-    Route::get('/hr/locator-slips', [LocatorSlipController::class, 'manageIndex'])->name('hr.locator-slips.index')->middleware('role:ADMIN,HRSTAFF,CHIEF');
-    Route::get('/hr/locator-slips/all', [LocatorSlipController::class, 'allIndex'])->name('hr.locator-slips.all')->middleware('role:ADMIN,HRSTAFF,CHIEF');
-    Route::get('/hr/locator-slips/pending', [LocatorSlipController::class, 'pendingIndex'])->name('hr.locator-slips.pending')->middleware('role:ADMIN,HRSTAFF,CHIEF');
-    Route::get('/hr/locator-slips/{locatorSlip}', [LocatorSlipController::class, 'hrShow'])->name('hr.locator-slips.show')->middleware('role:ADMIN,HRSTAFF,CHIEF');
+    Route::get('/hr/locator-slips', [LocatorSlipController::class, 'manageIndex'])->name('hr.locator-slips.index')->middleware('role:ADMIN,HRSTAFF,CHIEF,REGIONALDIRECTOR');
+    Route::get('/hr/locator-slips/all', [LocatorSlipController::class, 'allIndex'])->name('hr.locator-slips.all')->middleware('role:ADMIN,HRSTAFF,CHIEF,REGIONALDIRECTOR');
+    Route::get('/hr/locator-slips/pending', [LocatorSlipController::class, 'pendingIndex'])->name('hr.locator-slips.pending')->middleware('role:ADMIN,HRSTAFF,CHIEF,REGIONALDIRECTOR');
+    Route::get('/hr/locator-slips/{locatorSlip}', [LocatorSlipController::class, 'hrShow'])->name('hr.locator-slips.show')->middleware('role:ADMIN,HRSTAFF,CHIEF,REGIONALDIRECTOR');
     Route::get('/locator-slips/{locatorSlip}/print', [LocatorSlipController::class, 'print'])->name('locator-slips.print');
     Route::get('/locator-slips/{locatorSlip}', [LocatorSlipController::class, 'show'])->name('locator-slips.show');
     Route::patch('/locator-slips/{locatorSlip}/approve', [LocatorSlipController::class, 'approve'])->name('locator-slips.approve')->middleware('role:CHIEF');
-    Route::patch('/locator-slips/{locatorSlip}/reject', [LocatorSlipController::class, 'reject'])->name('locator-slips.reject')->middleware('role:ADMIN,HRSTAFF,CHIEF');
+    Route::patch('/locator-slips/{locatorSlip}/reject', [LocatorSlipController::class, 'reject'])->name('locator-slips.reject')->middleware('role:CHIEF');
     Route::get('/locator-slips/{locatorSlip}/edit', [LocatorSlipController::class, 'edit'])->name('locator-slips.edit');
     Route::put('/locator-slips/{locatorSlip}', [LocatorSlipController::class, 'update'])->name('locator-slips.update');
 
@@ -103,10 +110,12 @@ Route::middleware(['auth', 'account.active', 'approved', 'password.changed'])->g
     Route::resource('salns', SalnController::class);
 
     // Travel Authority Routes
+    Route::get('travel-orders/{travelOrder}/preview', [TravelOrderController::class, 'preview'])->name('travel-orders.preview');
     Route::get('travel-orders/{travelOrder}/print', [TravelOrderController::class, 'print'])->name('travel-orders.print');
     Route::resource('travel-orders', TravelOrderController::class)->only(['index', 'create', 'store', 'show']);
-    Route::get('/hr/travel-orders', [TravelOrderController::class, 'adminIndex'])->name('hr.travel-orders.index')->middleware('role:ADMIN,HRSTAFF,CHIEF,REGIONALDIRECTOR');
-    Route::put('/travel-orders/{travelOrder}/status', [TravelOrderController::class, 'updateStatus'])->name('travel-orders.update-status')->middleware('role:REGIONALDIRECTOR');
+    Route::post('/travel-orders/{travelOrder}/tar', [TravelOrderController::class, 'submitTar'])->name('travel-orders.submit-tar');
+    Route::get('/hr/travel-orders', [TravelOrderController::class, 'adminIndex'])->name('hr.travel-orders.index')->middleware('role:ADMIN,HRSTAFF,RECORDOFFICER,REGIONALDIRECTOR');
+    Route::put('/travel-orders/{travelOrder}/status', [TravelOrderController::class, 'updateStatus'])->name('travel-orders.update-status')->middleware('role:RECORDOFFICER,REGIONALDIRECTOR');
 
     // Compensatory Time-Off Routes
     Route::get('/hr/cto', [CtoController::class, 'adminIndex'])->name('hr.cto.index')->middleware('role:ADMIN,HRSTAFF,CHIEF,REGIONALDIRECTOR');
@@ -114,3 +123,6 @@ Route::middleware(['auth', 'account.active', 'approved', 'password.changed'])->g
 });
 
 require __DIR__.'/auth.php';
+
+
+

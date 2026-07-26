@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreSalnRequest;
 use App\Models\Saln;
+use App\Models\UtilityOption;
 use App\Services\SalnPdfExporter;
+use App\Support\UtilityOptionRegistry;
 use Illuminate\Http\Response;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -19,12 +21,15 @@ class SalnController extends Controller
             abort(403, 'User is not linked to an employee record.');
         }
 
+        UtilityOptionRegistry::ensureDefaults();
+
         $salns = $employee->salns()->orderBy('as_of_date', 'desc')->get();
         $selectedYear = (int) request('year', now()->year);
         $selectedSaln = $salns->first(fn (Saln $saln) => (int) $saln->as_of_date->format('Y') === $selectedYear);
         $isSalnIndex = true;
+        $salnOptionSets = $this->optionSets($selectedSaln);
 
-        return view('saln.create', compact('employee', 'salns', 'selectedYear', 'selectedSaln', 'isSalnIndex'));
+        return view('saln.create', compact('employee', 'salns', 'selectedYear', 'selectedSaln', 'isSalnIndex', 'salnOptionSets'));
     }
 
     public function create()
@@ -35,12 +40,15 @@ class SalnController extends Controller
             abort(403, 'User is not linked to an employee record.');
         }
 
+        UtilityOptionRegistry::ensureDefaults();
+
         $salns = $employee->salns()->orderBy('as_of_date', 'desc')->get();
         $selectedYear = (int) now()->year;
         $selectedSaln = null;
         $isSalnIndex = false;
+        $salnOptionSets = $this->optionSets(null);
 
-        return view('saln.create', compact('employee', 'salns', 'selectedYear', 'selectedSaln', 'isSalnIndex'));
+        return view('saln.create', compact('employee', 'salns', 'selectedYear', 'selectedSaln', 'isSalnIndex', 'salnOptionSets'));
     }
 
     public function store(StoreSalnRequest $request)
@@ -49,24 +57,17 @@ class SalnController extends Controller
         $validated['has_business_interests'] = $request->boolean('has_business_interests');
         $validated['has_relatives_in_gov'] = $request->boolean('has_relatives_in_gov');
 
-        // Calculate Totals
         $total_assets = 0;
-        if (!empty($validated['real_properties'])) {
-            foreach ($validated['real_properties'] as $prop) {
-                $total_assets += (float) ($prop['acquisition_cost'] ?? 0);
-            }
+        foreach ($validated['real_properties'] ?? [] as $prop) {
+            $total_assets += (float) ($prop['acquisition_cost'] ?? 0);
         }
-        if (!empty($validated['personal_properties'])) {
-            foreach ($validated['personal_properties'] as $prop) {
-                $total_assets += (float) ($prop['acquisition_cost'] ?? 0);
-            }
+        foreach ($validated['personal_properties'] ?? [] as $prop) {
+            $total_assets += (float) ($prop['acquisition_cost'] ?? 0);
         }
 
         $total_liabilities = 0;
-        if (!empty($validated['liabilities'])) {
-            foreach ($validated['liabilities'] as $liab) {
-                $total_liabilities += (float) ($liab['outstanding_balance'] ?? 0);
-            }
+        foreach ($validated['liabilities'] ?? [] as $liab) {
+            $total_liabilities += (float) ($liab['outstanding_balance'] ?? 0);
         }
 
         $net_worth = $total_assets - $total_liabilities;
@@ -79,7 +80,6 @@ class SalnController extends Controller
             'net_worth' => $net_worth,
         ]);
 
-        $saln = null;
         if ($request->filled('saln_id')) {
             $saln = Saln::where('employee_id', $employee->id)
                 ->findOrFail($request->integer('saln_id'));
@@ -122,5 +122,15 @@ class SalnController extends Controller
                 ->route('salns.show', $saln)
                 ->with('error', 'Could not generate PDF. '.$e->getMessage());
         }
+    }
+
+    protected function optionSets(?Saln $saln): array
+    {
+        return [
+            'property_kinds' => UtilityOption::listFor('property_kinds')->values(),
+            'acquisition_modes' => UtilityOption::listFor('acquisition_modes')->values(),
+            'relationships' => UtilityOption::listFor('relationships')->values(),
+            'government_id_types' => UtilityOption::listFor('government_id_types')->values(),
+        ];
     }
 }

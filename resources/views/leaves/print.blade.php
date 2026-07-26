@@ -697,10 +697,16 @@
     $isTerminal = str_contains($reasonLower, 'terminal') || str_contains($leaveTypeLower, 'terminal');
 @endphp
 
-<div class="print-toolbar">
-    <a href="{{ request()->routeIs('leave-applications.print') ? route('leave-applications.show', $leaveRequest) : route('leaves.show', $leaveRequest) }}" data-no-transition>Back</a>
-    <button type="button" onclick="window.print()">Print Leave</button>
-</div>
+@php
+    $isPreview = request()->boolean('preview');
+@endphp
+
+@unless($isPreview)
+    <div class="print-toolbar">
+        <a href="{{ request()->routeIs('leave-applications.print') ? route('leave-applications.show', $leaveRequest) : route('leaves.show', $leaveRequest) }}" data-no-transition>Back</a>
+        <button type="button" onclick="window.print()">Print Leave</button>
+    </div>
+@endunless
 
 <main class="leave-form">
     <table class="header-table">

@@ -137,7 +137,7 @@
 
             <div class="dtr-print-shell rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
                 <div class="overflow-x-auto">
-                    <div class="dtr-sheet min-w-[980px] rounded-lg border border-slate-200 bg-white p-5">
+                    <div class="dtr-sheet min-w-[1120px] rounded-lg border border-slate-200 bg-white p-5">
                         <div class="text-center">
                             <h2 class="text-base font-bold text-slate-900">
                                 Department of Migrant Workers - Region XI
@@ -167,14 +167,13 @@
                         </div>
 
                         <div class="mt-5 overflow-x-auto">
-                            <table class="w-full border-collapse text-center text-xs">
+                            <table class="w-full border-collapse text-center text-[11px] leading-tight">
                                 <thead>
                                     <tr class="bg-slate-50">
                                         <th rowspan="2" class="border border-slate-300 px-2 py-2">Date</th>
                                         <th rowspan="2" class="border border-slate-300 px-2 py-2">Day</th>
-                                        <th rowspan="2" class="border border-slate-300 px-2 py-2">In</th>
-                                        <th colspan="2" class="border border-slate-300 px-2 py-2">Break</th>
-                                        <th rowspan="2" class="border border-slate-300 px-2 py-2">Out</th>
+                                        <th colspan="2" class="border border-slate-300 px-2 py-2">Morning</th>
+                                        <th colspan="2" class="border border-slate-300 px-2 py-2">Afternoon</th>
                                         <th colspan="2" class="border border-slate-300 px-2 py-2">Overtime</th>
                                         <th rowspan="2" class="border border-slate-300 px-2 py-2">AHW</th>
                                         <th rowspan="2" class="border border-slate-300 px-2 py-2">OHW</th>
@@ -184,8 +183,10 @@
                                         <th rowspan="2" class="border border-slate-300 px-2 py-2">Remarks</th>
                                     </tr>
                                     <tr class="bg-slate-50">
+                                        <th class="border border-slate-300 px-2 py-2">In</th>
                                         <th class="border border-slate-300 px-2 py-2">Out</th>
                                         <th class="border border-slate-300 px-2 py-2">In</th>
+                                        <th class="border border-slate-300 px-2 py-2">Out</th>
                                         <th class="border border-slate-300 px-2 py-2">In</th>
                                         <th class="border border-slate-300 px-2 py-2">Out</th>
                                     </tr>

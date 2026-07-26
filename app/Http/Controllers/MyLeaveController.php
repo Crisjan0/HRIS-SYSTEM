@@ -28,7 +28,7 @@ class MyLeaveController extends Controller
         }
 
         $employee->ensureLeaveCredits(now()->year);
-        $leaves = $employee->leaveRequests()->with(['leaveType', 'employee'])->latest()->get();
+        $leaves = $employee->leaveRequests()->with(['leaveType', 'employee', 'chief', 'hrstaff', 'regionalDirector'])->latest()->get();
         $credits = $employee->leaveCredits()->with('leaveType')->get();
 
         return view('leaves.index', compact('leaves', 'credits'));

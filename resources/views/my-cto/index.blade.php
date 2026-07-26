@@ -8,33 +8,6 @@
                     {{ session('success') }}
                 </div>
             @endif
-
-            @php
-                $trackedCto = $ctoRequests->firstWhere('status', 'pending') ?? $ctoRequests->first();
-                $trackedCtoPayload = $trackedCto ? [
-                    'id' => (string) $trackedCto->id,
-                    'title' => $trackedCto->type_label,
-                    'stages' => collect([
-                        ['label' => 'HR', 'status' => $trackedCto->hrstaff_status],
-                        ['label' => 'Chief', 'status' => $trackedCto->chief_status],
-                        ['label' => 'Regional Director', 'status' => $trackedCto->rd_status],
-                    ])->map(fn ($stage) => [
-                        'label' => $stage['label'],
-                        'status' => $stage['status'] ?: 'pending',
-                    ])->values(),
-                ] : null;
-            @endphp
-
-            <div class="flex items-center justify-between mb-6">
-                <h1 class="text-2xl font-black text-gray-900">{{ __('My Compensatory Time-Off') }}</h1>
-                <a href="{{ route('my-cto.create') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-200 hover:-translate-y-1 flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                    </svg>
-                    {{ __('File CTO Request') }}
-                </a>
-            </div>
-
             <div class="mb-8 grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="bg-indigo-600 rounded-2xl p-6 text-white shadow-xl shadow-indigo-200 md:col-span-1">
                     <span class="text-[10px] font-black uppercase tracking-widest text-indigo-200">Available Balance</span>
@@ -64,28 +37,50 @@
                     </div>
                 </div>
             </div>
-
-            <x-approval-tracker :payload="$trackedCtoPayload" event="cto-selected" empty="No CTO request to track yet." />
-
             <div x-data="myCtoRequestsTable()" x-init="init()">
-                {{-- Year filter outside the table container --}}
-                <div class="mb-4 flex items-center justify-end gap-2">
-                    <label for="my_cto_year" class="text-sm font-semibold text-gray-700">
-                        {{ __('Year') }}
-                    </label>
-                    <select
-                        id="my_cto_year"
-                        x-model="year"
-                        @change="applyFilters()"
-                        class="h-10 w-28 appearance-auto rounded-lg border-gray-300 bg-white pl-4 pr-10 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                <div class="mb-6 flex flex-wrap items-center justify-end gap-3">
+                    <div class="relative">
+                        <label for="my_cto_year" class="sr-only">
+                            {{ __('Year') }}
+                        </label>
+
+                        <select
+                            id="my_cto_year"
+                            x-model="year"
+                            @change="applyFilters()"
+                            class="h-10 w-28 appearance-none rounded-xl border-gray-300 bg-white py-0 pl-4 pr-9 text-sm font-semibold text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        >
+                            @php
+                                $currentYear = now()->year;
+                            @endphp
+                            @for ($yearOption = $currentYear; $yearOption >= $currentYear - 4; $yearOption--)
+                                <option value="{{ $yearOption }}">{{ $yearOption }}</option>
+                            @endfor
+                        </select>
+
+                        <svg
+                            class="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 9 6 6 6-6"></path>
+                        </svg>
+                    </div>
+
+                    <button
+                        type="button"
+                        @click="$dispatch('open-cto-request-modal', {
+                            url: @js(route('my-cto.create', ['modal' => 1])),
+                            title: @js(__('File CTO Request'))
+                        })"
+                        class="inline-flex h-10 items-center gap-2 rounded-xl bg-indigo-600 px-5 text-xs font-black uppercase tracking-widest text-white shadow-lg shadow-indigo-200 transition-all hover:-translate-y-0.5 hover:bg-indigo-700"
                     >
-                        @php
-                            $currentYear = now()->year;
-                        @endphp
-                        @for ($yearOption = $currentYear; $yearOption >= $currentYear - 4; $yearOption--)
-                            <option value="{{ $yearOption }}">{{ $yearOption }}</option>
-                        @endfor
-                    </select>
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        {{ __('File CTO Request') }}
+                    </button>
                 </div>
 
                 <div class="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
@@ -126,9 +121,12 @@
                     <table class="w-full text-left border-collapse">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th scope="col" class="w-[50%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">{{ __('Type') }}</th>
-                                <th scope="col" class="w-[35%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">{{ __('Date Filed') }}</th>
-                                <th scope="col" class="w-[15%] px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">{{ __('Actions') }}</th>
+                                <th scope="col" class="w-[15%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">{{ __('Date Filed') }}</th>
+                                <th scope="col" class="w-[25%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">{{ __('Type') }}</th>
+                                <th scope="col" class="w-[17%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">{{ __('Human Resource') }}</th>
+                                <th scope="col" class="w-[18%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">{{ __('Chief') }}</th>
+                                <th scope="col" class="w-[20%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">{{ __('Regional Director') }}</th>
+                                <th scope="col" class="w-[5%] px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">{{ __('Actions') }}</th>
                             </tr>
                         </thead>
                         <tbody id="myCtoRequestsTableBody" class="divide-y divide-gray-100 bg-white">
@@ -141,19 +139,11 @@
                                         'pending' => 'border border-orange-100 bg-orange-50 text-orange-700',
                                         default => 'bg-gray-400 text-white',
                                     };
-                                    $stages = [
-                                        ['label' => 'HR', 'status' => $request->hrstaff_status],
-                                        ['label' => 'Chief', 'status' => $request->chief_status],
-                                        ['label' => 'Regional Director', 'status' => $request->rd_status],
-                                    ];
-                                    $ctoTrackerPayload = [
-                                        'id' => (string) $request->id,
-                                        'title' => $request->type_label,
-                                        'stages' => collect($stages)->map(fn ($stage) => [
-                                            'label' => $stage['label'],
-                                            'status' => $stage['status'] ?: 'pending',
-                                        ])->values(),
-                                    ];
+                                    $approvalDotClass = fn (string $status) => match (strtolower($status)) {
+                                        'approved' => 'bg-green-500',
+                                        'rejected' => 'bg-red-500',
+                                        default => 'bg-gray-300',
+                                    };
                                 @endphp
                                 <tr
                                     class="transition-colors duration-150 hover:bg-gray-50"
@@ -164,13 +154,37 @@
                                     data-status="{{ Str::lower($request->status) }}"
                                     data-year="{{ $request->created_at?->year ?? now()->year }}"
                                 >
-                                    <td class="px-5 py-3 text-sm font-bold text-gray-900 whitespace-nowrap">
-                                        <button type="button" @click="$dispatch('cto-selected', @js($ctoTrackerPayload))" class="text-left font-bold text-blue-900 underline-offset-4 transition hover:text-blue-700 hover:underline" title="{{ __('Show approval progress for ') }}{{ $request->type_label }}">
-                                            {{ $request->type_label }}
-                                        </button>
+                                    <td class="px-6 py-3 text-sm text-gray-700 whitespace-nowrap">
+                                        {{ $request->created_at?->format('M d, Y') }}
                                     </td>
-                                    <td class="px-5 py-3 text-sm text-gray-700 whitespace-nowrap">{{ $request->created_at?->format('M d, Y') }}</td>
-                                    <td class="px-5 py-3 text-right whitespace-nowrap">
+                                    <td class="px-6 py-3 text-sm font-bold text-gray-900 whitespace-nowrap">
+                                        <span class="font-bold text-gray-900">
+                                            {{ $request->type_label }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-3 align-middle">
+                                        <div class="flex items-center gap-2">
+                                            <span class="h-2.5 w-2.5 shrink-0 rounded-full {{ $approvalDotClass($request->hrstaff_status ?: 'pending') }}" title="{{ ucfirst($request->hrstaff_status ?: 'pending') }}"></span>
+                                            <span class="truncate text-xs font-semibold text-gray-700">HR Admin</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-3 align-middle">
+                                        <div class="flex items-center gap-2">
+                                            <span class="h-2.5 w-2.5 shrink-0 rounded-full {{ $approvalDotClass($request->chief_status ?: 'pending') }}" title="{{ ucfirst($request->chief_status ?: 'pending') }}"></span>
+                                            <span class="truncate text-xs font-semibold text-gray-700" title="{{ $request->chief ? trim($request->chief->firstname . ' ' . $request->chief->lastname) : 'Chief' }}">
+                                                {{ $request->chief ? trim($request->chief->firstname . ' ' . $request->chief->lastname) : 'Chief' }}
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-3 align-middle">
+                                        <div class="flex items-center gap-2">
+                                            <span class="h-2.5 w-2.5 shrink-0 rounded-full {{ $approvalDotClass($request->rd_status ?: 'pending') }}" title="{{ ucfirst($request->rd_status ?: 'pending') }}"></span>
+                                            <span class="truncate text-xs font-semibold text-gray-700" title="{{ $request->regionalDirector ? trim($request->regionalDirector->firstname . ' ' . $request->regionalDirector->lastname) : 'Regional Director' }}">
+                                                {{ $request->regionalDirector ? trim($request->regionalDirector->firstname . ' ' . $request->regionalDirector->lastname) : 'Regional Director' }}
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-3 text-right whitespace-nowrap">
                                         <a href="{{ route('my-cto.show', $request) }}" class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-indigo-700 transition-colors hover:bg-indigo-50 hover:text-indigo-900" title="{{ __('View details') }}" aria-label="{{ __('View details') }}">
                                             <i class="fa-solid fa-eye"></i>
                                         </a>
@@ -178,14 +192,14 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="3" class="py-8 text-center text-gray-500">
+                                    <td colspan="6" class="py-8 text-center text-gray-500">
                                         {{ __('No compensatory time-off records found.') }}
                                     </td>
                                 </tr>
                             @endforelse
                             @if($ctoRequests->isNotEmpty())
                                 <tr x-show="noResults" style="display: none;">
-                                    <td colspan="3" class="py-8 text-center text-gray-500">
+                                    <td colspan="6" class="py-8 text-center text-gray-500">
                                         {{ __('No CTO requests match your search or filter.') }}
                                     </td>
                                 </tr>
@@ -197,6 +211,132 @@
             </div>
         </div>
     </div>
+
+    {{-- Create CTO Request modal --}}
+    <template x-teleport="body">
+        <div
+            x-data="{
+                createModalOpen: false,
+                createModalUrl: '',
+                createModalTitle: '',
+
+                open(event) {
+                    this.createModalUrl = event.detail.url;
+                    this.createModalTitle = event.detail.title;
+                    this.createModalOpen = true;
+
+                    document.documentElement.classList.add('overflow-hidden');
+                    document.body.classList.add('overflow-hidden');
+                },
+
+                closeCreateModal() {
+                    this.createModalOpen = false;
+                    this.createModalUrl = '';
+
+                    document.documentElement.classList.remove('overflow-hidden');
+                    document.body.classList.remove('overflow-hidden');
+                }
+            }"
+            @open-cto-request-modal.window="open($event)"
+            @message.window="
+                if ($event.data === 'close-cto-request-modal') {
+                    closeCreateModal();
+                }
+            "
+            @keydown.escape.window="createModalOpen && closeCreateModal()"
+            x-show="createModalOpen"
+            x-cloak
+            class="fixed inset-0 flex items-center justify-center p-4 sm:p-6"
+            style="
+                display: none;
+                z-index: 99999;
+                isolation: isolate;
+            "
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cto-request-modal-title"
+        >
+            {{-- Same overlay as the Travel Authority modal --}}
+            <div
+                class="absolute inset-0"
+                style="
+                    z-index: 0;
+                    background-color: rgba(15, 23, 42, 0.62);
+                "
+                @click="closeCreateModal()"
+                aria-hidden="true"
+            ></div>
+
+            {{-- Same modal design and dimensions as Travel Authority --}}
+            <div
+                class="relative flex w-full max-w-[820px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
+                style="
+                    z-index: 10;
+                    width: min(92vw, 820px);
+                    height: min(84dvh, 820px);
+                    max-height: calc(100dvh - 40px);
+                "
+                @click.stop
+            >
+                <div class="flex shrink-0 items-center justify-between bg-blue-900 px-5 py-4 text-white">
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-[0.22em] text-blue-100">
+                            {{ __('Request Form') }}
+                        </p>
+
+                        <h2
+                            id="cto-request-modal-title"
+                            class="mt-1 text-xl font-black"
+                            x-text="createModalTitle"
+                        ></h2>
+                    </div>
+
+                    <button
+                        type="button"
+                        @click="closeCreateModal()"
+                        class="inline-flex h-9 w-9 items-center justify-center rounded-full text-white transition hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-white/70"
+                        aria-label="{{ __('Close') }}"
+                    >
+                        <svg
+                            class="h-5 w-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2.5"
+                                d="M6 18L18 6M6 6l12 12"
+                            />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="min-h-0 flex-1 overflow-hidden bg-white">
+                    <iframe
+                        :src="createModalUrl"
+                        @load="
+                            try {
+                                const href = $event.target.contentWindow.location.href;
+
+                                if (
+                                    createModalUrl &&
+                                    !href.includes('modal=1') &&
+                                    !href.includes('/create')
+                                ) {
+                                    window.location.href = href;
+                                }
+                            } catch (error) {}
+                        "
+                        class="h-full w-full border-0 bg-white"
+                        :title="createModalTitle"
+                    ></iframe>
+                </div>
+            </div>
+        </div>
+    </template>
 
     <script>
         function myCtoRequestsTable() {

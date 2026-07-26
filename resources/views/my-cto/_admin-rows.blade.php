@@ -1,130 +1,344 @@
 @forelse($requests as $request)
     @php
         $statusColors = [
-            'pending' => 'text-orange-700 bg-orange-50 border-orange-100',
-            'approved' => 'text-green-600 bg-green-50 border-green-100',
-            'rejected' => 'text-red-600 bg-red-50 border-red-100',
+            'pending' => 'border-orange-100 bg-orange-50 text-orange-700',
+            'approved' => 'border-green-100 bg-green-50 text-green-600',
+            'rejected' => 'border-red-100 bg-red-50 text-red-600',
         ];
-        $statusColor = $statusColors[$request->status] ?? 'text-gray-600 bg-gray-50 border-gray-100';
+
+        $requestStatus = strtolower(
+            (string) ($request->status ?: 'pending')
+        );
+
+        $statusColor = $statusColors[$requestStatus]
+            ?? 'border-gray-100 bg-gray-50 text-gray-600';
 
         $typeColors = [
-            'earn' => 'text-emerald-600 bg-emerald-50 border-emerald-100',
-            'use' => 'text-blue-600 bg-blue-50 border-blue-100',
+            'earn' => 'border-emerald-100 bg-emerald-50 text-emerald-600',
+            'use' => 'border-blue-100 bg-blue-50 text-blue-600',
         ];
-        $typeColor = $typeColors[$request->type] ?? 'text-gray-600 bg-gray-50 border-gray-100';
-        $employeeName = trim(($request->employee->firstname ?? '') . ' ' . ($request->employee->lastname ?? ''));
-        $employeePosition = $request->employee->position ?: __('No position');
-        $searchText = Str::lower($employeeName . ' ' . ($request->employee->position ?? '') . ' ' . ($request->employee->division ?? '') . ' ' . $request->type_label . ' ' . $request->purpose . ' ' . $request->status);
-        $stages = [
-            ['label' => 'HR', 'status' => $request->hrstaff_status],
-            ['label' => 'Chief', 'status' => $request->chief_status],
-            ['label' => 'Regional Director', 'status' => $request->rd_status],
-        ];
-        $ctoTrackerPayload = [
-            'id' => (string) $request->id,
-            'title' => $employeeName,
-            'stages' => collect($stages)->map(fn ($stage) => [
-                'label' => $stage['label'],
-                'status' => $stage['status'] ?: 'pending',
-            ])->values(),
+
+        $requestType = strtolower(
+            (string) ($request->type ?? '')
+        );
+
+        $typeColor = $typeColors[$requestType]
+            ?? 'border-gray-100 bg-gray-50 text-gray-600';
+
+        $employeeName = trim(
+            ($request->employee?->firstname ?? '') . ' ' .
+            ($request->employee?->lastname ?? '')
+        );
+
+        $searchText = Str::lower(
+            implode(' ', array_filter([
+                $employeeName,
+                $request->employee?->division,
+                $request->type_label,
+                $request->purpose,
+                $requestStatus,
+            ]))
+        );
+
+        $hrStatus = strtolower(
+            (string) ($request->hrstaff_status ?: 'pending')
+        );
+
+        $chiefStatus = strtolower(
+            (string) ($request->chief_status ?: 'pending')
+        );
+
+        $rdStatus = strtolower(
+            (string) ($request->rd_status ?: 'pending')
+        );
+
+        $approvalDotClass = fn (string $status) => match ($status) {
+            'approved' => 'bg-green-500',
+            'rejected' => 'bg-red-500',
+            default => 'bg-gray-300',
+        };
+
+        /*
+         * review = Pending CTO table
+         * view   = All CTO table
+         */
+        $rowSection = ($actionMode ?? 'view') === 'review'
+            ? 'pending'
+            : 'all';
+
+        $role = strtolower(
+            (string) (auth()->user()->role ?? '')
+        );
+
+        $isHR = in_array(
+            $role,
+            ['hrstaff', 'hr staff', 'admin'],
+            true
+        );
+
+        $previewPayload = [
+            'title' => (string) $request->type_label,
+            'date' => $request->created_at?->format('M d, Y') ?? 'N/A',
+            'status' => $requestStatus,
+            'remarks' => trim(
+                collect([
+                    $request->rd_remarks,
+                    $request->chief_remarks,
+                    $request->hrstaff_remarks,
+                ])
+                    ->filter()
+                    ->implode(' ')
+            ) ?: 'No remarks available.',
+            'printUrl' => route('my-cto.print', [
+                'ctoRequest' => $request->id,
+                'preview' => 1,
+            ]),
+            'directPrintUrl' => route(
+                'my-cto.print',
+                $request->id
+            ),
         ];
     @endphp
-    <tr class="transition-colors hover:bg-gray-50/70"
+
+    <tr
+        class="transition-colors hover:bg-gray-50/70"
         data-approval-row="{{ $request->id }}"
-        data-manage-cto-row="{{ $request->status === 'pending' ? 'pending' : 'all' }}"
+        data-manage-cto-row="{{ $rowSection }}"
         data-search="{{ $searchText }}"
-        data-type="{{ $request->type }}"
+        data-type="{{ $requestType }}"
+        data-status="{{ $requestStatus }}"
         data-employee="{{ Str::lower($employeeName) }}"
-        data-filed="{{ $request->created_at?->timestamp ?? 0 }}">
-        <td class="px-4 py-3">
-            <div class="flex items-center gap-3 min-w-0">
-                <x-profile-avatar :employee="$request->employee" size="sm" variant="indigo" rounded="2xl" />
-                <div class="min-w-0">
-                    <div class="text-sm font-bold text-gray-900 truncate">
-                        <button type="button" @click="$dispatch('cto-selected', @js($ctoTrackerPayload))" class="truncate text-left font-bold text-blue-900 underline-offset-4 transition hover:text-blue-700 hover:underline" title="{{ __('Show approval progress for ') }}{{ $employeeName }}">
-                            {{ $request->employee->firstname }} {{ $request->employee->lastname }}
-                        </button>
-                    </div>
-                    <div class="text-xs text-gray-400 truncate">
-                        {{ $employeePosition }}
-                    </div>
-                </div>
+        data-filed="{{ $request->created_at?->timestamp ?? 0 }}"
+    >
+        {{-- Date Filed --}}
+        <td class="px-2 py-3 align-middle">
+            <div class="min-w-0 whitespace-normal break-words text-sm font-medium leading-5 text-gray-700">
+                {{ $request->created_at?->format('M d, Y') ?? __('N/A') }}
             </div>
         </td>
-        <td class="px-4 py-3">
-            <span class="inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-widest {{ $typeColor }}">
+
+        {{-- Employee: name only --}}
+        <td class="px-2 py-3 align-middle">
+            <div
+                class="min-w-0 whitespace-normal break-words [overflow-wrap:anywhere] text-sm font-bold leading-5 text-gray-900"
+                title="{{ $employeeName }}"
+            >
+                {{ $employeeName ?: __('N/A') }}
+            </div>
+        </td>
+
+        {{-- Type --}}
+        <td class="px-2 py-3 align-middle">
+            <span
+                class="inline-flex max-w-full whitespace-normal break-words rounded-full border px-2 py-1 text-center text-[10px] font-black uppercase leading-4 tracking-wider {{ $typeColor }}"
+            >
                 {{ $request->type_label }}
             </span>
         </td>
-        <td class="px-4 py-3 text-sm font-medium text-gray-700">
-            {{ $request->created_at?->format('M d, Y') }}
+
+        {{-- Status --}}
+        <td class="px-2 py-3 text-center align-middle">
+            <span
+                class="inline-flex max-w-full whitespace-normal break-words rounded-full border px-2 py-1 text-center text-[10px] font-bold uppercase leading-4 {{ $statusColor }}"
+            >
+                {{ ucfirst($requestStatus) }}
+            </span>
         </td>
-        <td class="px-4 py-3 text-right">
-            <div class="flex items-center justify-end gap-1.5">
-                <a href="{{ route('my-cto.show', $request) }}"
-                   class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-indigo-700 transition-colors hover:bg-indigo-50 hover:text-indigo-900"
-                   title="{{ __('View CTO Request') }}"
-                   aria-label="{{ __('View CTO Request') }}">
-                    <i class="fa-solid fa-eye"></i>
+
+        {{-- Human Resource status: circle only --}}
+        <td class="px-2 py-3 text-center align-middle">
+            <div class="flex items-center justify-center">
+                <span
+                    class="h-2.5 w-2.5 shrink-0 rounded-full {{ $approvalDotClass($hrStatus) }}"
+                    title="{{ ucfirst($hrStatus) }}"
+                    aria-label="{{ __('Human Resource status: :status', [
+                        'status' => ucfirst($hrStatus),
+                    ]) }}"
+                ></span>
+            </div>
+        </td>
+
+        {{-- Chief status: circle only --}}
+        <td class="px-2 py-3 text-center align-middle">
+            <div class="flex items-center justify-center">
+                <span
+                    class="h-2.5 w-2.5 shrink-0 rounded-full {{ $approvalDotClass($chiefStatus) }}"
+                    title="{{ ucfirst($chiefStatus) }}"
+                    aria-label="{{ __('Chief status: :status', [
+                        'status' => ucfirst($chiefStatus),
+                    ]) }}"
+                ></span>
+            </div>
+        </td>
+
+        {{-- Regional Director status: circle only --}}
+        <td class="px-2 py-3 text-center align-middle">
+            <div class="flex items-center justify-center">
+                <span
+                    class="h-2.5 w-2.5 shrink-0 rounded-full {{ $approvalDotClass($rdStatus) }}"
+                    title="{{ ucfirst($rdStatus) }}"
+                    aria-label="{{ __('Regional Director status: :status', [
+                        'status' => ucfirst($rdStatus),
+                    ]) }}"
+                ></span>
+            </div>
+        </td>
+
+        {{-- Actions: 2 × 2 grid --}}
+        <td class="px-1 py-3 text-center align-middle">
+            <div class="mx-auto grid w-fit grid-cols-2 place-items-center gap-1">
+
+                {{-- View --}}
+                <a
+                    href="{{ route('my-cto.show', $request) }}"
+                    class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-indigo-700 transition-colors hover:bg-indigo-50 hover:text-indigo-900"
+                    title="{{ __('View details') }}"
+                    aria-label="{{ __('View details') }}"
+                >
+                    <i class="fa-solid fa-eye text-sm"></i>
                 </a>
+
+                {{-- Print --}}
+                <a
+                    href="{{ route('my-cto.print', $request) }}"
+                    target="_blank"
+                    rel="noopener"
+                    data-no-transition
+                    class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
+                    title="{{ __('Print CTO') }}"
+                    aria-label="{{ __('Print CTO') }}"
+                >
+                    <i class="fa-solid fa-print text-sm"></i>
+                </a>
+
                 @if(($actionMode ?? 'view') === 'review')
-                    @php
-                        $role = strtolower(auth()->user()->role ?? '');
-                        $isHR = in_array($role, ['hrstaff', 'hr staff', 'admin'], true);
-                    @endphp
-                    <form action="{{ route('cto.update-status', $request->id) }}" method="POST" onsubmit="return confirm('{{ $isHR ? __('Verify this CTO request?') : __('Approve this CTO request?') }}');">
+                    {{-- Verify or approve --}}
+                    <form
+                        action="{{ route('cto.update-status', $request->id) }}"
+                        method="POST"
+                        onsubmit="return confirm('{{ $isHR
+                            ? __('Verify this CTO request?')
+                            : __('Approve this CTO request?') }}');"
+                    >
                         @csrf
                         @method('PUT')
-                        <input type="hidden" name="status" value="approved">
-                        <button type="submit" class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-green-600 transition-colors hover:bg-green-50 hover:text-green-800" title="{{ $isHR ? __('Verify') : __('Approve') }}" aria-label="{{ $isHR ? __('Verify') : __('Approve') }}">
-                            <i class="fa-solid fa-check"></i>
+
+                        <input
+                            type="hidden"
+                            name="status"
+                            value="approved"
+                        >
+
+                        <button
+                            type="submit"
+                            class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-green-600 transition-colors hover:bg-green-50 hover:text-green-800"
+                            title="{{ $isHR ? __('Verify') : __('Approve') }}"
+                            aria-label="{{ $isHR ? __('Verify') : __('Approve') }}"
+                        >
+                            <i class="fa-solid fa-check text-sm"></i>
                         </button>
                     </form>
-                    <form action="{{ route('cto.update-status', $request->id) }}" method="POST" id="ctoRejectRowForm_{{ $request->id }}">
+
+                    {{-- Decline --}}
+                    <form
+                        action="{{ route('cto.update-status', $request->id) }}"
+                        method="POST"
+                        id="ctoRejectRowForm_{{ $request->id }}"
+                    >
                         @csrf
                         @method('PUT')
-                        <input type="hidden" name="status" value="rejected">
-                        <input type="hidden" name="remarks" id="ctoRejectRowRemarks_{{ $request->id }}" value="">
-                        <button type="button" onclick="submitCtoRejectRow({{ $request->id }}, {{ $isHR ? 'true' : 'false' }})" class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-red-600 transition-colors hover:bg-red-50 hover:text-red-800" title="{{ __('Decline') }}" aria-label="{{ __('Decline') }}">
-                            <i class="fa-solid fa-xmark"></i>
+
+                        <input
+                            type="hidden"
+                            name="status"
+                            value="rejected"
+                        >
+
+                        <input
+                            type="hidden"
+                            name="remarks"
+                            id="ctoRejectRowRemarks_{{ $request->id }}"
+                            value=""
+                        >
+
+                        <button
+                            type="button"
+                            onclick="submitCtoRejectRow(
+                                {{ $request->id }},
+                                {{ $isHR ? 'true' : 'false' }}
+                            )"
+                            class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-red-600 transition-colors hover:bg-red-50 hover:text-red-800"
+                            title="{{ __('Decline') }}"
+                            aria-label="{{ __('Decline') }}"
+                        >
+                            <i class="fa-solid fa-xmark text-sm"></i>
                         </button>
                     </form>
                 @endif
             </div>
-            @if(($actionMode ?? 'view') === 'review')
-                <script>
-                    if (typeof window.submitCtoRejectRow === 'undefined') {
-                        window.submitCtoRejectRow = function(id, isHR) {
-                            let remarks = '';
-                            if (isHR) {
-                                remarks = prompt('Remarks are required when rejecting this request. Please enter remarks:');
-                                if (remarks === null) return; // cancelled
-                                remarks = remarks.trim();
-                                if (!remarks) {
-                                    alert('Remarks are required to reject.');
-                                    return;
-                                }
-                            } else {
-                                if (!confirm('Are you sure you want to decline this request?')) {
-                                    return;
-                                }
-                            }
-                            const form = document.getElementById('ctoRejectRowForm_' + id);
-                            const remarksInput = document.getElementById('ctoRejectRowRemarks_' + id);
-                            if (remarksInput) {
-                                remarksInput.value = remarks;
-                            }
-                            form.submit();
-                        }
-                    }
-                </script>
-            @endif
         </td>
     </tr>
+
 @empty
     <tr>
-        <td colspan="4" class="px-4 py-10 text-center text-sm font-medium italic text-gray-500">
+        <td
+            colspan="8"
+            class="px-4 py-10 text-center text-sm font-medium italic text-gray-500"
+        >
             {{ $emptyMessage }}
         </td>
     </tr>
 @endforelse
+
+@if(($actionMode ?? 'view') === 'review')
+    @once
+        <script>
+            window.submitCtoRejectRow = function (id, isHR) {
+                let remarks = '';
+
+                if (isHR) {
+                    remarks = prompt(
+                        'Remarks are required when rejecting this request. Please enter remarks:'
+                    );
+
+                    if (remarks === null) {
+                        return;
+                    }
+
+                    remarks = remarks.trim();
+
+                    if (!remarks) {
+                        alert('Remarks are required to reject.');
+                        return;
+                    }
+                } else {
+                    const confirmed = confirm(
+                        'Are you sure you want to decline this request?'
+                    );
+
+                    if (!confirmed) {
+                        return;
+                    }
+                }
+
+                const form = document.getElementById(
+                    'ctoRejectRowForm_' + id
+                );
+
+                const remarksInput = document.getElementById(
+                    'ctoRejectRowRemarks_' + id
+                );
+
+                if (!form) {
+                    return;
+                }
+
+                if (remarksInput) {
+                    remarksInput.value = remarks;
+                }
+
+                form.submit();
+            };
+        </script>
+    @endonce
+@endif

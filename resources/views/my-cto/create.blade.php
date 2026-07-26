@@ -1,10 +1,58 @@
 <x-app-layout>
+        @if(request()->boolean('modal'))
+        <style>
+            body > .flex.h-screen.overflow-hidden > aside,
+            body > .flex.h-screen.overflow-hidden header {
+                display: none !important;
+            }
+            body > .flex.h-screen.overflow-hidden,
+            body > .flex.h-screen.overflow-hidden > .flex,
+            body > .flex.h-screen.overflow-hidden main {
+                height: auto !important;
+                min-height: 100vh !important;
+                overflow: visible !important;
+            }
+            body > .flex.h-screen.overflow-hidden main {
+                padding: 0 !important;
+                background: #fff !important;
+            }
+            body > .flex.h-screen.overflow-hidden main > div {
+                max-width: none !important;
+                padding: 0 !important;
+            }
+            body > .flex.h-screen.overflow-hidden main > div > div {
+                border: 0 !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                overflow: visible !important;
+            }
+            .modal-form-shell {
+                padding: 0 !important;
+            }
+            .modal-form-shell > div {
+                max-width: none !important;
+                padding: 0 !important;
+            }
+            .modal-form-shell .modal-page-back {
+                display: none !important;
+            }
+            .modal-form-shell .modal-form-card {
+                border: 0 !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                padding: 1.5rem !important;
+            }
+            .modal-form-shell .modal-form-title {
+                display: none !important;
+            }
+        </style>
+    @endif
     <x-slot name="title">{{ __('File CTO Request') }}</x-slot>
 
-    <div class="py-12">
+    <div class="py-12 modal-form-shell">
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg p-8 border border-gray-100">
-                <h2 class="text-2xl font-black text-gray-900 mb-2">{{ __('File CTO Request') }}</h2>
+            <div class="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg p-8 border border-gray-100 modal-form-card">
+                <h2 class="text-2xl font-black text-gray-900 mb-2 modal-form-title">{{ __('File CTO Request') }}</h2>
                 <p class="text-sm text-gray-500 mb-8">Available balance: <span class="font-bold text-indigo-600">{{ number_format($employee->cto_balance, 1) }} hour(s)</span></p>
 
                 <form
@@ -138,14 +186,31 @@
                         @error('applicant_signature') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                     </div>
 
-                    <div class="flex items-center justify-end gap-4 pt-4 border-t border-gray-100">
-                        <a href="{{ route('my-cto.index') }}" class="text-sm font-bold text-gray-500 hover:text-gray-700 transition-colors">
-                            {{ __('Cancel') }}
-                        </a>
-                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-200 hover:-translate-y-0.5">
-                            {{ __('Submit Request') }}
-                        </button>
-                    </div>
+                    <div class="flex items-center justify-end gap-4 border-t border-gray-100 pt-4">
+    @if(request()->boolean('modal'))
+        <button
+            type="button"
+            onclick="window.parent.postMessage('close-cto-request-modal', '*')"
+            class="inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
+        >
+            {{ __('Cancel') }}
+        </button>
+    @else
+        <a
+            href="{{ route('my-cto.index') }}"
+            class="inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
+        >
+            {{ __('Cancel') }}
+        </a>
+    @endif
+
+    <button
+        type="submit"
+        class="rounded-xl bg-indigo-600 px-8 py-3 text-xs font-black uppercase tracking-widest text-white shadow-lg shadow-indigo-200 transition-all hover:-translate-y-0.5 hover:bg-indigo-700"
+    >
+        {{ __('Submit Request') }}
+    </button>
+</div>
                 </form>
             </div>
         </div>

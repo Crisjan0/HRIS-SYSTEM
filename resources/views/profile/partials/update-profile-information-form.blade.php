@@ -23,6 +23,13 @@
             <x-input-error class="mt-2" :messages="$errors->get('name')" />
         </div>
 
+        @if($user->employee)
+            <div>
+                <x-input-label :value="__('Employment Status')" />
+                <x-text-input type="text" class="mt-1 block w-full bg-gray-50 border-gray-100 text-gray-500 font-bold" :value="$user->employee->employment_status ?: __('N/A')" disabled />
+            </div>
+        @endif
+
         <div>
             <x-input-label for="email" :value="__('Email')" />
             <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email', $user->email)" required autocomplete="username" />

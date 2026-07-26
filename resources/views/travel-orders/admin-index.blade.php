@@ -1,187 +1,710 @@
 <x-app-layout>
     <x-slot name="title">{{ __('Manage Travel Authorities') }}</x-slot>
 
-    <div class="py-8">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    @php
+        $currentYear = now()->year;
+    @endphp
+
+    <div
+        class="py-8"
+        x-data='manageTravelAuthorities(@json($tab), @json($currentYear))'
+        x-init="init()"
+    >
+        <div class="mx-auto w-full max-w-[95rem] px-4 sm:px-6 lg:px-8">
+
             @if(session('success'))
-                <div class="mb-4 p-4 bg-green-100 border-l-4 border-green-500 text-green-700 rounded-lg">
+                <div class="mb-4 rounded-xl border-l-4 border-green-500 bg-green-100 px-4 py-3 text-sm text-green-700">
                     {{ session('success') }}
                 </div>
             @endif
 
-            <div class="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-               
+            {{-- Year selector --}}
+            <div class="mb-4 flex items-center justify-end gap-2">
+                <label
+                    for="travelYear"
+                    class="text-sm font-semibold text-gray-700"
+                >
+                    {{ __('Year') }}
+                </label>
 
-                <div class="p-4 md:p-5" x-data="manageTravelOrders('{{ $tab }}')" x-init="init()">
-                    @php
-                        $trackedOrder = $pendingTravelOrders->first() ?? $allTravelOrders->first();
-                        $trackedOrderPayload = $trackedOrder ? [
-                            'title' => trim(($trackedOrder->employee?->firstname ?? '') . ' ' . ($trackedOrder->employee?->lastname ?? '')),
-                            'stages' => collect([
-                                ['label' => 'HR', 'status' => $trackedOrder->hrstaff_status],
-                                ['label' => 'Chief', 'status' => $trackedOrder->chief_status],
-                                ['label' => 'Regional Director', 'status' => $trackedOrder->rd_status],
-                            ])->map(fn ($stage) => [
-                                'label' => $stage['label'],
-                                'status' => $stage['status'] ?: 'pending',
-                            ])->values(),
-                        ] : null;
-                    @endphp
+                <select
+                    id="travelYear"
+                    x-model="year"
+                    @change="applyFilters()"
+                    class="h-10 w-28 rounded-lg border-gray-300 bg-white pl-4 pr-10 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                >
+                    @for($yearOption = $currentYear; $yearOption >= $currentYear - 5; $yearOption--)
+                        <option value="{{ $yearOption }}">
+                            {{ $yearOption }}
+                        </option>
+                    @endfor
+                </select>
+            </div>
 
-                    <div class="border-b border-gray-200 mb-4">
-                        <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-                            <button @click="tab = 'pending'"
-                                    :class="tab === 'pending' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
-                                    class="whitespace-nowrap py-3 px-1 border-b-2 font-bold text-sm uppercase tracking-widest transition-colors duration-200">
-                                {{ __('Pending Travel Authorities') }}
-                            </button>
-                            <button @click="tab = 'all'"
-                                    :class="tab === 'all' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
-                                    class="whitespace-nowrap py-3 px-1 border-b-2 font-bold text-sm uppercase tracking-widest transition-colors duration-200">
-                                {{ __('All Travel Authorities') }}
-                            </button>
-                        </nav>
+            {{-- Tabs --}}
+            <div class="mb-4 border-b border-gray-200">
+                <nav
+                    class="-mb-px flex gap-6 overflow-x-auto"
+                    aria-label="{{ __('Travel Authority Tabs') }}"
+                >
+                    <button
+                        type="button"
+                        @click="changeTab('pending')"
+                        class="shrink-0 border-b-2 px-1 pb-3 pt-1 text-sm font-bold transition"
+                        :class="tab === 'pending'
+                            ? 'border-indigo-600 text-indigo-700'
+                            : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'"
+                    >
+                        {{ __('Pending') }}
+                    </button>
+
+                    <button
+                        type="button"
+                        @click="changeTab('all')"
+                        class="shrink-0 border-b-2 px-1 pb-3 pt-1 text-sm font-bold transition"
+                        :class="tab === 'all'
+                            ? 'border-indigo-600 text-indigo-700'
+                            : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'"
+                    >
+                        {{ __('All TA') }}
+                    </button>
+                </nav>
+            </div>
+
+            {{-- Filters --}}
+            <div class="mb-4 flex min-w-0 flex-col gap-2 rounded-xl border border-gray-100 bg-gray-50/70 p-2 lg:flex-row lg:items-center">
+
+                {{-- Search --}}
+                <div class="relative min-w-0 lg:flex-1">
+                    <label for="travelSearch" class="sr-only">
+                        {{ __('Search travel authority') }}
+                    </label>
+
+                    <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                        <svg
+                            class="h-4 w-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2.4"
+                                d="M21 21l-4.35-4.35M10.75 18.5a7.75 7.75 0 100-15.5 7.75 7.75 0 000 15.5z"
+                            />
+                        </svg>
+                    </span>
+
+                    <input
+                        id="travelSearch"
+                        type="search"
+                        x-model="search"
+                        @input.debounce.200ms="applyFilters()"
+                        placeholder="{{ __('Search TA no., employee, destination...') }}"
+                        class="block h-9 w-full rounded-lg border-gray-300 pl-10 pr-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    />
+                </div>
+
+                {{-- Travel type --}}
+                <div class="lg:w-48 lg:shrink-0">
+                    <label for="travelType" class="sr-only">
+                        {{ __('Travel Type') }}
+                    </label>
+
+                    <select
+                        id="travelType"
+                        x-model="travelType"
+                        @change="applyFilters()"
+                        class="block h-9 w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    >
+                        <option value="">
+                            {{ __('All Types') }}
+                        </option>
+
+                        @foreach($travelTypes as $value => $label)
+                            <option value="{{ $value }}">
+                                {{ __($label) }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                {{-- Month filter --}}
+                <div class="lg:w-44 lg:shrink-0">
+                    <label for="travelMonth" class="sr-only">
+                        {{ __('Month Filed') }}
+                    </label>
+
+                    <select
+                        id="travelMonth"
+                        x-model="month"
+                        @change="applyFilters()"
+                        class="block h-9 w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    >
+                        <option value="">
+                            {{ __('All Months') }}
+                        </option>
+
+                        <option value="1">{{ __('January') }}</option>
+                        <option value="2">{{ __('February') }}</option>
+                        <option value="3">{{ __('March') }}</option>
+                        <option value="4">{{ __('April') }}</option>
+                        <option value="5">{{ __('May') }}</option>
+                        <option value="6">{{ __('June') }}</option>
+                        <option value="7">{{ __('July') }}</option>
+                        <option value="8">{{ __('August') }}</option>
+                        <option value="9">{{ __('September') }}</option>
+                        <option value="10">{{ __('October') }}</option>
+                        <option value="11">{{ __('November') }}</option>
+                        <option value="12">{{ __('December') }}</option>
+                    </select>
+                </div>
+
+                {{-- Reset --}}
+                <div class="flex items-center lg:shrink-0">
+                    <button
+                        type="button"
+                        @click="reset()"
+                        class="inline-flex h-9 w-full items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-xs font-bold uppercase tracking-wider text-gray-700 transition hover:bg-gray-50 lg:w-auto"
+                    >
+                        {{ __('Reset') }}
+                    </button>
+                </div>
+            </div>
+
+            {{-- Travel authorities table --}}
+            <div class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+                @foreach([
+                    'pending' => $pendingTravelOrders,
+                    'all' => $allTravelOrders
+                ] as $section => $orders)
+
+                    <div
+                        x-show="tab === '{{ $section }}'"
+                        x-cloak
+                        class="overflow-x-auto"
+                    >
+                        <table class="min-w-full table-fixed border-collapse text-left">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="w-[9%] px-3 py-3 text-[11px] font-black uppercase tracking-widest text-gray-500">
+                                        {{ __('Date Filed') }}
+                                    </th>
+
+                                    <th class="w-[12%] px-3 py-3 text-[11px] font-black uppercase tracking-widest text-gray-500">
+                                        {{ __('TA Stamp') }}
+                                    </th>
+
+                                    <th class="w-[12%] px-3 py-3 text-[11px] font-black uppercase tracking-widest text-gray-500">
+                                        {{ __('Employee') }}
+                                    </th>
+
+                                    <th class="w-[11%] px-3 py-3 text-[11px] font-black uppercase tracking-widest text-gray-500">
+                                        {{ __('Date of Travel') }}
+                                    </th>
+
+                                    <th class="w-[12%] px-3 py-3 text-[11px] font-black uppercase tracking-widest text-gray-500">
+                                        {{ __('Destination') }}
+                                    </th>
+
+                                    <th class="w-[12%] px-3 py-3 text-[11px] font-black uppercase tracking-widest text-gray-500">
+                                        {{ __('Record Officer') }}
+                                    </th>
+
+                                    <th class="w-[12%] px-3 py-3 text-[11px] font-black uppercase tracking-widest text-gray-500">
+                                        {{ __('Regional Director') }}
+                                    </th>
+
+                                    <th class="w-[8%] px-3 py-3 text-[11px] font-black uppercase tracking-widest text-gray-500">
+                                        {{ __('Status') }}
+                                    </th>
+
+                                    <th class="w-[7%] px-3 py-3 text-[11px] font-black uppercase tracking-widest text-gray-500">
+                                        {{ __('TAR Deadline') }}
+                                    </th>
+
+                                    <th class="w-[5%] px-3 py-3 text-[11px] font-black uppercase tracking-widest text-gray-500">
+                                        {{ __('TAR Status') }}
+                                    </th>
+
+                                    <th class="w-[5%] px-3 py-3 text-right text-[11px] font-black uppercase tracking-widest text-gray-500">
+                                        {{ __('Actions') }}
+                                    </th>
+                                </tr>
+                            </thead>
+
+                            <tbody
+                                id="{{ $section }}TravelOrderRows"
+                                class="divide-y divide-gray-100 bg-white"
+                            >
+                                @include('travel-orders._admin-rows', [
+                                    'orders' => $orders,
+                                    'emptyMessage' => $section === 'pending'
+                                        ? __('No pending travel authorities.')
+                                        : __('No travel authorities found.'),
+                                    'actionMode' => $section === 'pending'
+                                        ? 'review'
+                                        : 'view',
+                                ])
+
+                                @if($orders->isNotEmpty())
+                                    <tr
+                                        x-show="{{ $section }}NoResults"
+                                        x-cloak
+                                    >
+                                        <td
+                                            colspan="11"
+                                            class="px-6 py-10 text-center"
+                                        >
+                                            <div class="flex flex-col items-center justify-center">
+                                                <svg
+                                                    class="mb-3 h-8 w-8 text-gray-300"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="1.7"
+                                                        d="M21 21l-4.35-4.35M10.75 18.5a7.75 7.75 0 100-15.5 7.75 7.75 0 000 15.5z"
+                                                    />
+                                                </svg>
+
+                                                <p class="text-sm font-semibold text-gray-600">
+                                                    {{ __('No matching travel authorities found.') }}
+                                                </p>
+
+                                                <p class="mt-1 text-xs text-gray-400">
+                                                    {{ __('Try changing the search, year, month, or travel type.') }}
+                                                </p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endif
+                            </tbody>
+                        </table>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+
+        {{-- Preview modal --}}
+        <template x-teleport="body">
+            <div
+                x-cloak
+                x-show="previewOpen"
+                class="fixed inset-0 z-[100000] flex items-center justify-center p-5 sm:p-8"
+                style="display: none;"
+                @keydown.escape.window="closePreviewModal()"
+            >
+                <div
+                    class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+                    @click="closePreviewModal()"
+                ></div>
+
+                <div
+                    @click.stop
+                    class="relative z-10 flex w-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
+                    style="width: min(96vw, 1120px); height: min(92vh, 860px); max-height: calc(100dvh - 32px);"
+                >
+                    {{-- Modal header --}}
+                    <div class="flex shrink-0 items-center justify-between border-b border-blue-950 bg-blue-900 px-4 py-2.5 sm:px-5">
+                        <div class="min-w-0">
+                            <p class="text-[9px] font-bold uppercase tracking-[0.18em] text-blue-200">
+                                {{ __('Travel Authority Preview') }}
+                            </p>
+
+                            <div class="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
+                                <h2
+                                    class="truncate text-sm font-bold text-white"
+                                    x-text="previewData.title"
+                                ></h2>
+
+                                <span class="hidden text-blue-300 sm:inline">
+                                    &bull;
+                                </span>
+
+                                <p class="text-[10px] font-medium text-blue-100">
+                                    <span x-text="previewData.date"></span>
+                                    <span class="mx-1">|</span>
+
+                                    <span
+                                        class="capitalize"
+                                        x-text="previewData.status"
+                                    ></span>
+                                </p>
+                            </div>
+                        </div>
+
+                        <button
+                            type="button"
+                            @click="closePreviewModal()"
+                            class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white transition hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-white/70"
+                            aria-label="{{ __('Close preview') }}"
+                        >
+                            <svg
+                                class="h-4 w-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2.5"
+                                    d="M6 18L18 6M6 6l12 12"
+                                />
+                            </svg>
+                        </button>
                     </div>
 
-                    <x-approval-tracker :payload="$trackedOrderPayload" event="travel-selected" empty="No travel authority to track yet." />
+                    {{-- Document preview --}}
+                    <div class="min-h-0 flex-1 overflow-auto bg-slate-100 p-3">
+                        <div class="mx-auto h-full max-w-[820px] overflow-hidden rounded-lg border border-slate-300 bg-white shadow-sm">
+                            <iframe
+                                class="h-full min-h-[620px] w-full border-0 bg-white"
+                                :src="previewData.printUrl"
+                                title="{{ __('Travel Authority Preview') }}"
+                            ></iframe>
+                        </div>
+                    </div>
 
-                    <div class="mb-4 flex min-w-0 flex-col gap-2 rounded-xl border border-gray-100 bg-gray-50/70 p-2 sm:flex-row sm:items-center">
-                        <div class="relative min-w-0 sm:flex-1">
-                            <label for="travelOrderSearch" class="sr-only">{{ __('Search travel authority') }}</label>
-                            <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" d="M21 21l-4.35-4.35M10.75 18.5a7.75 7.75 0 100-15.5 7.75 7.75 0 000 15.5z" />
+                    {{-- Modal footer --}}
+                    <div class="flex shrink-0 flex-col gap-2 border-t border-slate-200 bg-white px-4 py-2.5 sm:flex-row sm:items-center sm:justify-between">
+                        <div class="min-w-0 flex-1">
+                            <button
+                                type="button"
+                                @click="toggleRemarks()"
+                                class="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-2 sm:w-auto"
+                            >
+                                <svg
+                                    class="h-3.5 w-3.5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M8 10h8M8 14h5m-8 6 3.5-3H18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h1v3Z"
+                                    />
                                 </svg>
-                            </span>
-                            <input id="travelOrderSearch" type="search" x-model="search" @input.debounce.200ms="applyFilters()" placeholder="{{ __('Search employee, destination, type, or status...') }}" class="block h-9 w-full rounded-lg border-gray-300 pl-10 pr-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
-                        </div>
-                        <div class="sm:w-48 sm:shrink-0">
-                            <label for="travelType" class="sr-only">{{ __('Travel Type') }}</label>
-                            <select id="travelType" x-model="travelType" @change="applyFilters()" class="block h-9 w-full rounded-lg border-gray-300 bg-white text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                <option value="">{{ __('All Types') }}</option>
-                                @foreach($travelTypes as $value => $label)
-                                    <option value="{{ $value }}">{{ __($label) }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="sm:w-52 sm:shrink-0">
-                            <label for="travelOrderSort" class="sr-only">{{ __('Sort') }}</label>
-                            <select id="travelOrderSort" x-model="sort" @change="applyFilters()" class="block h-9 w-full rounded-lg border-gray-300 bg-white text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                <option value="latest">{{ __('Latest Filed') }}</option>
-                                <option value="oldest">{{ __('Oldest Filed') }}</option>
-                                <option value="employee_asc">{{ __('Name A-Z') }}</option>
-                            </select>
-                        </div>
-                        <div class="flex items-center gap-2 sm:shrink-0">
-                            <button type="button" @click="reset()" class="inline-flex h-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-xs font-bold uppercase tracking-wider text-gray-700 transition hover:bg-gray-50">
-                                {{ __('Reset') }}
+
+                                <span x-text="showRemarks ? 'Hide Remarks' : 'Remarks'"></span>
                             </button>
-                        </div>
-                    </div>
 
-                    <div x-show="tab === 'pending'" x-cloak>
-                        <div class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
-                            <div class="overflow-x-auto">
-                                <table class="w-full table-fixed divide-y divide-gray-100">
-                                    <thead class="bg-gray-50">
-                                        <tr>
-                                            <th scope="col" class="w-[38%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Employee</th>
-                                            <th scope="col" class="w-[35%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Destination</th>
-                                            <th scope="col" class="w-[17%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Date Filed</th>
-                                            <th scope="col" class="w-[10%] px-4 py-3 text-right text-[10px] font-black uppercase tracking-widest text-gray-500">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="pendingTravelOrderRows" class="divide-y divide-gray-100 bg-white">
-                                        @include('travel-orders._admin-rows', ['orders' => $pendingTravelOrders, 'emptyMessage' => __('No pending travel authorities.'), 'actionMode' => 'review'])
-                                        @if($pendingTravelOrders->isNotEmpty())
-                                            <tr x-show="pendingNoResults" style="display: none;">
-                                                <td colspan="4" class="px-4 py-8 text-center text-sm font-medium italic text-gray-500">{{ __('No pending travel authorities match your search or filter.') }}</td>
-                                            </tr>
-                                        @endif
-                                    </tbody>
-                                </table>
-                            </div>
+                            <template x-if="showRemarks">
+                                <div
+                                    class="mt-2 max-h-20 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-700"
+                                    x-text="previewData.remarks || 'No remarks provided.'"
+                                ></div>
+                            </template>
                         </div>
-                    </div>
 
-                    <div x-show="tab === 'all'" x-cloak>
-                        <div class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
-                            <div class="overflow-x-auto">
-                                <table class="w-full table-fixed divide-y divide-gray-100">
-                                    <thead class="bg-gray-50">
-                                        <tr>
-                                            <th scope="col" class="w-[38%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Employee</th>
-                                            <th scope="col" class="w-[35%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Destination</th>
-                                            <th scope="col" class="w-[17%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">Date Filed</th>
-                                            <th scope="col" class="w-[10%] px-4 py-3 text-right text-[10px] font-black uppercase tracking-widest text-gray-500">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="allTravelOrderRows" class="divide-y divide-gray-100 bg-white">
-                                        @include('travel-orders._admin-rows', ['orders' => $allTravelOrders, 'emptyMessage' => __('No approved or rejected travel authorities yet.'), 'actionMode' => 'view'])
-                                        @if($allTravelOrders->isNotEmpty())
-                                            <tr x-show="allNoResults" style="display: none;">
-                                                <td colspan="4" class="px-4 py-8 text-center text-sm font-medium italic text-gray-500">{{ __('No travel authorities match your search or filter.') }}</td>
-                                            </tr>
-                                        @endif
-                                    </tbody>
-                                </table>
-                            </div>
+                        <div class="flex shrink-0 gap-2 sm:justify-end">
+                            <button
+                                type="button"
+                                @click="closePreviewModal()"
+                                class="inline-flex flex-1 items-center justify-center rounded-lg border border-red-300 bg-white px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-red-600 transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2 sm:flex-none"
+                            >
+                                {{ __('Close') }}
+                            </button>
+
+                            <a
+                                :href="previewData.directPrintUrl"
+                                target="_blank"
+                                rel="noopener"
+                                data-no-transition
+                                class="inline-flex flex-1 items-center justify-center rounded-lg bg-blue-900 px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-white transition hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:flex-none"
+                            >
+                                {{ __('Print') }}
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </template>
     </div>
+
     <script>
-        function manageTravelOrders(initialTab) {
+        function manageTravelAuthorities(initialTab, currentYear) {
             return {
                 tab: initialTab || 'pending',
+
                 search: '',
                 travelType: '',
-                sort: 'latest',
+                year: String(currentYear),
+                month: '',
+
                 pendingRows: [],
                 allRows: [],
+
                 pendingNoResults: false,
                 allNoResults: false,
+
+                previewOpen: false,
+                showRemarks: false,
+
+                previewData: {
+                    title: '',
+                    date: '',
+                    status: '',
+                    remarks: '',
+                    printUrl: '',
+                    directPrintUrl: '',
+                },
+
                 init() {
-                    this.pendingRows = Array.from(document.querySelectorAll('[data-manage-travel-row="pending"]'));
-                    this.allRows = Array.from(document.querySelectorAll('[data-manage-travel-row="all"]'));
+                    this.pendingRows = Array.from(
+                        document.querySelectorAll(
+                            '[data-manage-travel-row="pending"]'
+                        )
+                    );
+
+                    this.allRows = Array.from(
+                        document.querySelectorAll(
+                            '[data-manage-travel-row="all"]'
+                        )
+                    );
+
                     this.applyFilters();
                 },
-                applyFilters() {
-                    this.pendingNoResults = this.filterRows(this.pendingRows, document.getElementById('pendingTravelOrderRows')) === 0 && this.pendingRows.length > 0;
-                    this.allNoResults = this.filterRows(this.allRows, document.getElementById('allTravelOrderRows')) === 0 && this.allRows.length > 0;
+
+                changeTab(selectedTab) {
+                    this.tab = selectedTab;
+                    this.applyFilters();
+
+                    const url = new URL(window.location.href);
+
+                    url.searchParams.set(
+                        'tab',
+                        selectedTab
+                    );
+
+                    window.history.replaceState(
+                        {},
+                        '',
+                        url.toString()
+                    );
                 },
+
+                applyFilters() {
+                    const pendingVisibleCount = this.filterRows(
+                        this.pendingRows,
+                        document.getElementById(
+                            'pendingTravelOrderRows'
+                        )
+                    );
+
+                    const allVisibleCount = this.filterRows(
+                        this.allRows,
+                        document.getElementById(
+                            'allTravelOrderRows'
+                        )
+                    );
+
+                    this.pendingNoResults =
+                        pendingVisibleCount === 0 &&
+                        this.pendingRows.length > 0;
+
+                    this.allNoResults =
+                        allVisibleCount === 0 &&
+                        this.allRows.length > 0;
+                },
+
                 filterRows(rows, tbody) {
-                    const search = this.search.trim().toLowerCase();
+                    if (!tbody) {
+                        return 0;
+                    }
+
+                    const searchValue = this.search
+                        .trim()
+                        .toLowerCase();
+
                     let visibleCount = 0;
 
-                    rows.sort((a, b) => this.compareRows(a, b)).forEach((row) => {
-                        const visible = (!search || row.dataset.search.includes(search))
-                            && (!this.travelType || row.dataset.type === this.travelType);
+                    /*
+                     * Always place newest filed records first.
+                     */
+                    rows.sort((firstRow, secondRow) => {
+                        const firstFiled = Number(
+                            firstRow.dataset.filed || 0
+                        );
 
-                        row.classList.toggle('hidden', !visible);
-                        if (visible) visibleCount++;
+                        const secondFiled = Number(
+                            secondRow.dataset.filed || 0
+                        );
+
+                        return secondFiled - firstFiled;
+                    });
+
+                    rows.forEach((row) => {
+                        const filedDate = this.getFiledDate(row);
+
+                        const filedYear = filedDate
+                            ? String(filedDate.getFullYear())
+                            : '';
+
+                        const filedMonth = filedDate
+                            ? String(filedDate.getMonth() + 1)
+                            : '';
+
+                        const rowSearch = (
+                            row.dataset.search || ''
+                        ).toLowerCase();
+
+                        const matchesSearch =
+                            !searchValue ||
+                            rowSearch.includes(searchValue);
+
+                        const matchesType =
+                            !this.travelType ||
+                            row.dataset.type === this.travelType;
+
+                        const matchesYear =
+                            !this.year ||
+                            filedYear === String(this.year);
+
+                        const matchesMonth =
+                            !this.month ||
+                            filedMonth === String(this.month);
+
+                        const visible =
+                            matchesSearch &&
+                            matchesType &&
+                            matchesYear &&
+                            matchesMonth;
+
+                        row.classList.toggle(
+                            'hidden',
+                            !visible
+                        );
+
+                        if (visible) {
+                            visibleCount++;
+                        }
+
                         tbody.appendChild(row);
                     });
 
                     return visibleCount;
                 },
-                compareRows(a, b) {
-                    const aFiled = Number(a.dataset.filed || 0);
-                    const bFiled = Number(b.dataset.filed || 0);
 
-                    if (this.sort === 'oldest') return aFiled - bFiled;
-                    if (this.sort === 'employee_asc') return (a.dataset.employee || '').localeCompare(b.dataset.employee || '');
-                    return bFiled - aFiled;
+                getFiledDate(row) {
+                    const rawFiledDate = row.dataset.filed;
+
+                    if (!rawFiledDate) {
+                        return null;
+                    }
+
+                    /*
+                     * Handle a Unix timestamp.
+                     */
+                    if (/^\d+$/.test(rawFiledDate)) {
+                        const timestamp = Number(rawFiledDate);
+
+                        const milliseconds =
+                            timestamp < 1000000000000
+                                ? timestamp * 1000
+                                : timestamp;
+
+                        const date = new Date(milliseconds);
+
+                        return Number.isNaN(date.getTime())
+                            ? null
+                            : date;
+                    }
+
+                    /*
+                     * Handle a date string.
+                     */
+                    const date = new Date(rawFiledDate);
+
+                    return Number.isNaN(date.getTime())
+                        ? null
+                        : date;
                 },
+
                 reset() {
                     this.search = '';
                     this.travelType = '';
-                    this.sort = 'latest';
+                    this.year = String(currentYear);
+                    this.month = '';
+
                     this.applyFilters();
                 },
+
+                openPreviewModal(payload) {
+                    this.previewData = payload;
+                    this.showRemarks = false;
+                    this.previewOpen = true;
+
+                    document.documentElement.classList.add(
+                        'overflow-hidden'
+                    );
+
+                    document.body.classList.add(
+                        'overflow-hidden'
+                    );
+                },
+
+                closePreviewModal() {
+                    this.previewOpen = false;
+                    this.showRemarks = false;
+
+                    document.documentElement.classList.remove(
+                        'overflow-hidden'
+                    );
+
+                    document.body.classList.remove(
+                        'overflow-hidden'
+                    );
+                },
+
+                toggleRemarks() {
+                    this.showRemarks = !this.showRemarks;
+                },
             };
+        }
+
+        function openTravelPreviewModal(payloadJson) {
+            const root = document.querySelector(
+                '[x-data^="manageTravelAuthorities"]'
+            );
+
+            if (!root || !root.__x) {
+                return;
+            }
+
+            root.__x.$data.openPreviewModal(
+                JSON.parse(payloadJson)
+            );
+        }
+
+        function submitTravelReject(id) {
+            const remarks =
+                window.prompt(
+                    'Enter rejection remarks (optional):',
+                    ''
+                ) ?? '';
+
+            const input = document.getElementById(
+                `travelRejectRemarks_${id}`
+            );
+
+            const form = document.getElementById(
+                `travelRejectForm_${id}`
+            );
+
+            if (!input || !form) {
+                return;
+            }
+
+            input.value = remarks;
+            form.submit();
         }
     </script>
 </x-app-layout>

@@ -441,15 +441,148 @@
             color: transparent;
         }
 
+
+        /*
+         * Preview mode
+         * The iframe URL contains ?preview=1, so only one enlarged copy is
+         * displayed in the modal. These styles do not affect actual printing.
+         */
+        .preview-sheet {
+            width: 100%;
+            height: auto;
+            min-height: 0;
+            margin: 0;
+            padding: 8px;
+            background: #ffffff;
+        }
+
+        .preview-layout {
+            /* Same approximate width as one copy in the 2 x 2 A4 print layout. */
+            width: min(100%, 89.5mm);
+            height: auto;
+            margin: 0 auto;
+            border-spacing: 0;
+        }
+
+        .preview-layout > tbody,
+        .preview-layout > tbody > tr {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        .preview-layout > tbody > tr > td {
+            display: block;
+            width: 100%;
+            height: auto;
+            padding: 0;
+        }
+
+        .preview-layout .copy-wrap {
+            width: 100%;
+        }
+
+        .preview-layout .copy-table {
+            width: 100%;
+            height: 125mm;
+            min-height: 0;
+            margin: 0;
+            background: #fff;
+            box-shadow: none;
+        }
+
+        .preview-layout .pass-slip-table {
+            height: 121mm;
+            min-height: 0;
+        }
+
+        .preview-layout .copy-label,
+        .preview-layout .pass-copy-label {
+            display: none;
+        }
+
+
+        .preview-layout .copy-wrap {
+            margin: 0;
+        }
+
+        .preview-layout .copy-table,
+        .preview-layout .pass-slip-table {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        body:has(.preview-sheet) {
+            min-height: 0;
+            background: #ffffff;
+        }
+
         @media print {
-            .sheet {
-                width: 194mm;
-                height: 281mm;
+            html,
+            body {
+                width: 210mm;
+                height: 297mm;
                 margin: 0;
+                padding: 0;
+                background: #ffffff;
             }
 
-            .copies-layout {
+            .sheet,
+            .preview-sheet {
+                width: 194mm;
+                height: 281mm;
+                min-height: 0;
+                margin: 0;
+                padding: 0;
+                background: #ffffff;
+            }
+
+            .copies-layout,
+            .preview-layout {
+                display: table;
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                border-collapse: separate;
                 border-spacing: 7.5mm 7mm;
+                table-layout: fixed;
+            }
+
+            .copies-layout > tbody,
+            .preview-layout > tbody {
+                display: table-row-group;
+            }
+
+            .copies-layout > tbody > tr,
+            .preview-layout > tbody > tr {
+                display: table-row;
+            }
+
+            .copies-layout > tbody > tr > td,
+            .preview-layout > tbody > tr > td {
+                display: table-cell;
+                width: 50%;
+                height: 50%;
+                padding: 0;
+                vertical-align: top;
+            }
+
+            .copy-table,
+            .preview-layout .copy-table {
+                width: 100%;
+                height: 125mm;
+                margin: 0;
+                box-shadow: none;
+            }
+
+            .pass-slip-table,
+            .preview-layout .pass-slip-table {
+                height: 121mm;
+            }
+
+            .copy-label,
+            .pass-copy-label {
+                display: block;
             }
         }
     </style>
@@ -464,16 +597,25 @@
         $chiefName = $locatorSlip->approved_by_chief_name ?: 'LOUIE JAY C. LOSARIA';
         $regionalDirectorName = $locatorSlip->approved_by_regional_director_name ?: 'MARIA CAROLINA B. AGDAMAG';
         $dateCovered = \Carbon\Carbon::parse($locatorSlip->date_covered)->format('F d, Y');
-        $timeFrom = \Carbon\Carbon::parse($locatorSlip->time_from)->format('h:i A');
-        $timeTo = \Carbon\Carbon::parse($locatorSlip->time_to)->format('h:i A');
+        $timeFrom = $locatorSlip->time_from ? \Carbon\Carbon::parse($locatorSlip->time_from)->format('h:i A') : '';
+        $timeTo = $locatorSlip->time_to ? \Carbon\Carbon::parse($locatorSlip->time_to)->format('h:i A') : '';
         $formType = ($locatorSlip->type ?? '') === 'Personal' ? 'Pass Slip' : ($locatorSlip->type ?: 'Official Business');
         $formTitle = $formType === 'Pass Slip' ? 'Pass Slip Form' : 'Official Business Form';
-        $copyLabels = ['EMPLOYEE FILE', 'HR/FAD FILE', 'EMPLOYEE FILE', 'HR/FAD FILE'];
         $signatureUrl = $employee?->effective_signature_url;
+        $isPreview = request()->boolean('preview');
+
+        // Show only one copy inside the preview modal.
+        // Keep four copies when opening the actual printable page.
+        $copyLabels = $isPreview
+            ? ['PREVIEW']
+            : ['EMPLOYEE FILE', 'HR/FAD FILE', 'EMPLOYEE FILE', 'HR/FAD FILE'];
     @endphp
 
-    <main class="sheet">
-        <table class="copies-layout" aria-label="{{ $formTitle }} copies">
+    <main class="sheet{{ $isPreview ? ' preview-sheet' : '' }}">
+        <table
+            class="copies-layout{{ $isPreview ? ' preview-layout' : '' }}"
+            aria-label="{{ $formTitle }} copies"
+        >
             <tbody>
                 @foreach(array_chunk($copyLabels, 2) as $copyRow)
                     <tr>
@@ -655,16 +797,18 @@
             </tbody>
         </table>
     </main>
-    <script>
-        const locatorSlipReturnUrl = @js(route('locator-slips.show', $locatorSlip));
+    @unless($isPreview)
+        <script>
+            const locatorSlipReturnUrl = @js(route('locator-slips.index', $locatorSlip));
 
-        window.addEventListener('afterprint', () => {
-            window.location.href = locatorSlipReturnUrl;
-        });
+            window.addEventListener('afterprint', () => {
+                window.location.href = locatorSlipReturnUrl;
+            });
 
-        window.addEventListener('load', () => {
-            window.print();
-        });
-    </script>
+            window.addEventListener('load', () => {
+                window.print();
+            });
+        </script>
+    @endunless
 </body>
 </html>

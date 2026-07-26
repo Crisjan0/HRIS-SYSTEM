@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="title">{{ __('Pending Leave Applications') }}</x-slot>
 
     @php
@@ -7,8 +7,11 @@
         $selectedStatus = request('status', '');
     @endphp
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <div
+        class="py-12"
+        x-data="leaveApplicationPreviewPage()"
+    >
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
             @if(session('success'))
                 <div class="mb-4 rounded-lg border-l-4 border-green-500 bg-green-100 p-4 text-green-700">
@@ -16,44 +19,40 @@
                 </div>
             @endif
 
-            {{-- Year selection at the very top --}}
-            <div class="mb-4 flex items-center justify-between">
-                <div>
-                    <h1 class="text-lg font-bold text-gray-800">
-                        {{ __('Leave Applications') }}
-                    </h1>
-                    <p class="text-sm text-gray-500">
-                        {{ __('Review leave applications by year.') }}
-                    </p>
-                </div>
+            {{-- Year filter --}}
+            <div class="mb-4 flex items-center justify-end gap-2">
+                <label
+                    for="year"
+                    class="text-sm font-semibold text-gray-700"
+                >
+                    {{ __('Year') }}
+                </label>
 
-                <div class="flex items-center gap-2">
-                    <label for="year" class="text-sm font-semibold text-gray-700">
-                        {{ __('Year') }}
-                    </label>
-
-                    <select
-                        id="year"
-                        name="year"
-                        form="leaveApplicationFilterForm"
-                        class="h-10 w-28 rounded-lg border-gray-300 bg-white pl-4 pr-10 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                    >
-                        @for ($yearOption = $currentYear; $yearOption >= $currentYear - 2; $yearOption--)
-                            <option
-                                value="{{ $yearOption }}"
-                                {{ (string) $selectedYear === (string) $yearOption ? 'selected' : '' }}
-                            >
-                                {{ $yearOption }}
-                            </option>
-                        @endfor
-                    </select>
-                </div>
+                <select
+                    id="year"
+                    name="year"
+                    form="leaveApplicationFilterForm"
+                    class="h-10 w-28 rounded-lg border-gray-300 bg-white pl-4 pr-10 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                >
+                    @for(
+                        $yearOption = $currentYear;
+                        $yearOption >= $currentYear - 2;
+                        $yearOption--
+                    )
+                        <option
+                            value="{{ $yearOption }}"
+                            {{ (string) $selectedYear === (string) $yearOption ? 'selected' : '' }}
+                        >
+                            {{ $yearOption }}
+                        </option>
+                    @endfor
+                </select>
             </div>
 
+            {{-- Management tabs --}}
             @include('leaves._manage-tabs')
 
-            {{-- Approval tracker removed because approval progress is now inside the table. --}}
-
+            {{-- Filters --}}
             <form
                 id="leaveApplicationFilterForm"
                 method="GET"
@@ -61,13 +60,22 @@
                 data-filter-url="{{ route('leave-applications.filter') }}"
                 class="mb-4 flex min-w-0 flex-col gap-2 rounded-xl border border-gray-100 bg-gray-50/70 p-2 sm:flex-row sm:items-center"
             >
+                {{-- Search --}}
                 <div class="relative min-w-0 sm:flex-1">
-                    <label for="search" class="sr-only">
+                    <label
+                        for="search"
+                        class="sr-only"
+                    >
                         {{ __('Search leave application') }}
                     </label>
 
                     <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg
+                            class="h-4 w-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
                             <path
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
@@ -89,40 +97,62 @@
 
                 {{-- Status filter --}}
                 <div class="sm:w-40 sm:shrink-0">
-                    <label for="status" class="sr-only">
+                    <label
+                        for="status"
+                        class="sr-only"
+                    >
                         {{ __('Status') }}
                     </label>
 
                     <select
                         id="status"
                         name="status"
-                        class="block h-9 w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        class="block h-9 w-full rounded-lg border-gray-300 bg-white text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     >
-                        <option value="">{{ __('All Statuses') }}</option>
-                        <option value="pending" {{ $selectedStatus === 'pending' ? 'selected' : '' }}>
+                        <option value="">
+                            {{ __('Status') }}
+                        </option>
+
+                        <option
+                            value="pending"
+                            {{ $selectedStatus === 'pending' ? 'selected' : '' }}
+                        >
                             {{ __('Pending') }}
                         </option>
-                        <option value="approved" {{ $selectedStatus === 'approved' ? 'selected' : '' }}>
+
+                        <option
+                            value="approved"
+                            {{ $selectedStatus === 'approved' ? 'selected' : '' }}
+                        >
                             {{ __('Approved') }}
                         </option>
-                        <option value="rejected" {{ $selectedStatus === 'rejected' ? 'selected' : '' }}>
+
+                        <option
+                            value="rejected"
+                            {{ $selectedStatus === 'rejected' ? 'selected' : '' }}
+                        >
                             {{ __('Rejected') }}
                         </option>
                     </select>
                 </div>
 
                 {{-- Leave type filter --}}
-                <div class="sm:w-56 sm:shrink-0">
-                    <label for="leave_type_id" class="sr-only">
+                <div class="sm:w-52 sm:shrink-0">
+                    <label
+                        for="leave_type_id"
+                        class="sr-only"
+                    >
                         {{ __('Leave Type') }}
                     </label>
 
                     <select
                         id="leave_type_id"
                         name="leave_type_id"
-                        class="block h-9 w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        class="block h-9 w-full rounded-lg border-gray-300 bg-white text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     >
-                        <option value="">{{ __('All Leave Types') }}</option>
+                        <option value="">
+                            {{ __('Leave Types') }}
+                        </option>
 
                         @foreach($leaveTypes as $leaveType)
                             <option
@@ -135,78 +165,97 @@
                     </select>
                 </div>
 
-                <div class="sm:w-48 sm:shrink-0">
-                    <label for="sort" class="sr-only">
-                        {{ __('Sort') }}
-                    </label>
-
-                    <select
-                        id="sort"
-                        name="sort"
-                        class="block h-9 w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                    >
-                        <option value="date_filed_desc" {{ $sort === 'date_filed_desc' ? 'selected' : '' }}>
-                            {{ __('Newest Filed') }}
-                        </option>
-                        <option value="date_filed_asc" {{ $sort === 'date_filed_asc' ? 'selected' : '' }}>
-                            {{ __('Oldest Filed') }}
-                        </option>
-                        <option value="employee_asc" {{ $sort === 'employee_asc' ? 'selected' : '' }}>
-                            {{ __('Name A-Z') }}
-                        </option>
-                    </select>
-                </div>
-
-                <div class="flex items-center gap-2 sm:shrink-0">
+                {{-- Reset --}}
+                <div class="flex items-center sm:shrink-0">
                     <a
                         href="{{ route('leave-applications.index') }}"
-                        class="inline-flex h-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-xs font-bold uppercase tracking-wider text-gray-700 transition hover:bg-gray-50"
+                        class="inline-flex h-9 w-full items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-xs font-bold uppercase tracking-wider text-gray-700 transition hover:bg-gray-50 sm:w-auto"
                     >
                         {{ __('Reset') }}
                     </a>
                 </div>
             </form>
 
+            {{-- Leave applications table --}}
             <div class="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
-                <div class="overflow-x-auto">
+                <div class="w-full overflow-x-auto">
                     <table class="w-full table-fixed divide-y divide-gray-100">
+                        <colgroup>
+                            <col class="w-[10%]"> {{-- Date Filed --}}
+    <col class="w-[15%]"> {{-- Name --}}
+    <col class="w-[13%]"> {{-- Leave Type --}}
+    <col class="w-[13%]"> {{-- Leave Certification --}}
+    <col class="w-[14%]"> {{-- Recommending Approval --}}
+    <col class="w-[13%]"> {{-- Approval --}}
+    <col class="w-[10%]"> {{-- Status --}}
+    <col class="w-[12%]"> {{-- Actions --}}
+                        </colgroup>
+
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="w-[17%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">
-                                    {{ __('Name') }}
-                                </th>
-
-                                <th class="w-[15%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">
-                                    {{ __('Leave Type') }}
-                                </th>
-
-                                <th class="w-[15%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">
-                                    {{ __('Leave Credit Certification') }}
-                                </th>
-
-                                <th class="w-[14%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">
-                                    {{ __('Recommendation') }}
-                                </th>
-
-                                <th class="w-[14%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">
-                                    {{ __('Regional Director') }}
-                                </th>
-
-                                <th class="w-[10%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">
-                                    {{ __('Status') }}
-                                </th>
-
-                                <th class="w-[10%] px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-gray-500">
+                                <th
+                                    scope="col"
+                                    class="break-words whitespace-normal px-2 py-3 text-left text-[10px] font-black uppercase leading-4 tracking-wider text-gray-500"
+                                >
                                     {{ __('Date Filed') }}
                                 </th>
 
-                                <th class="w-[5%] px-4 py-3 text-right text-[10px] font-black uppercase tracking-widest text-gray-500">
+                                <th
+                                    scope="col"
+                                    class="break-words whitespace-normal px-2 py-3 text-left text-[10px] font-black uppercase leading-4 tracking-wider text-gray-500"
+                                >
+                                    {{ __('Name') }}
+                                </th>
+
+                                <th
+                                    scope="col"
+                                    class="break-words whitespace-normal px-2 py-3 text-left text-[10px] font-black uppercase leading-4 tracking-wider text-gray-500"
+                                >
+                                    {{ __('Leave Type') }}
+                                </th>
+
+
+                                <th
+                                    scope="col"
+                                    class="break-words whitespace-normal px-2 py-3 text-center text-[10px] font-black uppercase leading-4 tracking-wider text-gray-500"
+                                >
+                                    {{ __('Leave Certification') }}
+                                </th>
+
+                                <th
+                                    scope="col"
+                                    class="break-words whitespace-normal px-2 py-3 text-center text-[10px] font-black uppercase leading-4 tracking-wider text-gray-500"
+                                >
+                                    {{ __('Recommending Approval') }}
+                                </th>
+
+                                <th
+                                    scope="col"
+                                    class="break-words whitespace-normal px-2 py-3 text-center text-[10px] font-black uppercase leading-4 tracking-wider text-gray-500"
+                                >
+                                    {{ __('Approval') }}
+                                </th>
+    
+                                <th
+                                    scope="col"
+                                    class="break-words whitespace-normal px-2 py-3 text-center text-[10px] font-black uppercase leading-4 tracking-wider text-gray-500"
+                                >
+                                    {{ __('Status') }}
+                                </th>
+                                
+                                <th
+                                    scope="col"
+                                    class="break-words whitespace-normal px-1 py-3 text-center text-[10px] font-black uppercase leading-4 tracking-wider text-gray-500"
+                                >
                                     {{ __('Actions') }}
                                 </th>
                             </tr>
                         </thead>
 
-                        <tbody id="leaveApplicationTableBody" class="divide-y divide-gray-100 bg-white">
+                        <tbody
+                            id="leaveApplicationTableBody"
+                            class="divide-y divide-gray-100 bg-white"
+                        >
                             @include('leaves.applications._rows', [
                                 'leaves' => $leaves,
                                 'actionMode' => 'review',
@@ -217,7 +266,220 @@
                 </div>
             </div>
         </div>
+
+        {{-- Leave preview modal --}}
+        <template x-teleport="body">
+            <div
+                x-show="previewModalOpen"
+                x-cloak
+                class="fixed inset-0 z-[100000] flex items-center justify-center p-5 sm:p-8"
+                style="display: none;"
+                @keydown.escape.window="closePreviewModal()"
+            >
+                <div
+                    class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+                    @click="closePreviewModal()"
+                ></div>
+
+                <div
+                    class="relative z-10 flex w-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
+                    style="width: min(96vw, 1120px); height: min(92vh, 860px); max-height: calc(100dvh - 32px);"
+                    @click.stop
+                >
+                    {{-- Modal header --}}
+                    <div class="flex shrink-0 items-center justify-between border-b border-blue-950 bg-blue-900 px-4 py-2.5 sm:px-5">
+                        <div class="min-w-0">
+                            <p class="text-[9px] font-bold uppercase tracking-[0.18em] text-blue-200">
+                                {{ __('Leave Form Preview') }}
+                            </p>
+
+                            <div class="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
+                                <h2
+                                    class="truncate text-sm font-bold text-white"
+                                    x-text="previewData.title"
+                                ></h2>
+
+                                <span class="hidden text-blue-300 sm:inline">
+                                    &bull;
+                                </span>
+
+                                <p class="text-[10px] font-medium text-blue-100">
+                                    <span x-text="previewData.date"></span>
+                                    <span class="mx-1">|</span>
+
+                                    <span
+                                        class="capitalize"
+                                        x-text="previewData.status"
+                                    ></span>
+                                </p>
+                            </div>
+                        </div>
+
+                        <button
+                            type="button"
+                            @click="closePreviewModal()"
+                            class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white transition hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-white/70"
+                            aria-label="{{ __('Close preview') }}"
+                        >
+                            <svg
+                                class="h-4 w-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2.5"
+                                    d="M6 18L18 6M6 6l12 12"
+                                />
+                            </svg>
+                        </button>
+                    </div>
+
+                    {{-- Preview document --}}
+                    <div class="min-h-0 flex-1 overflow-auto bg-slate-100 p-3">
+                        <div class="mx-auto h-full max-w-[820px] overflow-hidden rounded-lg border border-slate-300 bg-white shadow-sm">
+                            <iframe
+                                x-ref="previewFrame"
+                                :src="previewData.printUrl"
+                                class="h-full min-h-[620px] w-full border-0 bg-white"
+                                title="{{ __('Leave Print Preview') }}"
+                            ></iframe>
+                        </div>
+                    </div>
+
+                    {{-- Modal footer --}}
+                    <div class="flex shrink-0 flex-col gap-2 border-t border-slate-200 bg-white px-4 py-2.5 sm:flex-row sm:items-center sm:justify-between">
+                        <div class="min-w-0 flex-1">
+                            <button
+                                type="button"
+                                @click="toggleRemarks()"
+                                class="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-2 sm:w-auto"
+                            >
+                                <svg
+                                    class="h-3.5 w-3.5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M8 10h8M8 14h5m-8 6 3.5-3H18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h1v3Z"
+                                    />
+                                </svg>
+
+                                <span
+                                    x-text="showRemarks
+                                        ? 'Hide Remarks'
+                                        : 'Remarks'"
+                                ></span>
+                            </button>
+
+                            <template x-if="showRemarks">
+                                <div
+                                    class="mt-2 max-h-20 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-700"
+                                    x-text="previewData.remarks"
+                                ></div>
+                            </template>
+                        </div>
+
+                        <div class="flex shrink-0 gap-2 sm:justify-end">
+                            <button
+                                type="button"
+                                @click="closePreviewModal()"
+                                class="inline-flex flex-1 items-center justify-center rounded-lg border border-red-300 bg-white px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-red-600 transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2 sm:flex-none"
+                            >
+                                {{ __('Close') }}
+                            </button>
+
+                            <a
+                                :href="previewData.directPrintUrl"
+                                target="_blank"
+                                rel="noopener"
+                                data-no-transition
+                                class="inline-flex flex-1 items-center justify-center rounded-lg bg-blue-900 px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-white transition hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:flex-none"
+                            >
+                                {{ __('Print') }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
     </div>
 
     @include('leaves.applications._filter-script')
+
+    <script>
+        function leaveApplicationPreviewPage() {
+            return {
+                previewModalOpen: false,
+                showRemarks: false,
+
+                previewData: {
+                    title: '',
+                    date: '',
+                    status: '',
+                    remarks: '',
+                    printUrl: '',
+                    directPrintUrl: '',
+                },
+
+                openPreviewModal(payload) {
+                    this.previewData = payload;
+                    this.showRemarks = false;
+                    this.previewModalOpen = true;
+
+                    document.documentElement.classList.add(
+                        'overflow-hidden'
+                    );
+
+                    document.body.classList.add(
+                        'overflow-hidden'
+                    );
+
+                    this.$nextTick(() => {
+                        if (this.$refs.previewFrame) {
+                            this.$refs.previewFrame.src =
+                                payload.printUrl;
+                        }
+                    });
+                },
+
+                closePreviewModal() {
+                    this.previewModalOpen = false;
+                    this.showRemarks = false;
+
+                    document.documentElement.classList.remove(
+                        'overflow-hidden'
+                    );
+
+                    document.body.classList.remove(
+                        'overflow-hidden'
+                    );
+                },
+
+                toggleRemarks() {
+                    this.showRemarks = !this.showRemarks;
+                },
+            };
+        }
+
+        function openLeavePreviewModal(payloadJson) {
+            const root = document.querySelector(
+                '[x-data="leaveApplicationPreviewPage()"]'
+            );
+
+            if (!root || !root.__x) {
+                return;
+            }
+
+            root.__x.$data.openPreviewModal(
+                JSON.parse(payloadJson)
+            );
+        }
+    </script>
 </x-app-layout>

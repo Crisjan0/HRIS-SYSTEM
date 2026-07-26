@@ -111,15 +111,19 @@
                                 $roleLabels = [
                                     'employee' => 'Employee',
                                     'hrstaff' => 'HR Admin',
+                                    'recordofficer' => 'Record Officer',
                                     'chief' => 'Chief',
                                     'regionaldirector' => 'Regional Director',
                                     'admin' => 'Admin',
                                 ];
                                 $displayRole = $roleLabels[strtolower((string) (Auth::user()->role ?? 'employee'))] ?? 'Employee';
+                                $rawPosition = Auth::user()?->employee?->position;
+                                $positionKey = strtolower(str_replace(' ', '', (string) $rawPosition));
+                                $displayPosition = $roleLabels[$positionKey] ?? ($rawPosition ?: $displayRole);
                             @endphp
                             <div class="text-right hidden xl:block">
                                 <p class="text-sm font-bold text-gray-900 leading-none mb-0.5">{{ Auth::user()->display_name }}</p>
-                                <p class="text-[10px] font-bold text-blue-500 tracking-tighter">{{ $displayRole }}</p>
+                                <p class="text-[10px] font-bold text-blue-500 tracking-tighter">{{ $displayPosition }}</p>
                             </div>
                             <x-profile-avatar :user="auth()->user()" size="md" class="ring-2 ring-white hover:ring-blue-100 transition-all duration-300" />
                         </a>

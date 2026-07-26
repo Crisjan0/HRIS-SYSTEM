@@ -182,13 +182,9 @@ class LeaveApplicationController extends Controller
         $employeeId = auth()->user()->employee?->id;
         $isHR = in_array($role, ['hrstaff', 'admin'], true);
 
-        $rules = [
+        $validated = $request->validate([
             'status' => 'required|in:approved,rejected',
-            'remarks' => ($isHR && $request->input('status') === 'rejected') ? 'required|string' : 'nullable|string',
-        ];
-
-        $validated = $request->validate($rules, [
-            'remarks.required' => 'Remarks are required when rejecting a request.',
+            'remarks' => 'nullable|string',
         ]);
 
         $remarks = $validated['remarks'] ?? null;

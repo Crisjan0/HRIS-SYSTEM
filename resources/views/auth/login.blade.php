@@ -211,8 +211,8 @@
                         id="signInLoadingText"
                         class="hidden"
                     >
-                        <i class="fas fa-spinner fa-spin mr-2"></i>
-                        SIGNING IN...
+                        
+                        SIGN IN
                     </span>
                 </button>
 

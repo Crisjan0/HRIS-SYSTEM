@@ -5,6 +5,7 @@
         $roleLabels = [
             'employee' => 'Employee',
             'hrstaff' => 'HR Admin',
+                                                'recordofficer' => 'Record Officer',
             'chief' => 'Chief',
             'regionaldirector' => 'Regional Director',
             'admin' => 'Admin',
