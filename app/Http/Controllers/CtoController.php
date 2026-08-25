@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use App\Notifications\CtoRequestNotification;
-use Illuminate\Support\Facades\Notification;
 use App\Models\CtoRequest;
 use App\Models\Employee;
+use App\Models\User;
+use App\Notifications\CtoRequestNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\View\View;
 
 class CtoController extends Controller
@@ -17,6 +17,7 @@ class CtoController extends Controller
     public function adminIndex(Request $request): View
     {
         $role = strtolower(auth()->user()->role ?? '');
+        $isAdmin = $role === 'admin';
         $isHR = in_array($role, ['admin', 'hrstaff', 'hr staff'], true);
         $isChief = $role === 'chief';
         $isRegionalDirector = $role === 'regionaldirector';
@@ -34,7 +35,7 @@ class CtoController extends Controller
         $pendingCtoRequests = $this->sortCtoRequests($this->filterCtoRequests(
             CtoRequest::with(['employee', 'chief', 'hrstaff', 'regionalDirector'])
                 ->where('status', 'pending')
-                ->when($isHR, fn ($query) => $query->where('hrstaff_status', 'pending'))
+                ->when($isHR && !$isAdmin, fn ($query) => $query->where('hrstaff_status', 'pending'))
                 ->when($isChief, fn ($query) => $query
                     ->whereIn('hrstaff_status', ['approved', 'rejected'])
                     ->where('chief_status', 'pending'))
@@ -52,7 +53,7 @@ class CtoController extends Controller
             $tab = 'pending';
         }
 
-        return view('my-cto.admin-index', compact('allCtoRequests', 'pendingCtoRequests', 'tab', 'sort', 'search', 'type'));
+        return view('my-cto.admin-index', compact('allCtoRequests', 'pendingCtoRequests', 'tab', 'sort', 'search', 'type', 'isAdmin'));
     }
 
     private function filterCtoRequests($query, string $search, string $type)
@@ -90,8 +91,13 @@ class CtoController extends Controller
     public function updateStatus(Request $request, CtoRequest $ctoRequest): RedirectResponse
     {
         $role = strtolower(auth()->user()->role ?? '');
+
+        if ($role === 'admin') {
+            return redirect()->back()->with('error', __('Admin role has read-only viewing access for CTO applications. Approvals must be performed by HR, Chief, or Regional Director.'));
+        }
+
         $employeeId = auth()->user()->employee?->id;
-        $isHR = in_array($role, ['admin', 'hrstaff', 'hr staff'], true);
+        $isHR = in_array($role, ['hrstaff', 'hr staff'], true);
 
         $validated = $request->validate([
             'status' => 'required|in:approved,rejected',
@@ -107,15 +113,11 @@ class CtoController extends Controller
                     $ctoRequest->approved_by_hrstaff = $employeeId;
                     $ctoRequest->hrstaff_remarks = $remarks;
                     
-                    $chiefs = User::whereHas('employee', function ($query) {
+                    // Notify Chief
+                    $nextLevelUsers = User::whereHas('employee', function ($query) {
                         $query->where('account_role', 'chief');
                     })->get();
-
-                    Notification::send($chiefs, new CtoRequestNotification(
-                        $ctoRequest,
-                        'CTO Request Disapproved by HR (Proceeding to Chief)',
-                        "A CTO request by {$ctoRequest->employee->firstname} {$ctoRequest->employee->lastname} has been rejected by HR but awaits your final decision."
-                    ));
+                    Notification::send($nextLevelUsers, new CtoRequestNotification($ctoRequest, 'cto_rejected', 'CTO request rejected by HR.'));
                 } else {
                     $ctoRequest->status = 'rejected';
                     if ($role === 'chief') {
@@ -127,49 +129,40 @@ class CtoController extends Controller
                         $ctoRequest->approved_by_regionaldirector = $employeeId;
                         $ctoRequest->rd_remarks = $remarks;
                     }
+
+                    if ($ctoRequest->employee?->user) {
+                        $ctoRequest->employee->user->notify(new CtoRequestNotification($ctoRequest, 'cto_rejected', 'Your CTO request was rejected.'));
+                    }
                 }
-            } else {
+            } else { // approved
                 if ($isHR) {
                     $ctoRequest->hrstaff_status = 'approved';
                     $ctoRequest->approved_by_hrstaff = $employeeId;
                     $ctoRequest->hrstaff_remarks = $remarks;
 
-                    $chiefs = User::whereHas('employee', function ($query) {
+                    // Notify Chief
+                    $nextLevelUsers = User::whereHas('employee', function ($query) {
                         $query->where('account_role', 'chief');
                     })->get();
-
-                    Notification::send($chiefs, new CtoRequestNotification(
-                        $ctoRequest,
-                        'CTO Request Verified',
-                        "A CTO request by {$ctoRequest->employee->firstname} {$ctoRequest->employee->lastname} has been verified by HR and awaits your approval."
-                    ));
-                } elseif ($role === 'chief' && in_array($ctoRequest->hrstaff_status, ['approved', 'rejected'], true)) {
+                    Notification::send($nextLevelUsers, new CtoRequestNotification($ctoRequest, 'cto_hr_approved', 'New CTO request ready for Chief approval.'));
+                } elseif ($role === 'chief') {
                     $ctoRequest->chief_status = 'approved';
                     $ctoRequest->approved_by_chief = $employeeId;
                     $ctoRequest->chief_remarks = $remarks;
 
-                    $regionalDirectors = User::whereHas('employee', function ($query) {
+                    // Notify RD
+                    $nextLevelUsers = User::whereHas('employee', function ($query) {
                         $query->where('account_role', 'regionaldirector');
                     })->get();
-
-                    Notification::send($regionalDirectors, new CtoRequestNotification(
-                        $ctoRequest,
-                        'CTO Request Pending Approval',
-                        "A CTO request by {$ctoRequest->employee->firstname} {$ctoRequest->employee->lastname} has been approved by the Chief and awaits your approval."
-                    ));
-                } elseif ($role === 'regionaldirector'
-                    && in_array($ctoRequest->hrstaff_status, ['approved', 'rejected'], true)
-                    && $ctoRequest->chief_status === 'approved') {
+                    Notification::send($nextLevelUsers, new CtoRequestNotification($ctoRequest, 'cto_chief_approved', 'New CTO request ready for Regional Director approval.'));
+                } elseif ($role === 'regionaldirector') {
                     $ctoRequest->rd_status = 'approved';
                     $ctoRequest->approved_by_regionaldirector = $employeeId;
                     $ctoRequest->rd_remarks = $remarks;
                     $ctoRequest->status = 'approved';
 
-                    $employee = $ctoRequest->employee;
-                    if ($ctoRequest->type === 'earn') {
-                        $employee->increment('cto_balance', $ctoRequest->hours);
-                    } else {
-                        $employee->decrement('cto_balance', $ctoRequest->hours);
+                    if ($ctoRequest->employee?->user) {
+                        $ctoRequest->employee->user->notify(new CtoRequestNotification($ctoRequest, 'cto_fully_approved', 'Your CTO request has been fully approved.'));
                     }
                 }
             }
@@ -177,8 +170,6 @@ class CtoController extends Controller
             $ctoRequest->save();
         });
 
-        $msg = $validated['status'] === 'approved' ? 'CTO request verified successfully.' : 'CTO request updated.';
-
-        return redirect()->route('hr.cto.index', ['tab' => 'pending'])->with('success', $msg);
+        return redirect()->back()->with('success', __('CTO request updated successfully.'));
     }
 }

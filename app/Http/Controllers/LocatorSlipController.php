@@ -139,9 +139,11 @@ class LocatorSlipController extends Controller
                 'remarks' => 'nullable|string|max:1000',
             ]);
 
+            $approverRealName = trim(($user->employee?->firstname ?? '') . ' ' . ($user->employee?->lastname ?? '')) ?: $user->name;
+
             $locatorSlip->status = 'approved';
             $locatorSlip->approved_by_chief_id = $user->id;
-            $locatorSlip->approved_by_chief_name = $user->name;
+            $locatorSlip->approved_by_chief_name = $approverRealName;
             $locatorSlip->chief_remarks = $validated['remarks'] ?? null;
             $locatorSlip->chief_approval_date = now();
             $locatorSlip->save();

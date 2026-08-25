@@ -3,14 +3,27 @@
 namespace App\Http\Controllers;
 
 use App\Mail\AccountApprovedMail;
+use App\Models\UtilityOption;
 use App\Models\User;
+use App\Support\UtilityOptionRegistry;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 
 class EmployeeAccountController extends Controller
 {
+    private function divisionOptions(): array
+    {
+        UtilityOptionRegistry::ensureDefaults();
+
+        return UtilityOption::listFor('divisions')
+            ->pluck('value')
+            ->values()
+            ->all();
+    }
+
     /**
      * Display a list of registered employee accounts pending HR approval.
      */
@@ -39,8 +52,9 @@ class EmployeeAccountController extends Controller
     public function show(User $user): View
     {
         $user->load('employee');
+        $divisionOptions = $this->divisionOptions();
 
-        return view('employees.accounts-show', compact('user'));
+        return view('employees.accounts-show', compact('user', 'divisionOptions'));
     }
 
     /**
@@ -53,7 +67,7 @@ class EmployeeAccountController extends Controller
             'firstname' => 'required|string|max:255',
             'middlename' => 'nullable|string|max:255',
             'suffix' => 'nullable|string|max:255',
-            'division' => 'nullable|string|max:255',
+            'division' => ['nullable', 'string', Rule::in($this->divisionOptions())],
             'position' => 'nullable|string|max:255',
             'remarks' => 'nullable|string',
         ]);

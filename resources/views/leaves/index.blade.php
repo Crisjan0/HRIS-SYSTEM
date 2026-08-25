@@ -234,28 +234,19 @@
                                                     <span class="block break-words whitespace-normal">{{ $leaveTypeName }}</span>
                                                 </div>
                                             </td>
-                                            <td class="px-2 py-3 align-middle">
-                                                <div class="flex min-w-0 items-center gap-2">
-                                                    <span class="h-2.5 w-2.5 shrink-0 rounded-full {{ $approvalDotClass($leaf->hrstaff_status ?: 'pending') }}" title="{{ ucfirst($leaf->hrstaff_status ?: 'pending') }}"></span>
-                                                    <span class="min-w-0 break-words text-xs font-semibold leading-5 text-gray-700 whitespace-normal" title="{{ $leaf->hrstaff ? trim($leaf->hrstaff->firstname . ' ' . $leaf->hrstaff->lastname) : 'HR Admin' }}">
-                                                        {{ $leaf->hrstaff ? trim($leaf->hrstaff->firstname . ' ' . $leaf->hrstaff->lastname) : 'HR Admin' }}
-                                                    </span>
+                                            <td class="px-2 py-3 text-center align-middle">
+                                                <div class="flex min-w-0 items-center justify-center">
+                                                    <span class="h-3 w-3 shrink-0 rounded-full {{ $approvalDotClass($leaf->hrstaff_status ?: 'pending') }}" title="{{ __('Leave Certification') }}: {{ ucfirst($leaf->hrstaff_status ?: 'pending') }}"></span>
                                                 </div>
                                             </td>
-                                            <td class="px-4 py-3 align-middle">
-                                                <div class="flex min-w-0 items-center gap-2">
-                                                    <span class="h-2.5 w-2.5 shrink-0 rounded-full {{ $approvalDotClass($leaf->chief_status ?: 'pending') }}" title="{{ ucfirst($leaf->chief_status ?: 'pending') }}"></span>
-                                                    <span class="min-w-0 break-words text-xs font-semibold leading-5 text-gray-700 whitespace-normal" title="{{ $leaf->chief ? trim($leaf->chief->firstname . ' ' . $leaf->chief->lastname) : 'Division Chief' }}">
-                                                        {{ $leaf->chief ? trim($leaf->chief->firstname . ' ' . $leaf->chief->lastname) : 'Division Chief' }}
-                                                    </span>
+                                            <td class="px-4 py-3 text-center align-middle">
+                                                <div class="flex min-w-0 items-center justify-center">
+                                                    <span class="h-3 w-3 shrink-0 rounded-full {{ $approvalDotClass($leaf->chief_status ?: 'pending') }}" title="{{ __('Recommending Approval') }}: {{ ucfirst($leaf->chief_status ?: 'pending') }}"></span>
                                                 </div>
                                             </td>
-                                            <td class="px-4 py-3 align-middle">
-                                                <div class="flex min-w-0 items-center gap-2">
-                                                    <span class="h-2.5 w-2.5 shrink-0 rounded-full {{ $approvalDotClass($leaf->rd_status ?: 'pending') }}" title="{{ ucfirst($leaf->rd_status ?: 'pending') }}"></span>
-                                                    <span class="min-w-0 break-words text-xs font-semibold leading-5 text-gray-700 whitespace-normal" title="{{ $leaf->regionalDirector ? trim($leaf->regionalDirector->firstname . ' ' . $leaf->regionalDirector->lastname) : 'Regional Director' }}">
-                                                        {{ $leaf->regionalDirector ? trim($leaf->regionalDirector->firstname . ' ' . $leaf->regionalDirector->lastname) : 'Regional Director' }}
-                                                    </span>
+                                            <td class="px-4 py-3 text-center align-middle">
+                                                <div class="flex min-w-0 items-center justify-center">
+                                                    <span class="h-3 w-3 shrink-0 rounded-full {{ $approvalDotClass($leaf->rd_status ?: 'pending') }}" title="{{ __('Approval') }}: {{ ucfirst($leaf->rd_status ?: 'pending') }}"></span>
                                                 </div>
                                             </td>
                                             <td class="px-2 py-3 text-center align-middle">

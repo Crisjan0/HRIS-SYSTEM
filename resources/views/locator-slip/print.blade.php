@@ -527,8 +527,7 @@
                 background: #ffffff;
             }
 
-            .sheet,
-            .preview-sheet {
+            .sheet {
                 width: 194mm;
                 height: 281mm;
                 min-height: 0;
@@ -537,8 +536,7 @@
                 background: #ffffff;
             }
 
-            .copies-layout,
-            .preview-layout {
+            .copies-layout {
                 display: table;
                 width: 100%;
                 height: 100%;
@@ -548,18 +546,15 @@
                 table-layout: fixed;
             }
 
-            .copies-layout > tbody,
-            .preview-layout > tbody {
+            .copies-layout > tbody {
                 display: table-row-group;
             }
 
-            .copies-layout > tbody > tr,
-            .preview-layout > tbody > tr {
+            .copies-layout > tbody > tr {
                 display: table-row;
             }
 
-            .copies-layout > tbody > tr > td,
-            .preview-layout > tbody > tr > td {
+            .copies-layout > tbody > tr > td {
                 display: table-cell;
                 width: 50%;
                 height: 50%;
@@ -567,7 +562,49 @@
                 vertical-align: top;
             }
 
-            .copy-table,
+            .copy-table {
+                width: 100%;
+                height: 125mm;
+                margin: 0;
+                box-shadow: none;
+            }
+
+            .pass-slip-table {
+                height: 121mm;
+            }
+
+            .copy-label,
+            .pass-copy-label {
+                display: block;
+            }
+
+            .preview-sheet {
+                width: 100%;
+                height: auto;
+                min-height: 0;
+                margin: 0;
+                padding: 8mm;
+                background: #ffffff;
+            }
+
+            .preview-layout {
+                display: table;
+                width: min(100%, 89.5mm);
+                height: auto;
+                margin: 0 auto;
+                border-spacing: 0;
+                table-layout: fixed;
+            }
+
+            .preview-layout > tbody,
+            .preview-layout > tbody > tr,
+            .preview-layout > tbody > tr > td {
+                display: block;
+                width: 100%;
+                height: auto;
+                padding: 0;
+            }
+
             .preview-layout .copy-table {
                 width: 100%;
                 height: 125mm;
@@ -575,14 +612,13 @@
                 box-shadow: none;
             }
 
-            .pass-slip-table,
             .preview-layout .pass-slip-table {
                 height: 121mm;
             }
 
-            .copy-label,
-            .pass-copy-label {
-                display: block;
+            .preview-layout .copy-label,
+            .preview-layout .pass-copy-label {
+                display: none;
             }
         }
     </style>

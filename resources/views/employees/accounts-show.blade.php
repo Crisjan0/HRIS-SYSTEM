@@ -86,10 +86,11 @@
                                 <select name="division" id="division" 
                                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200 text-sm bg-white">
                                     <option value="">-- Select Division --</option>
-                                    <option value="Finance and Administrative Division" {{ $user->employee?->division == 'Finance and Administrative Division' ? 'selected' : '' }}>Finance and Administrative Division</option>
-                                    <option value="Licensing and Regulation Division" {{ $user->employee?->division == 'Licensing and Regulation Division' ? 'selected' : '' }}>Licensing and Regulation Division</option>
-                                    <option value="Operations Division" {{ $user->employee?->division == 'Operations Division' ? 'selected' : '' }}>Operations Division</option>
-                                    <option value="Legal Division" {{ $user->employee?->division == 'Legal Division' ? 'selected' : '' }}>Legal Division</option>
+                                    @foreach($divisionOptions as $divisionOption)
+                                        <option value="{{ $divisionOption }}" {{ old('division', $user->employee?->division) === $divisionOption ? 'selected' : '' }}>
+                                            {{ $divisionOption }}
+                                        </option>
+                                    @endforeach
                                 </select>
                             </div>
 

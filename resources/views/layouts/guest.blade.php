@@ -7,6 +7,9 @@
 
         <title>{{ config('app.name', 'DMW HRIS') }}</title>
 
+        <!-- Favicon -->
+        <link rel="icon" href="data:,">
+
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=manrope:300,400,500,600,700,800&display=swap" rel="stylesheet" />

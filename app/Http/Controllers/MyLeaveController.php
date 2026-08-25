@@ -335,7 +335,7 @@ class MyLeaveController extends Controller
             return 'past_or_today';
         }
 
-        if (in_array($type->name, ['Maternity Leave', 'Paternity Leave', 'VAWC Leave', 'Special Leave Benefits for Women', 'Adoption Leave'], true)) {
+        if (in_array($type->name, ['Special Privilege Leave', 'VAWC Leave', 'Special Leave Benefits for Women'], true)) {
             return 'any_weekday';
         }
 

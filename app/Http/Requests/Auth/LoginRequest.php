@@ -85,6 +85,14 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        if ($user instanceof User && ! $user->privacy_consent && ! $this->boolean('privacy_consent')) {
+            Auth::logout();
+
+            throw ValidationException::withMessages([
+                'email' => 'Please read and agree to the Data Privacy Act notice before signing in.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 

@@ -18,6 +18,41 @@
         $displayEmployeeNo = $employee?->employee_no ?? ($employee?->id ? 'EMP-' . str_pad((string) $employee->id, 4, '0', STR_PAD_LEFT) : 'N/A');
         $statusText = fn ($record) => (string) ($record->status ?: 'Present');
         $formatTime = fn ($time) => $time ? \Carbon\Carbon::parse($time)->format('h:i A') : '';
+        $printEmployeeName = trim(($employee?->lastname ?? '') . ', ' . ($employee?->firstname ?? '') . ' ' . ($employee?->middle_initial ?? ''));
+        $printEmployeeName = trim($printEmployeeName, ', ') ?: $user->name;
+        $regionalDirector = \App\Models\Employee::query()
+            ->where('account_role', 'regionaldirector')
+            ->orderBy('lastname')
+            ->first();
+        $regionalDirectorName = $regionalDirector
+            ? trim(($regionalDirector->firstname ?? '') . ' ' . ($regionalDirector->middlename ? mb_substr($regionalDirector->middlename, 0, 1) . '. ' : '') . ($regionalDirector->lastname ?? ''))
+            : 'MARIA CAROLINA B. AGDAMAG';
+        $printMonthPeriod = $selectedDate->format('F 1') . ' - ' . $selectedDate->copy()->endOfMonth()->format('F j, Y');
+        $officialEnd = \Carbon\Carbon::parse('17:00:00');
+        $printDays = collect(range(1, 31))->map(function ($dayNumber) use ($selectedDate, $recordsByDate, $officialEnd) {
+            $day = $dayNumber <= $selectedDate->daysInMonth ? $selectedDate->copy()->day($dayNumber) : null;
+            $record = $day ? $recordsByDate->get($day->format('Y-m-d'), collect())->first() : null;
+            $undertimeMinutes = 0;
+
+            if ($day && $record?->time_out && ! $day->isWeekend()) {
+                $timeOut = \Carbon\Carbon::parse($record->time_out);
+
+                if ($timeOut->format('H:i:s') < $officialEnd->format('H:i:s')) {
+                    $undertimeMinutes = $officialEnd->diffInMinutes($timeOut);
+                }
+            }
+
+            return [
+                'day_number' => $dayNumber,
+                'record' => $record,
+                'undertime_hours' => $undertimeMinutes > 0 ? intdiv($undertimeMinutes, 60) : '',
+                'undertime_minutes' => $undertimeMinutes > 0 ? $undertimeMinutes % 60 : '',
+                'total_undertime_minutes' => $undertimeMinutes,
+            ];
+        });
+        $totalUndertimeMinutes = $printDays->sum('total_undertime_minutes');
+        $totalUndertimeHours = $totalUndertimeMinutes > 0 ? intdiv($totalUndertimeMinutes, 60) : '';
+        $totalUndertimeRemainder = $totalUndertimeMinutes > 0 ? $totalUndertimeMinutes % 60 : '';
         $recordHours = function ($record) {
             if (! $record->time_in || ! $record->time_out) {
                 return '';
@@ -32,8 +67,8 @@
     <style>
         @media print {
             @page {
-                size: A4 landscape;
-                margin: 10mm;
+                size: A4 portrait;
+                margin: 5mm;
             }
 
             body {
@@ -41,39 +76,195 @@
             }
 
             .no-print,
+            .dtr-screen-only,
             nav,
             aside,
             header {
                 display: none !important;
             }
 
+            .dtr-print-only {
+                display: block !important;
+            }
+
             .dtr-print-shell {
                 padding: 0 !important;
                 margin: 0 !important;
+                background: #fff !important;
+                box-shadow: none !important;
+                border: 0 !important;
+                border-radius: 0 !important;
+                outline: 0 !important;
+                ring-width: 0 !important;
+            }
+
+            .dtr-print-only,
+            .dtr-print-only > div,
+            .dtr-preview-page,
+            .dtr-preview-grid,
+            .dtr-form-copy {
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                outline: 0 !important;
             }
 
             .dtr-sheet {
                 width: 100% !important;
-                min-width: 0 !important;
                 border: 0 !important;
                 box-shadow: none !important;
                 padding: 0 !important;
+                margin: 0 !important;
             }
 
-            .dtr-sheet table {
-                font-size: 9px !important;
+            .dtr-preview-page {
+                width: 100% !important;
+                min-height: 0 !important;
+                padding: 0 !important;
+                border: 0 !important;
+                box-shadow: none !important;
             }
 
-            .dtr-sheet th,
-            .dtr-sheet td {
-                padding: 3px 4px !important;
+            .dtr-preview-grid {
+                gap: 3mm !important;
             }
 
             .dtr-late-summary,
             .dtr-signatures {
-                break-inside: avoid;
-                page-break-inside: avoid;
+                display: none !important;
             }
+        }
+
+        .dtr-print-only {
+            display: none;
+        }
+
+        .dtr-preview-page {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            background: #fff;
+            padding: 2mm 1mm 0;
+            box-sizing: border-box;
+        }
+
+        .dtr-preview-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4mm;
+            align-items: start;
+        }
+
+        .dtr-form-copy {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 7.6pt;
+            line-height: 1.05;
+            color: #000;
+            border: 0.25mm solid #000;
+            padding: 2.6mm 2.3mm 3mm;
+            box-sizing: border-box;
+        }
+
+        .dtr-form-title-small {
+            font-size: 7.4pt;
+            font-weight: 700;
+        }
+
+        .dtr-form-title {
+            margin-top: 1mm;
+            text-align: center;
+            font-size: 10.5pt;
+            font-weight: 700;
+            letter-spacing: 0.4px;
+            text-decoration: none;
+        }
+
+        .dtr-form-row {
+            display: table;
+            width: 100%;
+            margin-top: 1mm;
+            table-layout: fixed;
+        }
+
+        .dtr-form-cell {
+            display: table-cell;
+            vertical-align: bottom;
+            white-space: nowrap;
+        }
+
+        .dtr-form-line {
+            display: inline-block;
+            min-height: 3.1mm;
+            border-bottom: 0.2mm solid #000;
+            text-align: center;
+            font-weight: 700;
+            vertical-align: bottom;
+            overflow: hidden;
+            text-overflow: clip;
+            white-space: nowrap;
+            box-sizing: border-box;
+            padding: 0 0.3mm;
+        }
+
+        .dtr-log-table {
+            width: 100%;
+            margin-top: 1.3mm;
+            border-collapse: collapse;
+            table-layout: fixed;
+            font-size: 6.8pt;
+        }
+
+        .dtr-log-table th,
+        .dtr-log-table td {
+            border: 0.2mm solid #000;
+            height: 4.25mm;
+            padding: 0.2mm 0.25mm;
+            text-align: center;
+            vertical-align: middle;
+            font-weight: 400;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .dtr-log-table th {
+            font-size: 5.7pt;
+            font-weight: 700;
+        }
+
+        .dtr-log-table .dtr-day-cell {
+            width: 8%;
+        }
+
+        .dtr-log-table .dtr-time-cell {
+            width: 18.5%;
+        }
+
+        .dtr-log-table .dtr-under-cell {
+            width: 9%;
+        }
+
+        .dtr-certification {
+            margin-top: 2mm;
+            font-size: 7pt;
+            line-height: 1.12;
+            text-align: justify;
+        }
+
+        .dtr-sign-line {
+            margin: 5mm auto 0;
+            width: 67%;
+            border-bottom: 0.2mm solid #000;
+            min-height: 3.8mm;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .dtr-verify-line {
+            width: 100%;
+        }
+
+        .dtr-sign-caption {
+            text-align: center;
+            font-size: 6.8pt;
         }
     </style>
 
@@ -135,9 +326,9 @@
                 </form>
             </div>
 
-            <div class="dtr-print-shell rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+            <div class="dtr-screen-only rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
                 <div class="overflow-x-auto">
-                    <div class="dtr-sheet min-w-[1120px] rounded-lg border border-slate-200 bg-white p-5">
+                    <div class="min-w-[1120px] rounded-lg border border-slate-200 bg-white p-5">
                         <div class="text-center">
                             <h2 class="text-base font-bold text-slate-900">
                                 Department of Migrant Workers - Region XI
@@ -205,8 +396,8 @@
                                             <td class="border border-slate-300 px-2 py-1">{{ $day->day }}</td>
                                             <td class="border border-slate-300 px-2 py-1">{{ $day->format('D') }}</td>
                                             <td class="border border-slate-300 px-2 py-1">{{ $record ? $formatTime($record->time_in) : '' }}</td>
-                                            <td class="border border-slate-300 px-2 py-1"></td>
-                                            <td class="border border-slate-300 px-2 py-1"></td>
+                                            <td class="border border-slate-300 px-2 py-1">{{ $record ? $formatTime($record->am_out) : '' }}</td>
+                                            <td class="border border-slate-300 px-2 py-1">{{ $record ? $formatTime($record->pm_in) : '' }}</td>
                                             <td class="border border-slate-300 px-2 py-1">{{ $record ? $formatTime($record->time_out) : '' }}</td>
                                             <td class="border border-slate-300 px-2 py-1"></td>
                                             <td class="border border-slate-300 px-2 py-1"></td>
@@ -297,6 +488,111 @@
                                     <p class="font-semibold">HR Verification</p>
                                     <p class="mt-1 text-xs text-slate-500">Authorized HR Personnel</p>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dtr-print-only dtr-print-shell">
+                <div>
+                    <div class="dtr-sheet">
+                        <div class="dtr-preview-page">
+                            <div class="dtr-preview-grid">
+                                @foreach([1, 2] as $copy)
+                                    <section class="dtr-form-copy">
+                                        <div class="dtr-form-title-small">CIVIL SERVICE No. 48</div>
+                                        <div class="dtr-form-title">DAILY&nbsp;&nbsp;TIME&nbsp;&nbsp;RECORD</div>
+
+                                        <div class="dtr-form-row" style="margin-top:2.2mm;">
+                                            <span class="dtr-form-cell" style="width:32%;">FOR THE MONTH PERIOD:</span>
+                                            <span class="dtr-form-cell">
+                                                <span class="dtr-form-line" style="width:100%; font-size:6.8pt;">{{ $printMonthPeriod }}</span>
+                                            </span>
+                                        </div>
+
+                                        <div class="dtr-form-row">
+                                            <span class="dtr-form-cell" style="width:11%;">Name:</span>
+                                            <span class="dtr-form-cell" style="width:55%;">
+                                                <span class="dtr-form-line" style="width:100%; text-transform:uppercase; font-size:6.8pt;">{{ $printEmployeeName }}</span>
+                                            </span>
+                                            <span class="dtr-form-cell" style="width:13%; padding-left:0.8mm;">Emp No:</span>
+                                            <span class="dtr-form-cell" style="width:21%;">
+                                                <span class="dtr-form-line" style="width:100%; font-size:6.4pt;">{{ $displayEmployeeNo }}</span>
+                                            </span>
+                                        </div>
+
+                                        <div class="dtr-form-row">
+                                            <span class="dtr-form-cell" style="width:17%;">Position:</span>
+                                            <span class="dtr-form-cell" style="width:50%;">
+                                                <span class="dtr-form-line" style="width:100%; font-size:6.8pt;">{{ $employee?->position ?? 'N/A' }}</span>
+                                            </span>
+                                            <span class="dtr-form-cell" style="width:18%; padding-left:1mm;">Official Time:</span>
+                                            <span class="dtr-form-cell" style="width:15%;">
+                                                <span class="dtr-form-line" style="width:100%; font-size:6.8pt;">8-5</span>
+                                            </span>
+                                        </div>
+
+                                        <div class="dtr-form-row">
+                                            <span class="dtr-form-cell" style="width:12%;">Office:</span>
+                                            <span class="dtr-form-cell">
+                                                <span class="dtr-form-line" style="width:100%; font-size:6.8pt;">{{ $employee?->division ?? 'DMW RO XI' }}</span>
+                                            </span>
+                                        </div>
+
+                                        <table class="dtr-log-table">
+                                            <thead>
+                                                <tr>
+                                                    <th rowspan="2" class="dtr-day-cell">Day</th>
+                                                    <th colspan="2">AM</th>
+                                                    <th colspan="2">PM</th>
+                                                    <th colspan="2">UNDERTIME</th>
+                                                </tr>
+                                                <tr>
+                                                    <th class="dtr-time-cell">Arrival</th>
+                                                    <th class="dtr-time-cell">Departure</th>
+                                                    <th class="dtr-time-cell">Arrival</th>
+                                                    <th class="dtr-time-cell">Departure</th>
+                                                    <th class="dtr-under-cell">Hrs</th>
+                                                    <th class="dtr-under-cell">Min</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach($printDays as $dayRow)
+                                                    @php $record = $dayRow['record']; @endphp
+                                                    <tr>
+                                                        <td>{{ $dayRow['day_number'] }}</td>
+                                                        <td>{{ $record ? $formatTime($record->time_in) : '' }}</td>
+                                                        <td>{{ $record ? $formatTime($record->am_out) : '' }}</td>
+                                                        <td>{{ $record ? $formatTime($record->pm_in) : '' }}</td>
+                                                        <td>{{ $record ? $formatTime($record->time_out) : '' }}</td>
+                                                        <td>{{ $dayRow['undertime_hours'] }}</td>
+                                                        <td>{{ $dayRow['undertime_minutes'] }}</td>
+                                                    </tr>
+                                                @endforeach
+                                                <tr>
+                                                    <td colspan="5" style="text-align:left; padding-left:1.5mm; font-weight:700;">TOTAL</td>
+                                                    <td>{{ $totalUndertimeHours }}</td>
+                                                    <td>{{ $totalUndertimeRemainder }}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+
+                                        <p class="dtr-certification">
+                                            I CERTIFY on my honor that the above is true and correct report of the hours of work performed, record of which was made daily at the time of arrival and departure from office.
+                                        </p>
+
+                                        <div class="dtr-sign-line dtr-verify-line">
+                                            @if($employee?->effective_signature_url)
+                                                <img src="{{ $employee->effective_signature_url }}" alt="Employee e-signature" style="max-height:8mm; max-width:45mm; object-fit:contain;">
+                                            @endif
+                                        </div>
+                                        <div class="dtr-sign-caption">Verified as to the prescribed office hours.</div>
+
+                                        <div class="dtr-sign-line" style="margin-top:6mm;">{{ $regionalDirectorName }}</div>
+                                        <div class="dtr-sign-caption">In Charge</div>
+                                    </section>
+                                @endforeach
                             </div>
                         </div>
                     </div>

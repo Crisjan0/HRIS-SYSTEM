@@ -51,6 +51,7 @@ class RegisteredUserController extends Controller
             'otp' => Hash::make($otp),
             'otp_expires_at' => now()->addMinutes(10),
             'privacy_consent' => true,
+            'privacy_consented_at' => now(),
         ]);
 
         // Create the employee record linked to the user

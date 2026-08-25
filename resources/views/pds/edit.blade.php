@@ -21,6 +21,9 @@
     @endphp
 
     <div class="pds-line-page py-8 bg-white min-h-screen" x-data="{ 
+        init() {
+            this.normalizeMobileNumber();
+        },
         tab: @js($initialTab),
         children: {{ $employee->pdsChildren->count() > 0 ? $employee->pdsChildren->toJson() : '[{fullname: \'\', date_of_birth: \'\'}]' }},
         education: {{ $employee->pdsEducation->count() > 0 ? $employee->pdsEducation->toJson() : '[{level: \'\', school_name: \'\', course: \'\', period_from: \'\', period_to: \'\', highest_level: \'\', year_graduated: \'\', honors: \'\'}]' }},
@@ -30,12 +33,103 @@
         voluntary: {{ $employee->pdsVoluntaryWorks->count() > 0 ? $employee->pdsVoluntaryWorks->toJson() : '[{organization_name: \'\', date_from: \'\', date_to: \'\', number_of_hours: \'\', position: \'\'}]' }},
         others: {{ $employee->pdsOthers->count() > 0 ? $employee->pdsOthers->toJson() : '[{type: \'Skill\', description: \'\'}]' }},
         references: {{ $employee->pdsReferences->count() > 0 ? $employee->pdsReferences->toJson() : '[{name: \'\', address: \'\', telephone_no: \'\'}, {name: \'\', address: \'\', telephone_no: \'\'}, {name: \'\', address: \'\', telephone_no: \'\'}]' }},
+        addresses: {
+            res_region: @js(old('personal.res_region', $employee->pdsPersonal?->res_region)),
+            res_province: @js(old('personal.res_province', $employee->pdsPersonal?->res_province)),
+            res_city: @js(old('personal.res_city', $employee->pdsPersonal?->res_city)),
+            res_barangay: @js(old('personal.res_barangay', $employee->pdsPersonal?->res_barangay)),
+            res_zip_code: @js(old('personal.res_zip_code', $employee->pdsPersonal?->res_zip_code)),
+            perm_region: @js(old('personal.perm_region', $employee->pdsPersonal?->perm_region)),
+            perm_province: @js(old('personal.perm_province', $employee->pdsPersonal?->perm_province)),
+            perm_city: @js(old('personal.perm_city', $employee->pdsPersonal?->perm_city)),
+            perm_barangay: @js(old('personal.perm_barangay', $employee->pdsPersonal?->perm_barangay)),
+            perm_zip_code: @js(old('personal.perm_zip_code', $employee->pdsPersonal?->perm_zip_code))
+        },
+        mobile_no: @js(old('personal.mobile_no', $employee->pdsPersonal?->mobile_no)),
+        locationOptions: {
+            regions: @js($locationOptionSets['ph_regions']),
+            provinces: @js($locationOptionSets['ph_provinces']),
+            cities: @js($locationOptionSets['ph_cities']),
+            barangays: @js($locationOptionSets['ph_barangays'])
+        },
+        cityZipCodes: @js($cityZipCodes),
+        optionsFor(options, parentValue) {
+            if (!parentValue) return options;
+
+            const linkedOptions = options.filter((option) => String(option.parent_value || '') === String(parentValue));
+
+            return linkedOptions.length ? linkedOptions : options.filter((option) => !option.parent_value);
+        },
+        provinceOptions(prefix) {
+            return this.optionsFor(this.locationOptions.provinces, this.addresses[`${prefix}_region`]);
+        },
+        cityOptions(prefix) {
+            return this.optionsFor(this.locationOptions.cities, this.addresses[`${prefix}_province`]);
+        },
+        barangayOptions(prefix) {
+            return this.optionsFor(this.locationOptions.barangays, this.addresses[`${prefix}_city`]);
+        },
+        resetAddress(prefix, level) {
+            if (level === 'region') {
+                this.addresses[`${prefix}_province`] = '';
+                this.addresses[`${prefix}_city`] = '';
+                this.addresses[`${prefix}_barangay`] = '';
+                this.addresses[`${prefix}_zip_code`] = '';
+            }
+
+            if (level === 'province') {
+                this.addresses[`${prefix}_city`] = '';
+                this.addresses[`${prefix}_barangay`] = '';
+                this.addresses[`${prefix}_zip_code`] = '';
+            }
+
+            if (level === 'city') {
+                this.addresses[`${prefix}_barangay`] = '';
+                this.fillZipCode(prefix);
+            }
+        },
+        fillZipCode(prefix) {
+            const province = this.addresses[`${prefix}_province`] || '';
+            const city = this.addresses[`${prefix}_city`] || '';
+            const selectedKey = this.normalizeLocationKey(`${province}|${city}`);
+            const zipMatch = Object.entries(this.cityZipCodes)
+                .find(([key]) => this.normalizeLocationKey(key) === selectedKey);
+            const zip = zipMatch ? zipMatch[1] : '';
+
+            this.addresses[`${prefix}_zip_code`] = zip;
+        },
+        normalizeLocationKey(value) {
+            return String(value || '').toLowerCase().replace(/\s+/g, ' ').trim();
+        },
+        copyResidentialAddress() {
+            ['house_no', 'street', 'subdivision'].forEach((key) => {
+                const source = document.querySelector(`[name=&quot;personal[res_${key}]&quot;]`);
+                const target = document.querySelector(`[name=&quot;personal[perm_${key}]&quot;]`);
+
+                if (source && target) target.value = source.value;
+            });
+
+            ['region', 'province', 'city', 'barangay', 'zip_code'].forEach((key) => {
+                this.addresses[`perm_${key}`] = this.addresses[`res_${key}`] || '';
+            });
+        },
+        formatMobileNumber(value) {
+            const digits = String(value || '').replace(/\D/g, '').slice(0, 11);
+            const first = digits.slice(0, 4);
+            const second = digits.slice(4, 7);
+            const third = digits.slice(7, 11);
+
+            return [first, second, third].filter(Boolean).join('-');
+        },
+        normalizeMobileNumber() {
+            this.mobile_no = this.formatMobileNumber(this.mobile_no);
+        },
         signaturePreview: @js($employee->effective_signature_url),
         photoPreview: @js($employee->profile_picture_url)
     }">
         <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
             <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between print:hidden">
-                <a href="{{ route('pds.index') }}" class="inline-flex w-fit items-center rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-bold text-gray-600 shadow-sm transition hover:bg-gray-50 hover:text-indigo-600">
+                <a href="{{ route('dashboard') }}" class="inline-flex w-fit items-center rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-bold text-gray-600 shadow-sm transition hover:bg-gray-50 hover:text-indigo-600">
                     <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12"></path>
                     </svg>
@@ -285,31 +379,31 @@
                                             <x-text-input placeholder="House/Block/Lot No." class="text-xs font-bold" name="personal[res_house_no]" :value="old('personal.res_house_no', $employee->pdsPersonal?->res_house_no)" />
                                             <x-text-input placeholder="Street" class="text-xs font-bold" name="personal[res_street]" :value="old('personal.res_street', $employee->pdsPersonal?->res_street)" />
                                             <x-text-input placeholder="Subdivision/Village" class="text-xs font-bold" name="personal[res_subdivision]" :value="old('personal.res_subdivision', $employee->pdsPersonal?->res_subdivision)" />
-                                            <select name="personal[res_region]" class="rounded-xl border-gray-100 text-xs font-bold">
+                                            <select name="personal[res_region]" x-model="addresses.res_region" @change="resetAddress('res', 'region')" class="rounded-xl border-gray-100 text-xs font-bold">
                                                 <option value="">Region</option>
-                                                @foreach($locationOptionSets['ph_regions'] as $option)
-                                                    <option value="{{ $option->value }}" {{ old('personal.res_region', $employee->pdsPersonal?->res_region) == $option->value ? 'selected' : '' }}>{{ $option->label }}</option>
-                                                @endforeach
+                                                <template x-for="option in locationOptions.regions" :key="`res-region-${option.value}`">
+                                                    <option :value="option.value" x-text="option.label"></option>
+                                                </template>
                                             </select>
-                                            <select name="personal[res_province]" class="rounded-xl border-gray-100 text-xs font-bold">
+                                            <select name="personal[res_province]" x-model="addresses.res_province" @change="resetAddress('res', 'province')" class="rounded-xl border-gray-100 text-xs font-bold">
                                                 <option value="">Province</option>
-                                                @foreach($locationOptionSets['ph_provinces'] as $option)
-                                                    <option value="{{ $option->value }}" {{ old('personal.res_province', $employee->pdsPersonal?->res_province) == $option->value ? 'selected' : '' }}>{{ $option->label }}</option>
-                                                @endforeach
+                                                <template x-for="option in provinceOptions('res')" :key="`res-province-${option.value}`">
+                                                    <option :value="option.value" x-text="option.label"></option>
+                                                </template>
                                             </select>
-                                            <select name="personal[res_city]" class="rounded-xl border-gray-100 text-xs font-bold">
+                                            <select name="personal[res_city]" x-model="addresses.res_city" @change="resetAddress('res', 'city')" class="rounded-xl border-gray-100 text-xs font-bold">
                                                 <option value="">City / Municipality</option>
-                                                @foreach($locationOptionSets['ph_cities'] as $option)
-                                                    <option value="{{ $option->value }}" {{ old('personal.res_city', $employee->pdsPersonal?->res_city) == $option->value ? 'selected' : '' }}>{{ $option->label }}</option>
-                                                @endforeach
+                                                <template x-for="option in cityOptions('res')" :key="`res-city-${option.value}`">
+                                                    <option :value="option.value" x-text="option.label"></option>
+                                                </template>
                                             </select>
-                                            <select name="personal[res_barangay]" class="rounded-xl border-gray-100 text-xs font-bold">
+                                            <select name="personal[res_barangay]" x-model="addresses.res_barangay" class="rounded-xl border-gray-100 text-xs font-bold">
                                                 <option value="">Barangay</option>
-                                                @foreach($locationOptionSets['ph_barangays'] as $option)
-                                                    <option value="{{ $option->value }}" {{ old('personal.res_barangay', $employee->pdsPersonal?->res_barangay) == $option->value ? 'selected' : '' }}>{{ $option->label }}</option>
-                                                @endforeach
+                                                <template x-for="option in barangayOptions('res')" :key="`res-barangay-${option.value}`">
+                                                    <option :value="option.value" x-text="option.label"></option>
+                                                </template>
                                             </select>
-                                            <x-text-input placeholder="Zip Code" class="text-xs font-bold" name="personal[res_zip_code]" :value="old('personal.res_zip_code', $employee->pdsPersonal?->res_zip_code)" />
+                                            <input type="text" placeholder="Zip Code" class="address-combobox text-xs font-bold" name="personal[res_zip_code]" x-model="addresses.res_zip_code" />
                                         </div>
                                     </div>
 
@@ -318,7 +412,7 @@
                                         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                             <x-input-label value="Permanent Address" class="text-[10px] font-black uppercase text-gray-500 tracking-wider" />
                                             <label class="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                                                <input type="checkbox" id="sameAsResidentialAddress" class="rounded border-slate-300 text-indigo-700 focus:ring-indigo-500">
+                                                <input type="checkbox" id="sameAsResidentialAddress" @change="if ($event.target.checked) copyResidentialAddress()" class="rounded border-slate-300 text-indigo-700 focus:ring-indigo-500">
                                                 Same as residential address
                                             </label>
                                         </div>
@@ -326,38 +420,50 @@
                                             <x-text-input placeholder="House/Block/Lot No." class="text-xs font-bold" name="personal[perm_house_no]" :value="old('personal.perm_house_no', $employee->pdsPersonal?->perm_house_no)" />
                                             <x-text-input placeholder="Street" class="text-xs font-bold" name="personal[perm_street]" :value="old('personal.perm_street', $employee->pdsPersonal?->perm_street)" />
                                             <x-text-input placeholder="Subdivision/Village" class="text-xs font-bold" name="personal[perm_subdivision]" :value="old('personal.perm_subdivision', $employee->pdsPersonal?->perm_subdivision)" />
-                                            <select name="personal[perm_region]" class="rounded-xl border-gray-100 text-xs font-bold">
+                                            <select name="personal[perm_region]" x-model="addresses.perm_region" @change="resetAddress('perm', 'region')" class="rounded-xl border-gray-100 text-xs font-bold">
                                                 <option value="">Region</option>
-                                                @foreach($locationOptionSets['ph_regions'] as $option)
-                                                    <option value="{{ $option->value }}" {{ old('personal.perm_region', $employee->pdsPersonal?->perm_region) == $option->value ? 'selected' : '' }}>{{ $option->label }}</option>
-                                                @endforeach
+                                                <template x-for="option in locationOptions.regions" :key="`perm-region-${option.value}`">
+                                                    <option :value="option.value" x-text="option.label"></option>
+                                                </template>
                                             </select>
-                                            <select name="personal[perm_province]" class="rounded-xl border-gray-100 text-xs font-bold">
+                                            <select name="personal[perm_province]" x-model="addresses.perm_province" @change="resetAddress('perm', 'province')" class="rounded-xl border-gray-100 text-xs font-bold">
                                                 <option value="">Province</option>
-                                                @foreach($locationOptionSets['ph_provinces'] as $option)
-                                                    <option value="{{ $option->value }}" {{ old('personal.perm_province', $employee->pdsPersonal?->perm_province) == $option->value ? 'selected' : '' }}>{{ $option->label }}</option>
-                                                @endforeach
+                                                <template x-for="option in provinceOptions('perm')" :key="`perm-province-${option.value}`">
+                                                    <option :value="option.value" x-text="option.label"></option>
+                                                </template>
                                             </select>
-                                            <select name="personal[perm_city]" class="rounded-xl border-gray-100 text-xs font-bold">
+                                            <select name="personal[perm_city]" x-model="addresses.perm_city" @change="resetAddress('perm', 'city')" class="rounded-xl border-gray-100 text-xs font-bold">
                                                 <option value="">City / Municipality</option>
-                                                @foreach($locationOptionSets['ph_cities'] as $option)
-                                                    <option value="{{ $option->value }}" {{ old('personal.perm_city', $employee->pdsPersonal?->perm_city) == $option->value ? 'selected' : '' }}>{{ $option->label }}</option>
-                                                @endforeach
+                                                <template x-for="option in cityOptions('perm')" :key="`perm-city-${option.value}`">
+                                                    <option :value="option.value" x-text="option.label"></option>
+                                                </template>
                                             </select>
-                                            <select name="personal[perm_barangay]" class="rounded-xl border-gray-100 text-xs font-bold">
+                                            <select name="personal[perm_barangay]" x-model="addresses.perm_barangay" class="rounded-xl border-gray-100 text-xs font-bold">
                                                 <option value="">Barangay</option>
-                                                @foreach($locationOptionSets['ph_barangays'] as $option)
-                                                    <option value="{{ $option->value }}" {{ old('personal.perm_barangay', $employee->pdsPersonal?->perm_barangay) == $option->value ? 'selected' : '' }}>{{ $option->label }}</option>
-                                                @endforeach
+                                                <template x-for="option in barangayOptions('perm')" :key="`perm-barangay-${option.value}`">
+                                                    <option :value="option.value" x-text="option.label"></option>
+                                                </template>
                                             </select>
-                                            <x-text-input placeholder="Zip Code" class="text-xs font-bold" name="personal[perm_zip_code]" :value="old('personal.perm_zip_code', $employee->pdsPersonal?->perm_zip_code)" />
+                                            <input type="text" placeholder="Zip Code" class="address-combobox text-xs font-bold" name="personal[perm_zip_code]" x-model="addresses.perm_zip_code" />
                                         </div>
                                     </div>
 
                                     <!-- 19-21 Contact -->
                                     <div class="pds-field-table pds-field-table-3 border-t border-slate-100 pt-4">
                                         <div class="space-y-1"><x-input-label value="Telephone No." class="text-[9px] font-black text-gray-400" /><x-text-input class="w-full text-xs font-bold border-gray-100" name="personal[telephone_no]" :value="old('personal.telephone_no', $employee->pdsPersonal?->telephone_no)" /></div>
-                                        <div class="space-y-1"><x-input-label value="Mobile No." class="text-[9px] font-black text-gray-400" /><x-text-input class="w-full text-xs font-bold border-gray-100" name="personal[mobile_no]" :value="old('personal.mobile_no', $employee->pdsPersonal?->mobile_no)" /></div>
+                                        <div class="space-y-1">
+                                            <x-input-label value="Mobile No." class="text-[9px] font-black text-gray-400" />
+                                            <input
+                                                type="text"
+                                                class="w-full text-xs font-bold border-gray-100"
+                                                name="personal[mobile_no]"
+                                                x-model="mobile_no"
+                                                @input="normalizeMobileNumber()"
+                                                inputmode="numeric"
+                                                maxlength="13"
+                                                placeholder="09XX-XXX-XXXX"
+                                            />
+                                        </div>
                                         <div class="space-y-1"><x-input-label value="E-mail Address" class="text-[9px] font-black text-gray-400" /><x-text-input class="w-full text-xs font-bold border-gray-100" name="personal[email_address]" :value="old('personal.email_address', $employee->pdsPersonal?->email_address)" /></div>
                                     </div>
                                 </div>
@@ -890,7 +996,7 @@
                     </div>
 
                     <div class="mt-12 flex justify-end gap-3 border-t-2 border-gray-50 pt-8 print:hidden">
-                        <a href="{{ route('pds.index') }}" class="inline-flex items-center px-6 py-2 bg-white border-2 border-gray-200 rounded-xl font-black text-[10px] uppercase tracking-widest text-gray-500 hover:bg-gray-50 transition duration-150">
+                        <a href="{{ route('dashboard') }}" class="inline-flex items-center px-6 py-2 bg-white border-2 border-gray-200 rounded-xl font-black text-[10px] uppercase tracking-widest text-gray-500 hover:bg-gray-50 transition duration-150">
                             Cancel
                         </a>
                         <button type="submit" class="inline-flex items-center px-8 py-2.5 bg-indigo-700 border-2 border-indigo-800 rounded-xl font-black text-[10px] uppercase tracking-widest text-white hover:bg-indigo-800 shadow-lg shadow-indigo-100 transition duration-150">
@@ -901,44 +1007,6 @@
             </div>
         </div>
     </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const sameAddress = document.getElementById('sameAsResidentialAddress');
-            if (!sameAddress) return;
-
-            const pairs = [
-                ['res_house_no', 'perm_house_no'],
-                ['res_street', 'perm_street'],
-                ['res_subdivision', 'perm_subdivision'],
-                ['res_barangay', 'perm_barangay'],
-                ['res_city', 'perm_city'],
-                ['res_province', 'perm_province'],
-                ['res_zip_code', 'perm_zip_code'],
-            ];
-
-            const field = (key) => document.querySelector(`[name="personal[${key}]"]`);
-            const copyResidentialAddress = () => {
-                pairs.forEach(([resKey, permKey]) => {
-                    const source = field(resKey);
-                    const target = field(permKey);
-                    if (source && target) target.value = source.value;
-                });
-            };
-
-            sameAddress.addEventListener('change', () => {
-                if (sameAddress.checked) copyResidentialAddress();
-            });
-
-            pairs.forEach(([resKey]) => {
-                const source = field(resKey);
-                if (!source) return;
-                source.addEventListener('input', () => {
-                    if (sameAddress.checked) copyResidentialAddress();
-                });
-            });
-        });
-    </script>
 
     <style>
         .animate-fade-in { animation: fadeIn 0.4s ease-out; }
@@ -989,7 +1057,10 @@
     padding: 0.45rem 0.65rem !important;
     font-size: 1rem !important;
     font-weight: 500 !important;
-    color: #475569 !important;
+            color: #475569 !important;
+        }
+        .pds-line-page .pds-form-body .address-combobox {
+            width: 100% !important;
         }
         .pds-line-page .pds-form-body select {
             appearance: auto !important;

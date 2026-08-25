@@ -59,32 +59,6 @@
 
             <x-approval-tracker :payload="$trackedCtoPayload" event="cto-selected" empty="No CTO request to track yet." />
 
-            @if($ctoRequest->hrstaff_remarks || $ctoRequest->chief_remarks || $ctoRequest->rd_remarks)
-                <div class="mb-6 bg-white overflow-hidden shadow-sm rounded-3xl border border-gray-100 p-6 md:p-8">
-                    <div class="text-xs font-black text-indigo-500 uppercase tracking-widest mb-6 inline-block border-b-2 border-indigo-100 pb-1">Approver Remarks</div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        @if($ctoRequest->hrstaff_remarks)
-                            <div class="p-5 rounded-2xl bg-gray-50 border border-gray-100">
-                                <span class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">HR Staff</span>
-                                <p class="text-sm font-semibold text-gray-700 leading-relaxed italic">"{{ $ctoRequest->hrstaff_remarks }}"</p>
-                            </div>
-                        @endif
-                        @if($ctoRequest->chief_remarks)
-                            <div class="p-5 rounded-2xl bg-gray-50 border border-gray-100">
-                                <span class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Chief</span>
-                                <p class="text-sm font-semibold text-gray-700 leading-relaxed italic">"{{ $ctoRequest->chief_remarks }}"</p>
-                            </div>
-                        @endif
-                        @if($ctoRequest->rd_remarks)
-                            <div class="p-5 rounded-2xl bg-gray-50 border border-gray-100">
-                                <span class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Regional Director</span>
-                                <p class="text-sm font-semibold text-gray-700 leading-relaxed italic">"{{ $ctoRequest->rd_remarks }}"</p>
-                            </div>
-                        @endif
-                    </div>
-                </div>
-            @endif
-
             {{-- Review Action Above the Form --}}
             <section class="mt-8 rounded-3xl border border-gray-100 bg-white p-5 shadow-sm sm:p-7">
                 @if($isMyTurn)
@@ -264,6 +238,32 @@
                     </div>
                 </div>
             </section>
+
+            @if($ctoRequest->hrstaff_remarks || $ctoRequest->chief_remarks || $ctoRequest->rd_remarks)
+                <section class="mt-6 overflow-hidden rounded-3xl border border-gray-100 bg-white p-6 shadow-sm md:p-8">
+                    <div class="text-xs font-black text-indigo-500 uppercase tracking-widest mb-6 inline-block border-b-2 border-indigo-100 pb-1">Approver Remarks</div>
+                    <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+                        @if($ctoRequest->hrstaff_remarks)
+                            <div class="rounded-2xl border border-gray-100 bg-gray-50 p-5">
+                                <span class="block text-[10px] font-black uppercase tracking-widest text-gray-400">HR Staff</span>
+                                <p class="mt-2 whitespace-pre-line break-words text-sm font-semibold italic leading-relaxed text-gray-700">"{{ $ctoRequest->hrstaff_remarks }}"</p>
+                            </div>
+                        @endif
+                        @if($ctoRequest->chief_remarks)
+                            <div class="rounded-2xl border border-gray-100 bg-gray-50 p-5">
+                                <span class="block text-[10px] font-black uppercase tracking-widest text-gray-400">Chief</span>
+                                <p class="mt-2 whitespace-pre-line break-words text-sm font-semibold italic leading-relaxed text-gray-700">"{{ $ctoRequest->chief_remarks }}"</p>
+                            </div>
+                        @endif
+                        @if($ctoRequest->rd_remarks)
+                            <div class="rounded-2xl border border-gray-100 bg-gray-50 p-5">
+                                <span class="block text-[10px] font-black uppercase tracking-widest text-gray-400">Regional Director</span>
+                                <p class="mt-2 whitespace-pre-line break-words text-sm font-semibold italic leading-relaxed text-gray-700">"{{ $ctoRequest->rd_remarks }}"</p>
+                            </div>
+                        @endif
+                    </div>
+                </section>
+            @endif
         </div>
     </div>
 

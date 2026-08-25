@@ -107,6 +107,11 @@
                                     'rejected' => 'bg-red-500',
                                     default => 'bg-gray-300',
                                 };
+                                $divisionChief = $slip->employee?->division ? \App\Models\Employee::where('division', $slip->employee->division)->whereIn('account_role', ['chief', 'CHIEF'])->first() : null;
+                                $chiefName = $divisionChief ? trim($divisionChief->firstname . ' ' . $divisionChief->lastname) : null;
+                                $approverName = ($slip->approved_by_chief_name && strtolower($slip->approved_by_chief_name) !== 'chief user')
+                                     ? $slip->approved_by_chief_name
+                                     : ($chiefName ?: ($slip->recommendingApproval?->name ?: ($slip->approvedBy?->name ?: ($displayStatus === 'pending' ? 'Pending Approval' : 'N/A'))));
                                 $previewPayload = [
                                     'title' => $displayType ?: 'Locator Slip',
                                     'date' => \Carbon\Carbon::parse($slip->date_covered)->format('M d, Y'),
@@ -135,8 +140,8 @@
                                 </td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700">
                                     <div class="flex items-center gap-2">
-                                        <span class="h-2.5 w-2.5 rounded-full {{ $approvalDotClass }}"></span>
-                                        <span class="text-xs font-medium text-gray-500">Chief</span>
+                                        <span class="h-2.5 w-2.5 rounded-full {{ $approvalDotClass }}" title="Chief"></span>
+                                        <span class="text-xs font-semibold text-gray-700">{{ $approverName }}</span>
                                     </div>
                                 </td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700">
@@ -256,9 +261,8 @@
                 </div>
 
                 {{-- Preview Footer --}}
-                <div class="flex shrink-0 flex-col gap-2 border-t border-slate-200 bg-white px-4 py-2.5 sm:flex-row sm:items-center sm:justify-between">
-                    {{-- Left: Remarks --}}
-                    <div class="min-w-0 flex-1">
+                <div class="flex shrink-0 flex-col gap-2 border-t border-slate-200 bg-white px-4 py-2.5">
+                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                         <button
                             type="button"
                             @click="toggleRemarks()"
@@ -268,16 +272,7 @@
                             <span x-text="showRemarks ? 'Hide Remarks' : 'Remarks'"></span>
                         </button>
 
-                        <template x-if="showRemarks">
-                            <div
-                                class="mt-2 max-h-20 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-700"
-                                x-text="previewData.remarks"
-                            ></div>
-                        </template>
-                    </div>
-
-                    {{-- Right: Cancel and Print --}}
-                    <div class="flex shrink-0 gap-2 sm:justify-end">
+                        <div class="flex shrink-0 gap-2 sm:justify-end">
                         <button
                             type="button"
                             @click="closePreviewModal()"
@@ -294,7 +289,15 @@
                         >
                             Print
                         </a>
+                        </div>
                     </div>
+
+                    <template x-if="showRemarks">
+                        <div
+                            class="max-h-24 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-700"
+                            x-text="previewData.remarks"
+                        ></div>
+                    </template>
                 </div>
             </div>
         </div>
@@ -333,7 +336,7 @@
                     style="
                         z-index: 10;
                         width: min(92vw, 620px);
-                        height: min(84dvh, 720px);
+                        height: auto;
                         max-height: calc(100dvh - 40px);
                     "
                     @click.stop
@@ -364,7 +367,7 @@
                         </button>
                     </div>
 
-                    <div class="min-h-0 flex-1 overflow-y-auto bg-white px-5 py-4">
+                    <div class="min-h-0 flex-1 overflow-hidden bg-white px-5 py-4">
                         <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                             <div class="min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
                                 <p class="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">
@@ -381,10 +384,10 @@
                             </div>
                         </div>
 
-                        <div class="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-center">
+                        <div class="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3 text-center">
                             <div
                                 class="qr-code-wrapper mx-auto flex items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-white p-3 shadow-sm"
-                                style="width: min(100%, 340px); aspect-ratio: 1 / 1;"
+                                style="width: min(100%, 300px, 44dvh); aspect-ratio: 1 / 1;"
                             >
                                 <div
                                     class="qr-code-content flex h-full w-full items-center justify-center overflow-hidden"
@@ -392,7 +395,7 @@
                                 ></div>
                             </div>
 
-                            <p class="mx-auto mt-3 max-w-md text-xs font-medium leading-5 text-slate-500">
+                            <p class="mx-auto mt-2 max-w-md text-xs font-medium leading-5 text-slate-500">
                                 {{ __('Scan once to record OUT time, then scan again to record IN time.') }}
                             </p>
                         </div>

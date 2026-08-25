@@ -26,6 +26,7 @@ class User extends Authenticatable
         'otp',
         'otp_expires_at',
         'privacy_consent',
+        'privacy_consented_at',
         'is_approved',
         'must_change_password',
         'account_status',
@@ -51,6 +52,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'otp_expires_at' => 'datetime',
+            'privacy_consented_at' => 'datetime',
             'password' => 'hashed',
             'privacy_consent' => 'boolean',
             'is_approved' => 'boolean',

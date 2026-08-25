@@ -7,6 +7,7 @@ use App\Http\Requests\Auth\LoginRequest;
 use App\Mail\OtpVerificationMail;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -56,6 +57,13 @@ class AuthenticatedSessionController extends Controller
             }
         }
 
+        if ($request->user() && ! $request->user()->privacy_consent) {
+            $request->user()->forceFill([
+                'privacy_consent' => true,
+                'privacy_consented_at' => now(),
+            ])->save();
+        }
+
         $request->session()->regenerate();
 
         if ($request->user()?->must_change_password) {
@@ -64,6 +72,21 @@ class AuthenticatedSessionController extends Controller
         }
 
         return redirect()->intended(route('dashboard', absolute: false));
+    }
+
+    public function privacyConsentStatus(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'email' => ['required', 'string', 'lowercase', 'email'],
+        ]);
+
+        $user = User::query()
+            ->where('email', $validated['email'])
+            ->first();
+
+        return response()->json([
+            'requires_consent' => $user ? ! (bool) $user->privacy_consent : false,
+        ]);
     }
 
     /**

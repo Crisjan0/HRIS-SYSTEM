@@ -24,10 +24,10 @@ class EmployeeFactory extends Factory
             'middlename' => $this->faker->lastName(),
             'suffix' => $this->faker->optional(0.2)->randomElement(['Jr.', 'Sr.', 'II', 'III']),
             'division' => $this->faker->randomElement([
-                'Finance and Administrative Division',
-                'Migrant Workers Processing Division',
+                'Welfare and Reintegration Services Division',
                 'Migrant Workers Protection Division',
-                'Welfare and Reintegration Division',
+                'Migrant Workers Processing Division',
+                'Finance and Administrative Division',
             ]),
             'role' => $this->faker->randomElement(['EMPLOYEE', 'HRSTAFF', 'CHIEF', 'REGIONALDIRECTOR']),
             'user_id' => User::factory(),

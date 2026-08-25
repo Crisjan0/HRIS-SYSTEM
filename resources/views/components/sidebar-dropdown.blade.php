@@ -3,7 +3,7 @@
 <div x-data="{ open: {{ $active ? 'true' : 'false' }} }" class="space-y-1">
     <button @click="open = !open" 
             type="button" 
-            class="w-full flex items-center justify-between gap-3 px-3 py-2 text-sm font-medium rounded-lg transition duration-150 ease-in-out group {{ $active ? 'bg-[#D8ECFF] text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+            class="w-full flex items-center justify-between gap-3 px-3 py-1.5 text-sm font-medium rounded-lg transition duration-150 ease-in-out group {{ $active ? 'bg-[#D8ECFF] text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
         
         <div class="flex items-center gap-3">
             @if($icon)

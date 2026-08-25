@@ -11,6 +11,7 @@ class UtilityOptionRegistry
     {
         return [
             'leave-types' => 'Leave Types',
+            'divisions' => 'Divisions',
             'name_extensions' => 'Name Extension',
             'civil_statuses' => 'Civil Status',
             'blood_types' => 'Blood Type',
@@ -37,6 +38,7 @@ class UtilityOptionRegistry
     public static function groups(): array
     {
         return [
+            'divisions' => ['label' => 'Divisions'],
             'name_extensions' => ['label' => 'Name Extension'],
             'civil_statuses' => ['label' => 'Civil Status'],
             'blood_types' => ['label' => 'Blood Type'],
@@ -89,6 +91,12 @@ class UtilityOptionRegistry
         $build = fn (array $values) => array_map(fn ($value) => ['label' => $value, 'value' => $value], $values);
 
         return [
+            'divisions' => $build([
+                'Welfare and Reintegration Services Division',
+                'Migrant Workers Protection Division',
+                'Migrant Workers Processing Division',
+                'Finance and Administrative Division',
+            ]),
             'name_extensions' => $build(['None', 'Jr.', 'Sr.', 'II', 'III', 'IV', 'V']),
             'civil_statuses' => $build(['Single', 'Married', 'Widowed', 'Separated']),
             'blood_types' => $build(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'Unknown']),
@@ -105,7 +113,7 @@ class UtilityOptionRegistry
             'acquisition_modes' => $build(['Purchase', 'Inheritance', 'Donation', 'Exchange', 'Construction']),
             'relationships' => $build(['Spouse', 'Parent', 'Child', 'Sibling', 'Grandparent', 'Grandchild', 'Uncle/Aunt', 'Nephew/Niece', 'Cousin', 'In-Law']),
             'countries' => $build(['Philippines', 'Brunei', 'Cambodia', 'Indonesia', 'Laos', 'Malaysia', 'Myanmar', 'Singapore', 'Thailand', 'Vietnam', 'Japan', 'South Korea', 'China', 'India', 'Australia', 'New Zealand', 'United States', 'Canada', 'United Kingdom']),
-            'ph_regions' => $build(['NCR', 'CAR', 'Region I', 'Region II', 'Region III', 'Region IV-A', 'Region IV-B', 'Region V', 'Region VI', 'Region VII', 'Region VIII', 'Region IX', 'Region X', 'Region XI', 'Region XII', 'Region XIII', 'BARMM']),
+            'ph_regions' => $build(['National Capital Region (NCR)', 'Cordillera Administrative Region (CAR)', 'Region I (Ilocos Region)', 'Region II (Cagayan Valley)', 'Region III (Central Luzon)', 'Region IV-A (CALABARZON)', 'MIMAROPA Region', 'Region V (Bicol Region)', 'Region VI (Western Visayas)', 'Negros Island Region (NIR)', 'Region VII (Central Visayas)', 'Region VIII (Eastern Visayas)', 'Region IX (Zamboanga Peninsula)', 'Region X (Northern Mindanao)', 'Region XI (Davao Region)', 'Region XII (SOCCSKSARGEN)', 'Region XIII (Caraga)', 'Bangsamoro Autonomous Region In Muslim Mindanao (BARMM)']),
         ];
     }
 

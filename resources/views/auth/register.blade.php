@@ -197,10 +197,10 @@
                                 class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-800 transition duration-200 text-sm bg-white"
                                 id="reg-division">
                             <option value="">â€” Select Division â€”</option>
-                            <option value="Finance and Administrative Division">Finance and Administrative Division</option>
-                            <option value="Migrant Workers Processing Division">Migrant Workers Processing Division</option>
+                            <option value="Welfare and Reintegration Services Division">Welfare and Reintegration Services Division</option>
                             <option value="Migrant Workers Protection Division">Migrant Workers Protection Division</option>
-                            <option value="Welfare and Reintegration Division">Welfare and Reintegration Division</option>
+                            <option value="Migrant Workers Processing Division">Migrant Workers Processing Division</option>
+                            <option value="Finance and Administrative Division">Finance and Administrative Division</option>
                         </select>
                         <p x-show="errors.division" x-text="errors.division" class="text-red-500 text-xs mt-1"></p>
                     </div>

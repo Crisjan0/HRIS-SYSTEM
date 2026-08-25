@@ -127,7 +127,9 @@ class PdsController extends Controller
             'ph_barangays' => UtilityOption::query()->active()->forGroup('ph_barangays')->orderBy('sort_order')->orderBy('label')->get(['label', 'value', 'parent_value']),
         ];
 
-        return view('pds.edit', compact('employee', 'utilityOptionSets', 'locationOptionSets'));
+        $cityZipCodes = $this->cityZipCodes();
+
+        return view('pds.edit', compact('employee', 'utilityOptionSets', 'locationOptionSets', 'cityZipCodes'));
     }
 
     public function update(Request $request): RedirectResponse
@@ -136,6 +138,15 @@ class PdsController extends Controller
 
         if (! $employee) {
             abort(404);
+        }
+
+        $personal = $request->input('personal', []);
+        if (! empty($personal['mobile_no'])) {
+            $digits = substr(preg_replace('/\D/', '', (string) $personal['mobile_no']), 0, 11);
+            $personal['mobile_no'] = strlen($digits) === 11
+                ? substr($digits, 0, 4).'-'.substr($digits, 4, 3).'-'.substr($digits, 7, 4)
+                : $personal['mobile_no'];
+            $request->merge(['personal' => $personal]);
         }
 
         $request->validate([
@@ -178,7 +189,7 @@ class PdsController extends Controller
             'personal.perm_province' => 'nullable|string',
             'personal.perm_zip_code' => 'nullable|string',
             'personal.telephone_no' => 'nullable|string',
-            'personal.mobile_no' => 'nullable|string',
+            'personal.mobile_no' => ['nullable', 'regex:/^09\d{2}-\d{3}-\d{4}$/'],
             'personal.email_address' => 'nullable|email',
             'family.spouse_surname' => 'nullable|string',
             'family.spouse_firstname' => 'nullable|string',
@@ -308,6 +319,56 @@ class PdsController extends Controller
             }
         });
 
-        return redirect()->route('pds.index')->with('success', 'Personal Data Sheet successfully updated.');
+        return redirect()->route('pds.edit')->with('success', 'Personal Data Sheet successfully updated.');
+    }
+
+    private function cityZipCodes(): array
+    {
+        return [
+            'Davao De Oro|Compostela' => '6003',
+            'Davao De Oro|Mabini' => '4202',
+            'Davao De Oro|Maco' => '8114',
+            'Davao De Oro|Mawab' => '8108',
+            'Davao De Oro|Monkayo' => '8111',
+            'Davao De Oro|Montevista' => '8107',
+            'Davao De Oro|Nabunturan' => '8800',
+            'Davao De Oro|New Bataan' => '8110',
+            'Davao De Oro|Pantukan' => '8117',
+            'Davao Del Norte|Asuncion' => '8102',
+            'Davao Del Norte|Carmen' => '8101',
+            'Davao Del Norte|City of Panabo' => '8105',
+            'Davao Del Norte|City of Tagum' => '8100',
+            'Davao Del Norte|Island Garden City of Samal' => '8119',
+            'Davao Del Norte|Kapalong' => '8113',
+            'Davao Del Norte|New Corella' => '8104',
+            'Davao Del Norte|San Isidro' => '2809',
+            'Davao Del Norte|Santo Tomas' => '8112',
+            'Davao Del Sur|Bansalan' => '8005',
+            'Davao Del Sur|City of Davao' => '8000',
+            'Davao Del Sur|City of Digos' => '8002',
+            'Davao Del Sur|Hagonoy' => '8006',
+            'Davao Del Sur|Kiblawan' => '8008',
+            'Davao Del Sur|Magsaysay' => '8004',
+            'Davao Del Sur|Malalag' => '8010',
+            'Davao Del Sur|Matanao' => '8003',
+            'Davao Del Sur|Padada' => '8007',
+            'Davao Del Sur|Santa Cruz' => '8001',
+            'Davao Del Sur|Sulop' => '8009',
+            'Davao Occidental|Don Marcelino' => '8013',
+            'Davao Occidental|Jose Abad Santos' => '8014',
+            'Davao Occidental|Malita' => '8012',
+            'Davao Occidental|Santa Maria' => '3022',
+            'Davao Occidental|Sarangani' => '8015',
+            'Davao Oriental|Baganga' => '8204',
+            'Davao Oriental|Banaybanay' => '8208',
+            'Davao Oriental|Boston' => '8206',
+            'Davao Oriental|Caraga' => '8203',
+            'Davao Oriental|Cateel' => '8205',
+            'Davao Oriental|City of Mati' => '8200',
+            'Davao Oriental|Lupon' => '8207',
+            'Davao Oriental|Manay' => '8202',
+            'Davao Oriental|San Isidro' => '8209',
+            'Davao Oriental|Tarragona' => '8201',
+        ];
     }
 }

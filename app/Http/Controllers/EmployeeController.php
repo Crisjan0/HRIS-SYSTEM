@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Mail\HrisAccountCreatedMail;
 use App\Models\Employee;
+use App\Models\UtilityOption;
 use App\Models\User;
+use App\Support\UtilityOptionRegistry;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -12,29 +14,30 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Throwable;
 
 class EmployeeController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    private const DIVISIONS = [
-        'Finance and Administrative Division',
-        'Migrant Workers Processing Division',
-        'Migrant Workers Protections Division',
-        'Welfare and Reintegration Division',
-    ];
+    private function divisionOptions(): array
+    {
+        UtilityOptionRegistry::ensureDefaults();
+
+        return UtilityOption::listFor('divisions')
+            ->pluck('value')
+            ->values()
+            ->all();
+    }
 
     public function index(Request $request): View
     {
-        $divisionOptions = self::DIVISIONS;
+        $divisionOptions = $this->divisionOptions();
         $search = trim((string) $request->query('search', ''));
         $division = (string) $request->query('division', '');
         $sort = $request->query('sort', 'name_asc');
 
-        $employees = $this->employeeIndexQuery($search, $division, $sort)->get();
+        $employees = $this->employeeIndexQuery($search, $division, $sort, $divisionOptions)->get();
         $archivedEmployees = Employee::onlyTrashed()->with('user')->latest('deleted_at')->get();
         $pendingAccounts = User::query()
             ->with('employee')
@@ -60,7 +63,7 @@ class EmployeeController extends Controller
         $search = trim((string) $request->query('search', ''));
         $division = (string) $request->query('division', '');
         $sort = $request->query('sort', 'name_asc');
-        $employees = $this->employeeIndexQuery($search, $division, $sort)->get();
+        $employees = $this->employeeIndexQuery($search, $division, $sort, $this->divisionOptions())->get();
 
         return response()->json([
             'html' => view('employees.partials.rows', compact('employees'))->render(),
@@ -68,7 +71,7 @@ class EmployeeController extends Controller
         ]);
     }
 
-    private function employeeIndexQuery(string $search, string $division, string $sort)
+    private function employeeIndexQuery(string $search, string $division, string $sort, array $divisionOptions)
     {
         $query = Employee::with('user')
             ->when($search !== '', function ($query) use ($search) {
@@ -81,7 +84,7 @@ class EmployeeController extends Controller
                         ->orWhere('division', 'like', "%{$search}%");
                 });
             })
-            ->when(in_array($division, self::DIVISIONS, true), fn ($query) => $query->where('division', $division));
+            ->when(in_array($division, $divisionOptions, true), fn ($query) => $query->where('division', $division));
 
         return match ($sort) {
             'name_desc' => $query->orderByDesc('lastname')->orderByDesc('firstname'),
@@ -98,7 +101,7 @@ class EmployeeController extends Controller
     {
         $users = User::whereDoesntHave('employee')->get();
         $roles = ['employee', 'hrstaff', 'recordofficer', 'chief', 'regionaldirector', 'admin'];
-        $divisionOptions = self::DIVISIONS;
+        $divisionOptions = $this->divisionOptions();
         $employmentStatuses = ['Regular', 'Job Order', 'Contract of Service'];
 
         return view('employees.create', compact('users', 'roles', 'divisionOptions', 'employmentStatuses'));
@@ -115,7 +118,7 @@ class EmployeeController extends Controller
             'middlename' => 'nullable|string|max:255',
             'contact_number' => 'nullable|string|max:20',
             'notification_email' => 'nullable|required_with:account_email|email|max:255',
-            'division' => 'required|string|in:'.implode(',', self::DIVISIONS),
+            'division' => ['required', 'string', Rule::in($this->divisionOptions())],
             'position' => 'required|string|max:255',
             'account_role' => 'required|string|in:employee,hrstaff,recordofficer,chief,regionaldirector,admin',
             'employment_status' => 'nullable|string|in:Regular,Job Order,Contract of Service',
@@ -146,7 +149,7 @@ class EmployeeController extends Controller
                     'is_approved' => true,
                     'must_change_password' => true,
                     'account_status' => 'active',
-                    'privacy_consent' => true,
+                    'privacy_consent' => false,
                 ]);
 
                 $validated['user_id'] = $user->id;
@@ -282,7 +285,7 @@ class EmployeeController extends Controller
             $query->where('id', '!=', $employee->id);
         })->get();
         $roles = ['employee', 'hrstaff', 'recordofficer', 'chief', 'regionaldirector', 'admin'];
-        $divisionOptions = self::DIVISIONS;
+        $divisionOptions = $this->divisionOptions();
         $employmentStatuses = ['Regular', 'Job Order', 'Contract of Service'];
 
         return view('employees.edit', compact('employee', 'users', 'roles', 'divisionOptions', 'employmentStatuses'));
@@ -299,7 +302,7 @@ class EmployeeController extends Controller
             'middlename' => 'nullable|string|max:255',
             'contact_number' => 'nullable|string|max:20',
             'notification_email' => 'nullable|email|max:255',
-            'division' => 'required|string|in:'.implode(',', self::DIVISIONS),
+            'division' => ['required', 'string', Rule::in($this->divisionOptions())],
             'position' => 'required|string|max:255',
             'account_role' => 'required|string|in:employee,hrstaff,recordofficer,chief,regionaldirector,admin',
             'employment_status' => 'nullable|string|in:Regular,Job Order,Contract of Service',

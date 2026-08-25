@@ -319,7 +319,6 @@
                                                     <div class="min-w-0">
                                                         <div class="text-sm font-bold text-gray-800" :class="selectedId == '{{ $type->id }}' && 'text-indigo-700'">
                                                             {{ $type->name }}
-                                                            <span x-show="selectedId == '{{ $type->id }}'" class="text-indigo-600 ml-1">✓</span>
                                                         </div>
                                                         @if($type->legal_basis)
                                                             <div class="text-[11px] text-gray-400 italic mt-0.5">{{ $type->legal_basis }}</div>

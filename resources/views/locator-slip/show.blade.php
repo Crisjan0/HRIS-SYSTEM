@@ -75,7 +75,23 @@
                 empty="No locator slip approval process to track yet."
             />
 
-            {{-- Chief remarks below approval workflow --}}
+            {{-- Locator slip form preview --}}
+            <section class="mt-8 rounded-[2rem] border border-gray-100 bg-white p-3 shadow-sm sm:p-5">
+                <div class="mx-auto w-full max-w-[900px] overflow-hidden rounded-2xl border border-gray-200 bg-slate-200">
+                    <iframe
+                        id="locator-form-preview"
+                        src="{{ route('locator-slips.print', [
+                            'locatorSlip' => $locatorSlip->id,
+                            'preview' => 1,
+                        ]) }}"
+                        class="block w-full border-0 bg-white"
+                        style="aspect-ratio: 210 / 297;"
+                        title="{{ __('Locator slip print preview') }}"
+                        scrolling="no"
+                    ></iframe>
+                </div>
+            </section>
+
             @if($displayStatus === 'rejected' && $locatorSlip->chief_remarks)
                 <section class="mt-6 rounded-2xl border border-red-200 bg-red-50 p-5 shadow-sm sm:p-6">
                     <div class="flex items-start gap-3">
@@ -95,23 +111,6 @@
                     </div>
                 </section>
             @endif
-
-            {{-- Locator slip form preview --}}
-            <section class="mt-8 rounded-[2rem] border border-gray-100 bg-white p-3 shadow-sm sm:p-5">
-                <div class="mx-auto w-full max-w-[900px] overflow-hidden rounded-2xl border border-gray-200 bg-slate-200">
-                    <iframe
-                        id="locator-form-preview"
-                        src="{{ route('locator-slips.print', [
-                            'locatorSlip' => $locatorSlip->id,
-                            'preview' => 1,
-                        ]) }}"
-                        class="block w-full border-0 bg-white"
-                        style="aspect-ratio: 210 / 297;"
-                        title="{{ __('Locator slip print preview') }}"
-                        scrolling="no"
-                    ></iframe>
-                </div>
-            </section>
         </div>
     </div>
 

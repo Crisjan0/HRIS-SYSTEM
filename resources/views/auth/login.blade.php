@@ -99,6 +99,12 @@
                 novalidate
             >
                 @csrf
+                <input
+                    type="hidden"
+                    name="privacy_consent"
+                    id="privacyConsentInput"
+                    value=""
+                >
 
                 {{-- Email --}}
                 <div class="mb-4">
@@ -443,6 +449,8 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const loginForm = document.getElementById('loginForm');
+            const privacyConsentInput =
+                document.getElementById('privacyConsentInput');
 
             const emailInput = document.getElementById('email');
             const emailError = document.getElementById('emailError');
@@ -484,6 +492,12 @@
 
             const officialEmailPattern =
                 /^[^@\s]+@dmw\.gov\.ph$/;
+
+            const privacyConsentStatusUrl =
+                @json(route('login.privacy-consent-status'));
+
+            const csrfToken =
+                document.querySelector('input[name="_token"]').value;
 
             let loginSubmissionRequested = false;
 
@@ -592,6 +606,32 @@
                 HTMLFormElement.prototype.submit.call(loginForm);
             }
 
+            async function shouldRequestPrivacyConsent() {
+                try {
+                    const response = await fetch(privacyConsentStatusUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                        },
+                        body: JSON.stringify({
+                            email: emailInput.value.trim().toLowerCase(),
+                        }),
+                    });
+
+                    if (!response.ok) {
+                        return false;
+                    }
+
+                    const data = await response.json();
+
+                    return Boolean(data.requires_consent);
+                } catch (error) {
+                    return false;
+                }
+            }
+
             emailInput.addEventListener('input', function () {
                 validateEmailField(false);
             });
@@ -624,7 +664,7 @@
                 );
             });
 
-            loginForm.addEventListener('submit', function (event) {
+            loginForm.addEventListener('submit', async function (event) {
                 event.preventDefault();
 
                 const emailIsValid =
@@ -643,7 +683,20 @@
                     return;
                 }
 
-                openPrivacyModal();
+                if (privacyConsentInput.value === '1') {
+                    submitLoginForm();
+                    return;
+                }
+
+                const requiresPrivacyConsent =
+                    await shouldRequestPrivacyConsent();
+
+                if (requiresPrivacyConsent) {
+                    openPrivacyModal();
+                    return;
+                }
+
+                submitLoginForm();
             });
 
             /*
@@ -682,6 +735,7 @@
 
                     document.body.classList.remove('overflow-hidden');
 
+                    privacyConsentInput.value = '1';
                     submitLoginForm();
                 }
             );

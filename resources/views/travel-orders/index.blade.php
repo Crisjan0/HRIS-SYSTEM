@@ -198,25 +198,13 @@
                                         </td>
                                         <td class="px-3 py-3 align-top text-xs font-semibold text-gray-900 break-words">{{ $order->places_of_travel }}</td>
                                         <td class="px-3 py-3 align-top">
-                                            <div class="flex items-start gap-2">
-                                                <span class="mt-1 h-2.5 w-2.5 shrink-0 rounded-full {{ $approvalDotClass($recordStatus) }}"></span>
-                                                <div class="min-w-0 text-xs leading-5 text-gray-700">
-                                                    <div class="font-bold">{{ __('Records Officer') }}</div>
-                                                    @if($order->recordsOfficer)
-                                                        <div class="break-words">{{ trim(($order->recordsOfficer->firstname ?? '') . ' ' . ($order->recordsOfficer->lastname ?? '')) }}</div>
-                                                    @endif
-                                                </div>
+                                            <div class="flex justify-center">
+                                                <span class="mt-1 h-2.5 w-2.5 shrink-0 rounded-full {{ $approvalDotClass($recordStatus) }}" title="Records Officer: {{ ucfirst($recordStatus) }}"></span>
                                             </div>
                                         </td>
                                         <td class="px-3 py-3 align-top">
-                                            <div class="flex items-start gap-2">
-                                                <span class="mt-1 h-2.5 w-2.5 shrink-0 rounded-full {{ $approvalDotClass($rdStatus) }}"></span>
-                                                <div class="min-w-0 text-xs leading-5 text-gray-700">
-                                                    <div class="font-bold">{{ __('Regional Director') }}</div>
-                                                    @if($order->regionalDirector)
-                                                        <div class="break-words">{{ trim(($order->regionalDirector->firstname ?? '') . ' ' . ($order->regionalDirector->lastname ?? '')) }}</div>
-                                                    @endif
-                                                </div>
+                                            <div class="flex justify-center">
+                                                <span class="mt-1 h-2.5 w-2.5 shrink-0 rounded-full {{ $approvalDotClass($rdStatus) }}" title="Regional Director: {{ ucfirst($rdStatus) }}"></span>
                                             </div>
                                         </td>
                                         <td class="px-3 py-3 align-top text-xs text-gray-700">{{ $tarDeadline?->format('M d, Y') ?? __('N/A') }}</td>
@@ -289,8 +277,8 @@
                         </div>
                     </div>
 
-                    <div class="flex shrink-0 flex-col gap-2 border-t border-slate-200 bg-white px-4 py-2.5 sm:flex-row sm:items-center sm:justify-between">
-                        <div class="min-w-0 flex-1">
+                    <div class="flex shrink-0 flex-col gap-2 border-t border-slate-200 bg-white px-4 py-2.5">
+                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                             <button type="button" @click="toggleRemarks()" class="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-2 sm:w-auto">
                                 <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h8M8 14h5m-8 6 3.5-3H18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h1v3Z" />
@@ -298,19 +286,19 @@
                                 <span x-text="showRemarks ? 'Hide Remarks' : 'Remarks'"></span>
                             </button>
 
-                            <template x-if="showRemarks">
-                                <div class="mt-2 max-h-20 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-700" x-text="previewData.remarks"></div>
-                            </template>
-                        </div>
-
-                        <div class="flex shrink-0 gap-2 sm:justify-end">
+                            <div class="flex shrink-0 gap-2 sm:justify-end">
                             <button type="button" @click="closePreviewModal()" class="inline-flex flex-1 items-center justify-center rounded-lg border border-red-300 bg-white px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-red-600 transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2 sm:flex-none">
                                 Close
                             </button>
                             <a :href="previewData.directPrintUrl" target="_blank" rel="noopener" class="inline-flex flex-1 items-center justify-center rounded-lg bg-blue-900 px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-white transition hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:flex-none">
                                 {{ __('Print') }}
                             </a>
+                            </div>
                         </div>
+
+                        <template x-if="showRemarks">
+                            <div class="max-h-24 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-700" x-text="previewData.remarks"></div>
+                        </template>
                     </div>
                 </div>
             </div>

@@ -2,9 +2,12 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Models\UtilityOption;
 use App\Models\User;
+use App\Support\UtilityOptionRegistry;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class RegisterRequest extends FormRequest
 {
@@ -23,6 +26,9 @@ class RegisterRequest extends FormRequest
      */
     public function rules(): array
     {
+        UtilityOptionRegistry::ensureDefaults();
+        $divisionOptions = UtilityOption::listFor('divisions')->pluck('value')->values()->all();
+
         return [
             // Step 1: Personal Information
             'lastname' => ['required', 'string', 'max:255'],
@@ -31,7 +37,7 @@ class RegisterRequest extends FormRequest
             'suffix' => ['nullable', 'string', 'max:20'],
 
             // Step 2: Division & Position
-            'division' => ['required', 'string', 'in:Finance and Administrative Division,Migrant Workers Processing Division,Migrant Workers Protection Division,Welfare and Reintegration Division'],
+            'division' => ['required', 'string', Rule::in($divisionOptions)],
             'position' => ['required', 'string', 'in:EMPLOYEE,HRSTAFF,RECORDOFFICER,CHIEF,REGIONALDIRECTOR,ADMIN'],
 
             // Step 3: Credentials

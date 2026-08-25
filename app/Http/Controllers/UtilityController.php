@@ -50,9 +50,9 @@ class UtilityController extends Controller
         UtilityOption::create([
             'group_key' => $validated['group_key'],
             'label' => $validated['label'],
-            'value' => $validated['value'] ?: $validated['label'],
+            'value' => ($validated['value'] ?? null) ?: $validated['label'],
             'parent_group' => $groups[$validated['group_key']]['parent_group'] ?? null,
-            'parent_value' => $validated['parent_value'] ?: null,
+            'parent_value' => $validated['parent_value'] ?? null,
             'sort_order' => $nextSort,
             'is_active' => true,
         ]);
@@ -73,8 +73,8 @@ class UtilityController extends Controller
 
         $utilityOption->update([
             'label' => $validated['label'],
-            'value' => $validated['value'] ?: $validated['label'],
-            'parent_value' => $validated['parent_value'] ?: null,
+            'value' => ($validated['value'] ?? null) ?: $validated['label'],
+            'parent_value' => $validated['parent_value'] ?? null,
             'is_active' => $request->boolean('is_active', true),
         ]);
 

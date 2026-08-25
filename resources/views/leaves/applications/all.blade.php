@@ -279,8 +279,8 @@
                     </div>
 
                     {{-- Modal Footer --}}
-                    <div class="flex shrink-0 flex-col gap-2 border-t border-slate-200 bg-white px-4 py-2.5 sm:flex-row sm:items-center sm:justify-between">
-                        <div class="min-w-0 flex-1">
+                    <div class="flex shrink-0 flex-col gap-2 border-t border-slate-200 bg-white px-4 py-2.5">
+                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                             <button
                                 type="button"
                                 @click="toggleRemarks()"
@@ -307,15 +307,7 @@
                                 ></span>
                             </button>
 
-                            <template x-if="showRemarks">
-                                <div
-                                    class="mt-2 max-h-20 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-700"
-                                    x-text="previewData.remarks"
-                                ></div>
-                            </template>
-                        </div>
-
-                        <div class="flex shrink-0 gap-2 sm:justify-end">
+                            <div class="flex shrink-0 gap-2 sm:justify-end">
                             <button
                                 type="button"
                                 @click="closePreviewModal()"
@@ -333,7 +325,15 @@
                             >
                                 {{ __('Print') }}
                             </a>
+                            </div>
                         </div>
+
+                        <template x-if="showRemarks">
+                            <div
+                                class="max-h-24 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-700"
+                                x-text="previewData.remarks"
+                            ></div>
+                        </template>
                     </div>
                 </div>
             </div>

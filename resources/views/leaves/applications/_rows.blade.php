@@ -142,53 +142,32 @@
         
 
         {{-- HR: Leave Credit Certification --}}
-        <td class="px-3 py-3 align-middle">
-            <div class="flex min-w-0 items-start gap-2">
+        <td class="px-3 py-3 text-center align-middle">
+            <div class="flex min-w-0 items-center justify-center">
                 <span
-                    class="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full {{ $approvalDotClass($hrStatus) }}"
-                    title="{{ ucfirst($hrStatus) }}"
+                    class="h-3 w-3 shrink-0 rounded-full {{ $approvalDotClass($hrStatus) }}"
+                    title="{{ __('Leave Certification') }}: {{ ucfirst($hrStatus) }}"
                 ></span>
-
-                <span
-                    class="min-w-0 flex-1 break-words text-xs font-semibold leading-5 text-gray-700 [overflow-wrap:anywhere]"
-                    title="{{ $hrStaffName }}"
-                >
-                    {{ $hrStaffName }}
-                </span>
             </div>
         </td>
 
         {{-- Chief: Recommending Approval --}}
-        <td class="px-3 py-3 align-middle">
-            <div class="flex min-w-0 items-start gap-2">
+        <td class="px-3 py-3 text-center align-middle">
+            <div class="flex min-w-0 items-center justify-center">
                 <span
-                    class="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full {{ $approvalDotClass($chiefStatus) }}"
-                    title="{{ ucfirst($chiefStatus) }}"
+                    class="h-3 w-3 shrink-0 rounded-full {{ $approvalDotClass($chiefStatus) }}"
+                    title="{{ __('Recommending Approval') }}: {{ ucfirst($chiefStatus) }}"
                 ></span>
-
-                <span
-                    class="min-w-0 flex-1 break-words text-xs font-semibold leading-5 text-gray-700 [overflow-wrap:anywhere]"
-                    title="{{ $chiefName }}"
-                >
-                    {{ $chiefName }}
-                </span>
             </div>
         </td>
 
         {{-- Regional Director: Final Approval --}}
-        <td class="px-3 py-3 align-middle">
-            <div class="flex min-w-0 items-start gap-2">
+        <td class="px-3 py-3 text-center align-middle">
+            <div class="flex min-w-0 items-center justify-center">
                 <span
-                    class="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full {{ $approvalDotClass($rdStatus) }}"
-                    title="{{ ucfirst($rdStatus) }}"
+                    class="h-3 w-3 shrink-0 rounded-full {{ $approvalDotClass($rdStatus) }}"
+                    title="{{ __('Approval') }}: {{ ucfirst($rdStatus) }}"
                 ></span>
-
-                <span
-                    class="min-w-0 flex-1 break-words text-xs font-semibold leading-5 text-gray-700 [overflow-wrap:anywhere]"
-                    title="{{ $regionalDirectorName }}"
-                >
-                    {{ $regionalDirectorName }}
-                </span>
             </div>
         </td>
 {{-- Status --}}

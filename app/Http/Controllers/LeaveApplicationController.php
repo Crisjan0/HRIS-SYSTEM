@@ -38,17 +38,19 @@ class LeaveApplicationController extends Controller
         $search = trim((string) $request->query('search', ''));
         $leaveTypeId = $request->query('leave_type_id', '');
         $sort = $request->query('sort', 'date_filed_desc');
-        $query = $this->pendingLeaveApplicationsQuery(auth()->user()->role);
+        $role = strtolower(auth()->user()->role ?? '');
+        $query = $this->pendingLeaveApplicationsQuery($role);
 
         $this->applyFilters($query, $search, $leaveTypeId);
         $this->applySort($query, $sort);
 
         $leaves = $query->get();
+        $actionMode = ($role === 'admin') ? 'view' : 'review';
 
         return response()->json([
             'html' => view('leaves.applications._rows', [
                 'leaves' => $leaves,
-                'actionMode' => 'review',
+                'actionMode' => $actionMode,
                 'emptyMessage' => __('No pending leave applications found.'),
             ])->render(),
             'count' => $leaves->count(),
@@ -107,7 +109,10 @@ class LeaveApplicationController extends Controller
         $query = LeaveRequest::where('status', 'pending')
             ->with(['employee', 'leaveType']);
 
-        if (in_array($role, ['hrstaff', 'admin'])) {
+        if ($role === 'admin') {
+            // Admin can view all pending leave applications across HR, Chief, and Regional Director
+            return $query;
+        } elseif ($role === 'hrstaff') {
             $query->where('hrstaff_status', 'pending');
         } elseif ($role === 'chief') {
             $query->whereIn('hrstaff_status', ['approved', 'rejected'])->where('chief_status', 'pending');
@@ -179,8 +184,13 @@ class LeaveApplicationController extends Controller
     public function update(Request $request, LeaveRequest $leaveApplication): RedirectResponse
     {
         $role = strtolower(auth()->user()->role ?? '');
+        
+        if ($role === 'admin') {
+            return redirect()->back()->with('error', __('Admin role has read-only viewing access for leave applications. Approvals must be performed by HR, Chief, or Regional Director.'));
+        }
+
         $employeeId = auth()->user()->employee?->id;
-        $isHR = in_array($role, ['hrstaff', 'admin'], true);
+        $isHR = $role === 'hrstaff';
 
         $validated = $request->validate([
             'status' => 'required|in:approved,rejected',
@@ -218,59 +228,58 @@ class LeaveApplicationController extends Controller
                     $leaveApplication->hrstaff_status = 'approved';
                     $leaveApplication->approved_by_hrstaff = $employeeId;
                     $leaveApplication->hrstaff_remarks = $remarks;
-                    
+
                     // Notify Chief
                     $nextLevelUsers = User::whereHas('employee', function ($query) {
                         $query->where('account_role', 'chief');
                     })->get();
                     Notification::send($nextLevelUsers, new LeaveRequestNotification($leaveApplication));
-                } elseif ($role === 'chief' && in_array($leaveApplication->hrstaff_status, ['approved', 'rejected'], true)) {
+                } elseif ($role === 'chief') {
                     $leaveApplication->chief_status = 'approved';
                     $leaveApplication->approved_by_chief = $employeeId;
                     $leaveApplication->chief_remarks = $remarks;
-                    
+
                     // Notify RD
                     $nextLevelUsers = User::whereHas('employee', function ($query) {
                         $query->where('account_role', 'regionaldirector');
                     })->get();
                     Notification::send($nextLevelUsers, new LeaveRequestNotification($leaveApplication));
-                } elseif ($role === 'regionaldirector'
-                    && in_array($leaveApplication->hrstaff_status, ['approved', 'rejected'], true)
-                    && $leaveApplication->chief_status === 'approved') {
+                } elseif ($role === 'regionaldirector') {
                     $leaveApplication->rd_status = 'approved';
                     $leaveApplication->approved_by_regionaldirector = $employeeId;
                     $leaveApplication->rd_remarks = $remarks;
+                    $leaveApplication->status = 'approved'; // Final Approval
 
-                    // Final stage approval
-                    $leaveApplication->status = 'approved';
-
-                    $duration = $leaveApplication->duration;
-                    $credit = $leaveApplication->employee->leaveCredits()
+                    // Deduct Leave Credits
+                    $year = Carbon::parse($leaveApplication->start_date)->year;
+                    $leaveApplication->employee?->ensureLeaveCredits($year);
+                    $leaveCredit = $leaveApplication->employee?->leaveCredits()
                         ->where('leave_type_id', $leaveApplication->leave_type_id)
-                        ->where('year', Carbon::parse($leaveApplication->start_date)->year)
+                        ->where('year', $year)
                         ->first();
 
-                    $requestedWithPay = $leaveApplication->is_paid !== false;
-
-                    if ($requestedWithPay && $credit && $credit->balance >= $duration) {
-                        $credit->decrement('balance', $duration);
-                        $leaveApplication->is_paid = true;
-                    } else {
-                        $leaveApplication->is_paid = false;
+                    if ($leaveCredit) {
+                        $days = (float) $leaveApplication->number_of_days;
+                        $leaveCredit->used_credits = (float) $leaveCredit->used_credits + $days;
+                        $leaveCredit->remaining_credits = max(0, (float) $leaveCredit->total_credits - (float) $leaveCredit->used_credits);
+                        $leaveCredit->save();
                     }
                 }
             }
 
             $leaveApplication->save();
 
-            // Notify the employee of the status change if it's final (rejected or fully approved)
-            if ($leaveApplication->status !== 'pending') {
-                $leaveApplication->employee->user->notify(new LeaveStatusUpdatedNotification($leaveApplication));
+            // Notify Employee on status change
+            if ($leaveApplication->employee?->user) {
+                $statusText = match ($validated['status']) {
+                    'approved' => $role === 'regionaldirector' ? 'Approved' : 'Verified/Recommended',
+                    'rejected' => 'Rejected',
+                    default => 'Updated',
+                };
+                $leaveApplication->employee->user->notify(new LeaveStatusUpdatedNotification($leaveApplication, $statusText));
             }
         });
 
-        $msg = $validated['status'] === 'approved' ? 'Leave request verified successfully.' : 'Leave request updated.';
-
-        return redirect()->route('leave-applications.index')->with('success', $msg);
+        return redirect()->route('leave-applications.index')->with('success', __('Leave application updated successfully.'));
     }
 }

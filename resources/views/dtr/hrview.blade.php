@@ -1,4 +1,4 @@
-﻿<x-app-layout>
+<x-app-layout>
     <x-slot name="title">{{ __('Daily Attendance Monitoring') }}</x-slot>
 
     <div
@@ -222,16 +222,34 @@
                                         if ($item['time_in']) {
                                             $scans[] = [
                                                 'time' => \Carbon\Carbon::parse($item['time_in'])->format('h:i A'),
-                                                'type' => 'IN',
+                                                'type' => 'AM IN',
                                                 'device' => 'RFID Reader #1',
                                                 'status' => $item['late_minutes'] > 0 ? 'Late Arrival' : 'Valid',
+                                            ];
+                                        }
+
+                                        if ($item['am_out']) {
+                                            $scans[] = [
+                                                'time' => \Carbon\Carbon::parse($item['am_out'])->format('h:i A'),
+                                                'type' => 'AM OUT',
+                                                'device' => 'RFID Reader #1',
+                                                'status' => 'Valid',
+                                            ];
+                                        }
+
+                                        if ($item['pm_in']) {
+                                            $scans[] = [
+                                                'time' => \Carbon\Carbon::parse($item['pm_in'])->format('h:i A'),
+                                                'type' => 'PM IN',
+                                                'device' => 'RFID Reader #1',
+                                                'status' => 'Valid',
                                             ];
                                         }
 
                                         if ($item['time_out']) {
                                             $scans[] = [
                                                 'time' => \Carbon\Carbon::parse($item['time_out'])->format('h:i A'),
-                                                'type' => 'OUT',
+                                                'type' => 'PM OUT',
                                                 'device' => 'RFID Reader #1',
                                                 'status' => 'Valid',
                                             ];
@@ -257,25 +275,37 @@
                                             <div class="max-w-[11rem] whitespace-normal break-words">{{ $employee->position ?: 'N/A' }}</div>
                                         </td>
                                         <td class="px-3 py-3 align-top text-[11px] font-bold text-slate-900 whitespace-normal break-words">{{ $item['time_in'] ? \Carbon\Carbon::parse($item['time_in'])->format('h:i A') : 'N/A' }}</td>
-                                        <td class="px-3 py-3 align-top text-[11px] font-bold text-slate-900 whitespace-normal break-words"></td>
-                                        <td class="px-3 py-3 align-top text-[11px] font-bold text-slate-900 whitespace-normal break-words"></td>
+                                        <td class="px-3 py-3 align-top text-[11px] font-bold text-slate-900 whitespace-normal break-words">{{ $item['am_out'] ? \Carbon\Carbon::parse($item['am_out'])->format('h:i A') : 'N/A' }}</td>
+                                        <td class="px-3 py-3 align-top text-[11px] font-bold text-slate-900 whitespace-normal break-words">{{ $item['pm_in'] ? \Carbon\Carbon::parse($item['pm_in'])->format('h:i A') : 'N/A' }}</td>
                                         <td class="px-3 py-3 align-top text-[11px] font-bold text-slate-900 whitespace-normal break-words">{{ $item['time_out'] ? \Carbon\Carbon::parse($item['time_out'])->format('h:i A') : 'N/A' }}</td>
                                         <td class="px-3 py-3 text-center align-top">
                                             <button
                                                 type="button"
+                                                data-scans="{{ json_encode($scans) }}"
+                                                data-name="{{ $displayName }}"
+                                                data-no="{{ $employeeNumber }}"
+                                                data-division="{{ $employee->division ?: 'N/A' }}"
+                                                data-position="{{ $employee->position ?: 'N/A' }}"
+                                                data-status="{{ $employee->employment_status ?: 'N/A' }}"
+                                                data-rfid="{{ $employee->rfid_number ?: 'N/A' }}"
+                                                data-attendance-status="{{ $item['status'] }}"
+                                                data-hours="{{ $item['hours_worked'] }} hrs"
+                                                data-late="{{ $item['late_minutes'] > 0 ? $item['late_minutes'] . 'm' : 'N/A' }}"
+                                                data-undertime="{{ $item['undertime_minutes'] > 0 ? $item['undertime_minutes'] . 'm' : 'N/A' }}"
+                                                data-remarks="{{ $item['remarks'] ?: 'N/A' }}"
                                                 @click="
-                                                    rawScans = @js($scans);
-                                                    selectedEmployeeName = @js($displayName);
-                                                    selectedEmployeeNo = @js($employeeNumber);
-                                                    selectedDepartment = @js($employee->division ?: 'N/A');
-                                                    selectedPosition = @js($employee->position ?: 'N/A');
-                                                    selectedEmploymentStatus = @js($employee->employment_status ?: 'N/A');
-                                                    selectedRfid = @js($employee->rfid_number ?: 'N/A');
-                                                    selectedStatus = @js($item['status']);
-                                                    selectedHoursWorked = @js($item['hours_worked'] . ' hrs');
-                                                    selectedLateMinutes = @js($item['late_minutes'] > 0 ? $item['late_minutes'] . 'm' : 'N/A');
-                                                    selectedUndertimeMinutes = @js($item['undertime_minutes'] > 0 ? $item['undertime_minutes'] . 'm' : 'N/A');
-                                                    selectedRemarks = @js($item['remarks'] ?: 'N/A');
+                                                    rawScans = JSON.parse($el.dataset.scans);
+                                                    selectedEmployeeName = $el.dataset.name;
+                                                    selectedEmployeeNo = $el.dataset.no;
+                                                    selectedDepartment = $el.dataset.division;
+                                                    selectedPosition = $el.dataset.position;
+                                                    selectedEmploymentStatus = $el.dataset.status;
+                                                    selectedRfid = $el.dataset.rfid;
+                                                    selectedStatus = $el.dataset.attendanceStatus;
+                                                    selectedHoursWorked = $el.dataset.hours;
+                                                    selectedLateMinutes = $el.dataset.late;
+                                                    selectedUndertimeMinutes = $el.dataset.undertime;
+                                                    selectedRemarks = $el.dataset.remarks;
                                                     rawScansModalOpen = true;
                                                 "
                                                 class="rounded-lg bg-slate-100 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-slate-700 transition hover:bg-slate-200"
@@ -306,8 +336,8 @@
 
                 <div x-show="rawScansModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;">
                     <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" @click="rawScansModalOpen = false"></div>
-                    <div class="relative w-full max-w-3xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
-                        <div class="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-6 py-4">
+                    <div class="relative w-full max-w-xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl flex flex-col max-h-[50vh]">
+                        <div class="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-6 py-4 shrink-0">
                             <div>
                                 <h3 class="text-[9px] font-black uppercase tracking-wider text-slate-400">{{ __('Attendance Details') }}</h3>
                                 <h2 class="text-lg font-bold text-slate-900" x-text="selectedEmployeeName"></h2>
@@ -318,7 +348,7 @@
                             </button>
                         </div>
 
-                        <div class="p-6">
+                        <div class="p-6 overflow-y-auto flex-1">
                             <div class="space-y-5">
                                 <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
                                     <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
@@ -379,7 +409,7 @@
                                             <div class="grid grid-cols-4 items-center border-b border-slate-100 px-4 py-3 text-xs last:border-b-0">
                                                 <div class="font-bold text-slate-900" x-text="scan.time"></div>
                                                 <div>
-                                                    <span class="inline-flex items-center rounded px-2 py-0.5 text-center text-[9px] font-bold uppercase" :class="scan.type === 'IN' ? 'border border-emerald-100 bg-emerald-50 text-emerald-700' : 'border border-blue-100 bg-blue-50 text-blue-700'" x-text="scan.type"></span>
+                                                    <span class="inline-flex items-center rounded px-2 py-0.5 text-center text-[9px] font-bold uppercase" :class="scan.type.includes('IN') ? 'border border-emerald-100 bg-emerald-50 text-emerald-700' : 'border border-blue-100 bg-blue-50 text-blue-700'" x-text="scan.type"></span>
                                                 </div>
                                                 <div class="text-slate-500" x-text="scan.device"></div>
                                                 <div class="text-right font-semibold" :class="scan.status === 'Valid' ? 'text-emerald-600' : 'text-amber-600'" x-text="scan.status"></div>
@@ -388,6 +418,16 @@
                                     </div>
                                 </template>
                             </div>
+                        </div>
+
+                        <div class="flex items-center justify-end border-t border-slate-200 bg-slate-50 px-6 py-3.5 shrink-0">
+                            <button
+                                type="button"
+                                @click="rawScansModalOpen = false"
+                                class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-700 transition hover:bg-slate-100"
+                            >
+                                {{ __('Close') }}
+                            </button>
                         </div>
                     </div>
                 </div>

@@ -11,6 +11,8 @@ class DtrRecord extends Model
         'employee_id',
         'date',
         'time_in',
+        'am_out',
+        'pm_in',
         'time_out',
         'status',
     ];

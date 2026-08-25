@@ -92,6 +92,8 @@ class DtrController extends Controller
                 $record = $dtrRecords->get($employee->id)?->first();
 
                 $timeIn = $record?->time_in;
+                $amOut = $record?->am_out;
+                $pmIn = $record?->pm_in;
                 $timeOut = $record?->time_out;
                 $remarks = $record?->status ?? '';
 
@@ -121,7 +123,17 @@ class DtrController extends Controller
                             $undertimeMinutes = Carbon::parse('17:00:00')->diffInMinutes($carbonOut);
                         }
 
-                        $minutes = $carbonIn->diffInMinutes($carbonOut);
+                        $minutes = 0;
+                        if ($amOut && $pmIn) {
+                            $minutes += $carbonIn->diffInMinutes(Carbon::parse($amOut));
+                            $minutes += Carbon::parse($pmIn)->diffInMinutes($carbonOut);
+                        } else {
+                            $minutes = $carbonIn->diffInMinutes($carbonOut);
+                            if ($minutes > 240) {
+                                $minutes -= 60; // Lunch break deduction
+                            }
+                        }
+
                         $hoursWorked = number_format($minutes / 60, 2);
                         $stats['completed']++;
                     } else {
@@ -134,6 +146,8 @@ class DtrController extends Controller
                 return [
                     'employee' => $employee,
                     'time_in' => $timeIn,
+                    'am_out' => $amOut,
+                    'pm_in' => $pmIn,
                     'time_out' => $timeOut,
                     'status' => $status,
                     'remarks' => $remarks,

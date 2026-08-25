@@ -13,7 +13,7 @@
     <div class="relative z-10 flex flex-col h-full">
 
         <!-- Logo -->
-        <div class="px-4 py-5 flex items-center gap-3 shrink-0 border-b border-gray-100" :class="sidebarCollapsed ? 'justify-center px-3' : ''">
+        <div class="px-4 py-3 flex items-center gap-3 shrink-0 border-b border-gray-100" :class="sidebarCollapsed ? 'justify-center px-3' : ''">
             <a href="{{ route('dashboard') }}"
                 class="flex items-center gap-3 min-w-0 group transition-all duration-300">
                 <x-application-logo class="w-20 h-12 shrink-0 object-contain drop-shadow-sm transition-all duration-300" />
@@ -54,9 +54,9 @@
     @php($isApproved = auth()->user()?->is_approved)
     @php($sidebarRole = strtolower(auth()->user()->role ?? ''))
     @php($isCtoManagedDetail = request()->routeIs('my-cto.show') && in_array($sidebarRole, ['admin', 'hrstaff', 'hr staff', 'chief', 'regionaldirector']))
-    <nav class="flex-1 px-4 space-y-1.5 overflow-y-auto mt-2">
-        <div class="pb-4 mb-4 border-b border-gray-50">
-            <h3 x-show="!sidebarCollapsed" x-transition class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+    <nav class="flex-1 px-4 space-y-1 overflow-y-auto mt-2">
+        <div class="pb-3 mb-3 border-b border-gray-50">
+            <h3 x-show="!sidebarCollapsed" x-transition class="px-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
                 {{ __('Main Menu') }}
             </h3>
 
@@ -131,8 +131,8 @@
         </div>
 
         @if($isApproved && in_array(strtolower(auth()->user()->role ?? ''), ['admin', 'hrstaff', 'hr staff', 'chief', 'regionaldirector', 'regional director', 'recordofficer', 'record officer'], true))
-            <div class="pb-4">
-                <h3 x-show="!sidebarCollapsed" x-transition class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+            <div class="pb-3">
+                <h3 x-show="!sidebarCollapsed" x-transition class="px-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
                     {{ __('Administration') }}
                 </h3>
 
@@ -230,12 +230,23 @@
                     </x-sidebar-link>
                 @endif
 
+                @if(in_array(strtolower(auth()->user()->role ?? ''), ['admin', 'hrstaff', 'hr staff'], true))
+                    <x-sidebar-link :href="route('audit-logs.login')" :active="request()->routeIs('audit-logs.*')">
+                        <x-slot name="icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </x-slot>
+                        {{ __('Audit Log') }}
+                    </x-sidebar-link>
+                @endif
+
                 
             </div>
         @endif
 
-        <div class="pb-4">
-            <h3 x-show="!sidebarCollapsed" x-transition class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+        <div class="pb-3">
+            <h3 x-show="!sidebarCollapsed" x-transition class="px-3 text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
                 {{ __('Settings') }}
             </h3>
 
@@ -267,22 +278,26 @@
                 </x-sidebar-link>
             @endif
 
-            <form method="POST" action="{{ route('logout') }}" class="group mt-auto">
-                @csrf
-                <button type="submit"
-                    class="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-red-600 hover:bg-red-50 hover:text-red-700 transition duration-150 ease-in-out"
-                    :class="sidebarCollapsed ? 'justify-center px-2' : ''">
-                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
-                        </path>
-                    </svg>
-                    <span x-show="!sidebarCollapsed" x-transition>{{ __('Log Out') }}</span>
-                </button>
-            </form>
         </div>
     </nav>
+
+    <!-- Fixed Logout Button at the bottom -->
+    <div class="p-4 border-t border-gray-100 bg-white/50 shrink-0">
+        <form method="POST" action="{{ route('logout') }}" class="group">
+            @csrf
+            <button type="submit"
+                class="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-red-600 hover:bg-red-50 hover:text-red-700 transition duration-150 ease-in-out"
+                :class="sidebarCollapsed ? 'justify-center px-2' : ''">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
+                    </path>
+                </svg>
+                <span x-show="!sidebarCollapsed" x-transition>{{ __('Log Out') }}</span>
+            </button>
+        </form>
+    </div>
     </div> <!-- /End relative z-10 container -->
 </div>
 

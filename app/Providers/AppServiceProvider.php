@@ -2,7 +2,11 @@
 
 namespace App\Providers;
 
+use Illuminate\Auth\Events\Failed;
+use Illuminate\Auth\Events\Login;
+use Illuminate\Auth\Events\Logout;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -26,5 +30,9 @@ class AppServiceProvider extends ServiceProvider
                 Auth::user()->loadMissing('employee');
             }
         });
+
+        Event::listen(Login::class, [\App\Listeners\AuditLogListener::class, 'handleLogin']);
+        Event::listen(Failed::class, [\App\Listeners\AuditLogListener::class, 'handleFailed']);
+        Event::listen(Logout::class, [\App\Listeners\AuditLogListener::class, 'handleLogout']);
     }
 }
